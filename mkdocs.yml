@@ -1,0 +1,36 @@
+site_name: MkDoks for limku.com
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/ForceFledgling
+    - icon: fontawesome/brands/instagram
+      link: https://instagram.com/vladimir_penzin
+
+copyright: |
+  &copy; 2023 <a href="https://github.com/ForceFledgling" target="_blank" rel="noopener">Vladimir Penzin</a>
