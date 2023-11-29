@@ -30,8 +30,6 @@ theme:
 
 plugins:
   - search
-  - blog:
-      authors_profiles: true
 
 extra:
   homepage: https://www.limku.com
