@@ -1,5 +1,7 @@
-site_name: MkDoks for limku.com
+site_name: MkDocs for limku.com
 theme:
+  # logo: assets/logo.png
+  # favicon: images/favicon.png
   name: material
   features:
     - navigation.tabs
@@ -7,6 +9,7 @@ theme:
     - toc.integrate
     - navigation.top
     - search.suggest
+    - search.share
     - search.highlight
     - content.tabs.link
     - content.code.annotation
@@ -25,7 +28,13 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 
+plugins:
+  - search
+  - blog:
+      authors_profiles: true
+
 extra:
+  homepage: https://www.limku.com
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/ForceFledgling
