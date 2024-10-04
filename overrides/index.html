@@ -1,0 +1,65 @@
+{% extends "main.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ '/assets/styles/logo.css' | url }}" />
+    <style>
+        /* Изначально скрываем изображение */
+        .hero-image img {
+            visibility: hidden;
+        }
+    </style>
+{% endblock %}
+
+{% block hero %}
+<section class="hero-container">
+    <div class="md-grid md-typeset">
+        <div class="mdx-hero">
+            <div class="hero-image">
+                <img id="heroImage" src="/assets/images/logo.svg" alt="Hero Image" draggable="false" />
+            </div>
+            <div class="hero-content">
+                <h1>{{ page.meta.hero.title }}</h1>
+                <p>{{ page.meta.hero.subtitle }}</p>
+                <div class="hero-buttons">
+                    <a href="{{ config.courses_url }}" class="md-button">
+                        {{ page.meta.hero.install_button }}
+                    </a>
+                    <a href="{{ config.notes_url }}" class="md-button">
+                        {{ page.meta.hero.source_button }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const img = document.getElementById('heroImage');
+
+        function checkImageSize() {
+            // Временно делаем изображение видимым для корректного измерения
+            img.style.visibility = 'visible';
+            img.style.display = 'block';
+
+            const windowHeight = window.innerHeight;
+            const windowWidth = window.innerWidth;
+            const imgHeight = img.clientHeight;
+            const imgWidth = img.clientWidth;
+
+            // Проверяем, занимает ли изображение 50% или больше высоты или ширины окна
+            if (imgHeight >= windowHeight * 0.7 || imgWidth >= windowWidth * 0.7) {
+                img.style.visibility = 'hidden';  // Скрываем изображение, если оно слишком большое
+                img.style.display = 'none';  // Скрываем изображение, если оно слишком большое
+            }
+        }
+
+        // Запускаем проверку при первой загрузке страницы и при изменении размеров окна
+        window.addEventListener('resize', checkImageSize);
+        checkImageSize(); // Проверка при первой загрузке
+    });
+</script>
+
+{{ super() }}
+{% endblock %}
