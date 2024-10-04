@@ -1,0 +1,10 @@
+mkdocs
+mkdocs-material
+mkdocstrings[python]
+mkdocs-macros-plugin
+mkdocs-gen-files
+mkdocs-literate-nav
+
+# Подумать, мб удалить
+mkdocs-git-authors-plugin
+mkdocs-git-committers-plugin-2

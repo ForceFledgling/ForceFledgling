@@ -1,0 +1,18 @@
+.notilog-book-index {
+    display: grid;
+  }
+  
+  @media screen and (max-width: 320px) {
+    .notilog-book-index {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+  @media screen and (min-width: 321px) {
+    .notilog-book-index {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .notilog-book-index .item {
+    padding: 8px;
+  }

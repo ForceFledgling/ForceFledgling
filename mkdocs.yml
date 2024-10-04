@@ -1,0 +1,84 @@
+# Site
+site_name: Личные заметки
+site_author: Vladimir Penzin
+site_url: https://github.com/ForceFledgling/ForceFledgling
+copyright: 2024, Vladimir Penzin
+
+# Repo
+courses_url: /courses
+notes_url: /notes
+repo_url: https://github.com/ForceFledgling/ForceFledgling
+repo_name: github
+edit_uri: blob/main/docs/
+
+extra:
+  generator: false  # не отображать MkDocs copyright
+  social:
+    - icon: fontawesome/brands/telegram
+      link: https://t.me/vpotd
+      name: Vladimir Penzin on Telegram
+    - icon: fontawesome/brands/github
+      link: https://github.com/ForceFledgling
+      name: Vladimir Penzin on GitHub
+
+extra_css:
+  - assets/styles/extra.css
+
+theme:
+  name: material
+  favicon: assets/images/logo.svg
+  logo: assets/images/logo.svg
+  custom_dir: docs/overrides
+  language: ru
+  features:
+    - content.action.edit           # кнопка редактирования
+    - navigation.tabs               # меню
+    - navigation.tabs.sticky        # меню - прибиваем к верху
+    - navigation.footer             # навигация в футере
+    - navigation.instant.progress   # отображает вверху прогресс загрузки страницы (для медленных соединений)
+    - navigation.top                # добавляет кнопку прокрутки вверх
+    - search.highlight              # выделяет вхождения поиска после перехода
+    - search.share                  # позволяет скопировать в буфер поисковый URL
+  palette:
+    primary: white
+    accent: cyan
+  icon:  # Иконки следующей и предыдущей страниц
+    previous: fontawesome/solid/angle-left
+    next: fontawesome/solid/angle-right
+    repo: fontawesome/brands/github
+    edit: material/pencil
+
+plugins:
+  - search:
+  - macros:
+      module_name: macros
+      on_error_fail: true
+  - mkdocstrings:
+      enabled: true
+      default_handler: python
+      handlers:
+        python:
+          options:
+            heading_level: 4
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_bases: false
+            show_inheritance_diagram: true
+            find_stubs_package: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Главная: index.md
+  - Python:
+      - Обзор: modules/python/index.md
+  - DevOps:
+      - Обзор: modules/devops/index.md
