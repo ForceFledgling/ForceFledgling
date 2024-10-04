@@ -77,7 +77,8 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
-  - Главная:
+  - Основное меню:
+    - Главная: index.md
     - Каталог курсов: courses.md
     - Каталог заметок: notes.md
   - Python:
