@@ -77,11 +77,44 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
-  - Основное меню:
+  - Главная:
     - Главная: index.md
     - Каталог курсов: courses.md
     - Каталог заметок: notes.md
-  - Python:
+  - Программист:
       - Обзор: modules/python/index.md
+  - Python:
+    - Обзор: modules/python/index.md
+    - Основы Python:
+      - Типы и структуры данных: modules/python/base/types-and-structures.md
+      - Итераторы, генераторы: modules/python/base/iterators-generators.md
+      - Менеджер контекста:  modules/python/base/context.md
+      - Исключения: modules/python/base/exceptions.md
+    - ООП в Python:
+      - Объекты, области видимости: modules/python/oop/intro.md
+      - Стандартные модули и функции: modules/python/oop/intro.md
+      - Дескрипторы: modules/python/oop/intro.md
+      - Классы, наследование, метаклассы: modules/python/oop/intro.md
+    - Фреймворки и библиотеки:
+      - Типы и различия: modules/python/libs/intro.md
+      - Web: modules/python/libs/web.md
+      - ORM: modules/python/libs/orm.md
+      - Math: modules/python/libs/math.md
+    - Многопоточность и асинхронность: modules/python/parallelizm.md
+    - Логирование, мониторинг: modules/python/logging.md
+    - Базы данных: modules/python/db.md
+    - Тестирование и контроль качества кода: 
+      - Пирамида тестирования и умение писать тесты: modules/python/tests/intro.md
+      - Pylint, Pytest, PEP-8, PEP-257: modules/python/tests/linters.md
+    - Отладка и профилирование:
+      - Cython: modules/python/debug/cython.md
+      - Numba: modules/python/debug/numba.md
+      - Условные точки останова: modules/python/debug/points.md
+      - Трассировка: modules/python/debug/trace.md
+      - Отладка многопоточного и асинхронного кода: modules/python/debug/async.md
+      - Отладка на уровне интерпретатора: modules/python/debug/interpreter.md
+
+      
+
   - DevOps:
-      - Обзор: modules/devops/index.md
+    - Обзор: modules/devops/index.md
