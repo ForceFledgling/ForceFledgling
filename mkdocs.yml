@@ -75,14 +75,18 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
 
 nav:
   - Главная:
     - Главная: index.md
     - Каталог курсов: courses.md
     - Каталог заметок: notes.md
+
   - Программист:
       - Обзор: modules/python/index.md
+
   - Python:
     - Обзор: modules/python/index.md
     - Основы Python:
@@ -113,8 +117,6 @@ nav:
       - Трассировка: modules/python/debug/trace.md
       - Отладка многопоточного и асинхронного кода: modules/python/debug/async.md
       - Отладка на уровне интерпретатора: modules/python/debug/interpreter.md
-
-      
 
   - DevOps:
     - Обзор: modules/devops/index.md
