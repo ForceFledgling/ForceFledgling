@@ -21,7 +21,83 @@
          <lastmod>2024-10-05</lastmod>
     </url>
     <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/db/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/logging/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/parallelizm/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/base/context/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/base/exceptions/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/base/iterators-generators/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
          <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/base/types-and-structures/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/debug/async/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/debug/cython/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/debug/interpreter/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/debug/numba/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/debug/points/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/debug/trace/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/libs/intro/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/libs/math/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/libs/orm/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/libs/web/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/oop/intro/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/tests/intro/</loc>
+         <lastmod>2024-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/ForceFledgling/ForceFledgling/modules/python/tests/linters/</loc>
          <lastmod>2024-10-05</lastmod>
     </url>
 </urlset>
