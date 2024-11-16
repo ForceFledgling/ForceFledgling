@@ -84,8 +84,28 @@ nav:
     - Каталог курсов: courses.md
     - Каталог заметок: notes.md
 
-  - Программист:
-      - Обзор: modules/python/index.md
+  - Dev:
+      - Обзор: modules/dev/index.md
+      - Жизненный цикл разработки ПО:
+        - SDLС (этапы, практики, методологии): modules/dev/apps/sdlc.md
+        - Работа с требованиями (типы требований, DoD, DoR, декомпозиция и оценка): modules/dev/apps/req.md
+        - CI/CD (Continuous Integration и Continuous Delivery): modules/dev/apps/cicd.md
+        - Releases (типы, отличия): modules/dev/apps/releases.md
+        - Управлению разработкой (Agile, Scrum, aтрибуты, Канбан): modules/dev/apps/agile.md
+      - Структуры данных и алгоритмы: modules/dev/structures/index.md
+      - Software Design: modules/dev/softdesign/index.md
+      - Архитектура: modules/dev/arch/index.md
+      - API: modules/dev/api/index.md
+      - System Design: modules/dev/sysdesign/index.md
+      - Web безопасность: modules/dev/websec/index.md
+      - Обеспечение качества: modules/dev/qos/index.md
+      - Оптимизация и производительность: modules/dev/performance/index.md
+      - Frontend Development: modules/dev/front/index.md
+      - Базы данных: modules/dev/db/index.md
+      - Soft Skills: modules/dev/softskills/index.md
+  
+  - Git:
+    - Обзор: modules/git/index.md
 
   - Python:
     - Обзор: modules/python/index.md
