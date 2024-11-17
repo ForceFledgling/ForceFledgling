@@ -103,6 +103,10 @@ nav:
       - Frontend Development: modules/dev/front/index.md
       - Базы данных: modules/dev/db/index.md
       - Soft Skills: modules/dev/softskills/index.md
+      - Прочее: 
+        - Обзор: modules/dev/other/index.md
+        - Диаграммы: modules/dev/other/diagrams.md
+        - Анализы: modules/dev/other/analizes.md
   
   - Git:
     - Обзор: modules/git/index.md
