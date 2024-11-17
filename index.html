@@ -39,7 +39,6 @@
       
     
     
-    
       <link rel="stylesheet" href="assets/stylesheets/main.8c3ca2c6.min.css">
       
         
@@ -49,14 +48,6 @@
 
 
     
-    <link rel="stylesheet" href="/assets/styles/logo.css" />
-    <style>
-        /* Изначально скрываем изображение */
-        .hero-image img {
-            visibility: hidden;
-        }
-    </style>
-
     
       
     
@@ -304,56 +295,147 @@
     
     <div class="md-container" data-md-component="container">
       
-<section class="hero-container">
-    <div class="md-grid md-typeset">
-        <div class="mdx-hero">
-            <div class="hero-image">
-                <img id="heroImage" src="/assets/images/logo.svg" alt="Hero Image" draggable="false" />
-            </div>
-            <div class="hero-content">
-                <h1>Личные заметки</h1>
-                <p>Здесь собраны все курсы и заметки которые я проходил</p>
-                <div class="hero-buttons">
-                    <a href="/courses" class="md-button">
-                        Каталог курсов
-                    </a>
-                    <a href="/notes" class="md-button">
-                        Каталог заметок
-                    </a>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/tooplate-style.css">
+    <style>
+        body {
+            padding-top: 0;
+        }
+        .md-main {
+            display: none;
+        }
+        .about {
+            padding-top: 3em;
+            padding-bottom: 1em;
+        }
+    </style>
+
+    <!-- ABOUT -->
+    <section class="about full-screen d-lg-flex justify-content-center align-items-center" id="about">
+        <div class="container">
+            <div class="row">
+                
+                <div class="col-lg-7 col-md-12 col-12 d-flex align-items-center">
+                    <div class="about-text">
+                        <small class="small-text">Добро пожаловать <span class="mobile-block">в мои заметки!</span></small>
+                        <h1 class="animated animated-text">
+                            <span class="mr-2">Будет полезно, для</span>
+                                <div class="animated-info">
+                                    <span class="animated-item">прогеров </span>
+                                    <span class="animated-item">сисадминов</span>
+                                    <span class="animated-item">сетевиков</span>
+                                </div>
+                        </h1>
+
+                        <p>Building a successful product is a challenge. I am highly energetic in user experience design, interfaces and web development.</p>
+                    </div>
                 </div>
+
+                <div class="col-lg-5 col-md-12 col-12">
+                    <div class="about-image svg">
+                        <img src="images/undraw/undraw_software_engineer_lvl5.svg" class="img-fluid" alt="svg image">
+                    </div>
+                </div>
+
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const img = document.getElementById('heroImage');
+    <!-- FEATURES -->
+    <section class="resume py-5 d-lg-flex justify-content-center align-items-center" id="resume">
+        <div class="container">
+            <div class="row">
 
-        function checkImageSize() {
-            // Временно делаем изображение видимым для корректного измерения
-            img.style.visibility = 'visible';
-            img.style.display = 'block';
+                <div class="col-lg-6 col-12">
+                  <h2 class="mb-4">Hard Skills</h2>
 
-            const windowHeight = window.innerHeight;
-            const windowWidth = window.innerWidth;
-            const imgHeight = img.clientHeight;
-            const imgWidth = img.clientWidth;
+                    <div class="timeline">
+                        <div class="timeline-wrapper">
+                             <div class="timeline-yr">
+                                  <span>2024</span>
+                             </div>
+                             <div class="timeline-info">
+                                <h3><span>Python</span><small></small></h3>
+                                <p>
+                                    Proin ornare non purus ut rutrum. Nulla facilisi. Aliquam laoreet libero ac pharetra feugiat. Cras ac fermentum nunc, a faucibus nunc.
+                                    <br><a rel="nofollow" href="/modules/dev/">Приступить</a>
+                                </p>
+                             </div>
+                        </div>
 
-            // Проверяем, занимает ли изображение 50% или больше высоты или ширины окна
-            if (imgHeight >= windowHeight * 0.7 || imgWidth >= windowWidth * 0.7) {
-                img.style.visibility = 'hidden';  // Скрываем изображение, если оно слишком большое
-                img.style.display = 'none';  // Скрываем изображение, если оно слишком большое
-            }
-        }
+                        <div class="timeline-wrapper">
+                            <div class="timeline-yr">
+                                <span>2024</span>
+                            </div>
+                            <div class="timeline-info">
+                                <h3><span>Git</span><small></small></h3>
+                                <p>
+                                    Proin ornare non purus ut rutrum. Nulla facilisi. Aliquam laoreet libero ac pharetra feugiat. Cras ac fermentum nunc, a faucibus nunc.
+                                    <br><a rel="nofollow" href="/modules/dev/">Приступить</a>
+                                </p>
+                            </div>
+                        </div>
 
-        // Запускаем проверку при первой загрузке страницы и при изменении размеров окна
-        window.addEventListener('resize', checkImageSize);
-        checkImageSize(); // Проверка при первой загрузке
-    });
-</script>
+                        <div class="timeline-wrapper">
+                            <div class="timeline-yr">
+                                <span>2024</span>
+                            </div>
+                            <div class="timeline-info">
+                                <h3><span>Разработка</h3>
+                                <p>
+                                    Proin ornare non purus ut rutrum. Nulla facilisi. Aliquam laoreet libero ac pharetra feugiat. Cras ac fermentum nunc, a faucibus nunc.
+                                    <br><a rel="nofollow" href="/modules/dev/">Приступить</a>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-wrapper">
+                            <div class="timeline-yr">
+                                <span>2024</span>
+                            </div>
+                            <div class="timeline-info">
+                                <h3><span>DevOps<small>Внешний курс</small></h3>
+                                <p>
+                                    Proin ornare non purus ut rutrum. Nulla facilisi. Aliquam laoreet libero ac pharetra feugiat. Cras ac fermentum nunc, a faucibus nunc.
+                                    <br><a rel="nofollow" href="/modules/dev/">Приступить</a>
+                                </p>
+                            </div>
+                        </div>
 
+                    </div>
+                </div>
 
+                <div class="col-lg-6 col-12">
+                  <h2 class="mb-4 mobile-mt-2">Soft Skills</h2>
+
+                    <div class="timeline">
+                        <div class="timeline-wrapper">
+                             <div class="timeline-yr">
+                                  <span>N/A</span>
+                             </div>
+                             <div class="timeline-info">
+                                  <h3><span>English</span><small>Запланировано</small></h3>
+                                  <p>Please tell your friends about Tooplate website. That would be very helpful. We need your support.</p>
+                             </div>
+                        </div>
+
+                        <div class="timeline-wrapper">
+                            <div class="timeline-yr">
+                                <span>N/A</span>
+                            </div>
+                            <div class="timeline-info">
+                                <h3><span>Agile</span><small>Запланировано</small></h3>
+                                <p><a rel="nofollow" href="https://www.facebook.com/tooplate">Tooplate</a> is a great website to download HTML templates without any login or email.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+</html>
 
       
         
