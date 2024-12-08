@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,879 @@
 
   <h1>Ansibe ч.1</h1>
 
+<p>Системы управления конфигурациями позволяют настраивать существующие компоненты инфраструктуры (в основном виртуальные или физические сервера). Такие системы разделяют на две большие категории по модели их работы:  </p>
+<p>Push модель — конфигурация загружается на целевой компонент извне, из какой-либо внешней локации (мы толкаем изменения в цель);<br />
+Pull модель — конфигурация загружается на целевой компонент агентом из известного хранилища конфигураций, установленным на этот компонент (цель тянет изменения сама);<br />
+Push модель проще в реализации, т.к. не требует поддержания централизованного хранилища конфигураций (задачи обновления могут запускаться вручную, при помощи CI задач и т. п.), но она хуже масштабируется, т.к. для запуска синхронизации множества целей используются ресурсы одной машины.  </p>
+<p>Pull модель же сложнее и создает новый класс проблем, связанных с синхронным обновлением конфигурации в кластерах (например при обновлении кластера etcd нужно контролировать, чтобы хосты перезапускались так, чтобы не нарушался кворум), но при этом лучше масштабируется, т.к. для применения конфигурации используются ресурсы целей, а не какой-то одной машины, с которой запускается процесс в Push модели.</p>
+<p>Предварительная настройка</p>
+<p>На занятиях мы рассмотрим систему управления конфигурациями Ansible, т.к. это самая популярная подобная система и она широко применяется как в МТС, так и за его пределами.  </p>
+<p>Ansible использует Push модель и поддерживает настройку Linux, Windows хостов, а также других целей при помощи различных плагинов подключения.  </p>
+<p>На Linux Ansible использует SSH для подключения к хосту и для выполнения операций запускает на целях автоматически сгенерированные скрипты на Python.  </p>
+<p>Введем основную терминологию Ansible, которая часто встречается в документации:<br />
+Контроллер (controller) — хост, с которого запускается Ansible;<br />
+Цель (target) — хосты, на которых Ansible выполняет действия;<br />
+Инвентарь (inventory) — набор целей, с привязанными к ним параметрами (параметры подключения, переменные для запускаемых скриптов и т. п.);<br />
+Группа (group) — именованное множество целей, с привязанным к нему параметрами;<br />
+Модуль (module) — минимально возможная операция в Ansible;<br />
+Задача (task) — модуль с параметрами запуска (например условиями);<br />
+Роль (role) — переиспользуемая последовательность задач;<br />
+Плей (play) — последовательность ролей и отдельных задач, запускаемых на конкретном множестве целей;<br />
+Плейбук (playbook) -- последовательность плеев.  </p>
+<p>Обратите внимание, что Ansible четко разделяет что мы запускаем (задачи, роли) от того, где мы это запускаем (плеи, плейбуки, инвентари). Такое разделение позволяет писать переиспользуемые конфигурации.  </p>
+<p>Познакомимся с названными концепциями подробнее. Мы устанавливали Ansible на первом занятии, приведем команды для установки еще раз:</p>
+<div class="highlight"><pre><span></span><code>$ sudo apt-add-repository --update ppa:ansible/ansible
+$ sudo apt install ansible
+</code></pre></div>
+<p>Создайте рабочую область для Ansible, далее все операции мы будем выполнять в ней:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir -p ~/projects/ansible
+$ cd ~/projects/ansible
+</code></pre></div>
+<p>Начнем с создания Ansible инвентаря, в который добавим наши ВМ.  </p>
+<p>Создайте файл hosts. yaml в рабочей области:</p>
+<div class="highlight"><pre><span></span><code>all:
+  vars:
+    ansible_user: student  # SSH пользователь, используемый Ansible
+    ansible_ssh_private_key_file: &quot;~/.ssh/id_rsa&quot;  # Путь к приватному SSH ключу на контроллере
+  hosts:
+    vm1:
+      ansible_host: 10.0.10.1  # Адрес, используемый Ansible для подключения.
+                               # Должен быть доступен с контроллера
+    vm2:
+      ansible_host: 10.0.10.2
+  children:
+    part1:
+    part2:
+part1:
+  hosts:
+    vm1:
+part2:
+  hosts:
+    vm2:
+</code></pre></div>
+<p>В корне YAML файла объявляются группы целей, мы объявили три — all, part1, part2. Если быть точнее, то группу all мы не объявляли — она служебная, существует всегда и содержит все объявленные в инвентаре цели. Из-за этого описывать в ней все обязательные параметры целей (чаще всего параметры подключения) — распространенная практика.  </p>
+<p>В группе all мы объявили три секции — vars, hosts, children. В vars содержатся переменные группы, в hosts — имена целей с их персональными переменными, в children — имена дочерних групп (родительская группа будет содержать цели и переменные своих дочерних групп). Такая запись children ничего не меняет, т.к. all является родительской группой всех остальных групп по-умолчанию.</p>
+<p>Ansible нет понятия области видимости переменных — все переменные глобальные и набор переменных конкретной цели формируется слиянием переменных всех групп, в которых состоит хост и его личных переменных.</p>
+<p>Далее мы объявляем две группы — part1 и part2 и добавляем vm1 в первую, vm2 — во вторую. Обратите внимание, что мы можем дополнить переменные целей, когда указываем, что они часть группы. Такой прием имеет смысл в больших инвентарях, чтобы группировать переменные по смыслу.  </p>
+<p>Теперь напишем конфигурацию запуска Ansible. Создайте в рабочей области файл ansible. cfg:</p>
+<div class="highlight"><pre><span></span><code>[defaults] 
+host_key_checking = false 
+inventory = ./hosts.yaml
+</code></pre></div>
+<p>Ansible по умолчанию включает проверку ключа хоста. Проверка ключей хоста защищает от подмены сервера и атак «человек посередине», но требует некоторого обслуживания. Если хост переустановлен и имеет другой ключ в «known_hosts», это приведет к появлению сообщения об ошибке, пока оно не будет исправлено. Если нового хоста нет в «known_hosts», ваш управляющий узел может запросить подтверждение ключа, что приводит к интерактивному взаимодействию при использовании Ansible.  </p>
+<p>Отключается через host_key_checking = false.<br />
+Проверим, что инвентарь написан корректно. Следующая команда выведет полное содержимое инвентаря во внутреннем формате Ansible:</p>
+<div class="highlight"><pre><span></span><code>$ ansible-inventory --list
+</code></pre></div>
+<p>И проверим подключение ко всем хостам:</p>
+<div class="highlight"><pre><span></span><code>$ ansible -m ping all
+</code></pre></div>
+<p>Ручные действия</p>
+<p>Ansible позволяет применять изменения к целям из консоли при помощи команды ansible, таким образом мы только что проверили доступность целей инвентаря. Основной синтаксис команды таков:</p>
+<div class="highlight"><pre><span></span><code>$ ansible &lt;-m | --module-name MODULE_NAME&gt; [-b | --become] [-a | --args MODULE_ARGS] [-e | --extra-args EXTRA_ARGS] &lt;HOST_PATTERN&gt;
+</code></pre></div>
+<p>Здесь:<br />
+-m | --module-name MODULE_NAME — имя запускаемого модуля;<br />
+-b | --become — повысить привилегии до root перед запуском модуля;<br />
+-a | --args MODULE_ARGS — аргументы модуля в формате ключ-значение (key1=value1 key2=value2 …);<br />
+-e | --extra-args EXTRA_ARGS — дополнительные переменные в формате ключ-значение;<br />
+HOST_PATTERN — набор целей; здесь можно указывать имена целей и групп, разделяя их.  </p>
+<p>Эта команда поддерживает множество других параметров, посмотреть которые можно при помощи команды ansible — help.<br />
+Зная синтаксис команды, установим и запустим Nginx на ВМ2:</p>
+<div class="highlight"><pre><span></span><code>$ ansible -b -m apt -a &#39;name=nginx update_cache=true state=present&#39; vm2 
+$ ansible -b -m systemd_service -a &#39;name=nginx.service enabled=true state=started&#39; vm2
+</code></pre></div>
+<p>Первый модуль выполнил аналог команды sudo sh -c 'apt update &amp;&amp; apt install nginx'.<br />
+Второй — sudo systemctl enable --now nginx. service.<br />
+Информация об аргументах доступна на сайте документации Ansible — <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html">ansible.builtin.apt</a>, <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_service_module.html#ansible-collections-ansible-builtin-systemd-service-module">ansible.builtin.systemd_service</a>.  </p>
+<p>При выполнении ad-hoc операций или тестировании модулей писать каждый раз аргументы ansible и набор целей неудобно. Если вам требуется выполнять такие операции используйте интерактивную консоль ansible-console.  </p>
+<p>Обратите внимание на вывод команд: каждый вызов ansible запустил по одной задаче на vm2 и завершился со статусом ok или changed. Во время запуска модуля Ansible проверяет нужны ли изменения на целевом хосте и ничего не делает, если действий не требуется.  </p>
+<p>Статус ok отражает такую ситуацию — хост уже в целевом состоянии, действий не требуется. changed показывает обратную ситуацию — хост не был в целевом состоянии, были выполнены действия для приведения хоста в это состояние. Продемонстрируем это, выполня команду установки Nginx еще раз:</p>
+<div class="highlight"><pre><span></span><code>$ ansible -b -m apt -a &#39;name=nginx state=present&#39; vm2
+</code></pre></div>
+<p>Обратите внимание на статус ok и на то как быстро завершился модуль. Ansible проверил что пакет nginx уже установлен и не стал ничего делать.<br />
+Теперь заменим конфигурацию Nginx на nginx. conf, чтобы наш сервер проксировал все запросы на сервис тестирования запросов <a href="https://httpbin.org/">httpbin.org</a>.  </p>
+<p>Содержимое файла nginx. conf:</p>
+<div class="highlight"><pre><span></span><code>user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
 
+events {
+  worker_connections 768;
+}
+
+http {
+  sendfile on;
+  tcp_nopush on;
+  types_hash_max_size 2048;
+
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
+
+  gzip on;
+
+  server {
+    listen 80 default_server;
+
+    location / {
+      proxy_pass https://httpbin.org;
+    }
+  }
+}
+</code></pre></div>
+<p>Для копирования файла на хост воспользуемся модулем copy:</p>
+<div class="highlight"><pre><span></span><code>$ ansible -b -m copy -a &#39;src=nginx.conf dest=/etc/nginx/nginx.conf owner=root group=root mode=644&#39; vm2
+</code></pre></div>
+<p>Чтобы Nginx перечитал конфигурацию подадим процессу команду reload при помощи systemd:</p>
+<div class="highlight"><pre><span></span><code>$ ansible -b -m systemd_service -a &#39;name=nginx.service state=reloaded&#39; vm2
+</code></pre></div>
+<p>Проверим корректность конфигурации, сделав запрос к httpbin.org через Nginx при помощи модуля url:</p>
+<div class="highlight"><pre><span></span><code>$ ansible -m uri -a &#39;url=&quot;http://127.0.0.1/status/200&quot;&#39; vm2
+</code></pre></div>
+<p>Теперь отменим все наши изменения:</p>
+<div class="highlight"><pre><span></span><code>$ ansible -b -m systemd_service -a &#39;name=nginx.service enabled=false state=stopped&#39; vm2
+$ ansible -b -m apt -a &#39;name=nginx state=absent&#39; vm2
+$ ansible -b -m file -a &#39;path=/etc/nginx state=absent&#39; vm2
+</code></pre></div>
+<p>Здесь мы использовали модуль file, который используется для работы с файлами и директориями на целевых хостах. С его помощью мы будем изменять атрибуты файлов, создавать директории, создавать пустые папки, удалять файлы и директории.</p>
+<p>Плейбуки</p>
+<p>Заметим, что при помощи последовательного вызова консольных команд сложно построить какой-либо сценарий автоматизации. Поэтому для для написания сценариев в Ansible используются плеи — последовательности задач, запускаемые на конкретном наборе целей, которые группируются в плейбуки. Написать один плей в Ansible нельзя, поэтому создадим плейбук nginx_simple.play.yml, повторяющий ручные действия:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+        state: present
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Copy config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>Заметим, что в корне файла находится список плеев (в нашем случае из одного элемента) и каждый плей содержит имя (name), набор целей (hosts) и список задач (tasks). Также указан опциональный параметр become, аналогичный опции -b, чтобы модули выполнялись из-под суперпользователя.  </p>
+<p>В отличие от ручного запуска модулей настоятельно рекомендуется давать всем задачам и плеям понятные имена, чтобы лог действий Ansible был проще и понятнее.<br />
+Запустим наш плейбук при помощи команды ansible-playbook:</p>
+<div class="highlight"><pre><span></span><code>$ ansible-playbook nginx_simple.play.yml
+</code></pre></div>
+<p>Параметризуем наш плей, вынеся пути копируемого файла в переменные:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__config_src: nginx.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install nginx package
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+        state: present
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>Теперь вместо конкретных путей к файлу в задаче Copy config используется шаблон (обратите внимание на {{ и }}) внутри которого подставляется значение переменных nginx__config_src и nginx__config_dest.  </p>
+<p>Здесь вместо переменных, указанных напрямую в плее, могут использоваться переменные инвентаря и переменные заданные при запуске команды ansible-playbook аргументом -e. Следовательно мы можем использовать другую конфигурацию, переопределив переменную в инвентаре или командной строке.</p>
+<p>Обратите внимание на длинные названия переменных: в Ansible все переменные глобальны, поэтому не используйте простые имена как i, src, dest, target и т. п. Наличие одинаковых переменных в нескольких источниках (переменных роли, плейбука, инвентаря) приведет к их перетиранию и отладочным сессиям, где вы будете выяснять какое именно значение переменной используется при запуске и откуда оно берется.</p>
+<p>Ansible использует шаблоны для реализации подстановки значений переменных и любых вычислений во время работы сценария. При помощи шаблонов мы будем, например, запускать задачи только на хостах с определенной конфигурацией или создавать конфиги, зависящие от переменных инвентаря.  </p>
+<p>В качестве языка шаблонов Ansible использует <a href="https://jinja.palletsprojects.com/en/3.0.x/">Jinja2</a>, который может быть знаком Python разработчикам, т.к. он широко используется в Web фреймворках, таких как Django и Flask для генерации HTML на стороне сервера. Мы обсудим Jinja2 далее, сейчас же рассмотрим основные приемы написания плейбуков.  </p>
+<p>Заметим, что при повторных запусках плейбука задача Reload Nginx service всегда имеет статус changed как будто он создает изменения. Несложно заметить, что никаких изменений задача не производит, а лишь вынуждает Nginx бесцельно перечитывать свой конфиг. Такие задачи в Ansible называют неидемпотентными, т.к. они не изменяют видимое состояние цели (или Ansible не может отследить это изменение).  </p>
+<p>Появление таких задач — следствие того, что Ansible не использует для никаких внутренних механизмов для отслеживания состояния целей и возлагает на разработчиков обязанность писать идемпотентные сценарии, т. е. такие сценарии которые переводят цель из одного отслеживаемого состояния в другое такое состояние.  </p>
+<p>Ключевое свойство идемпотентных сценариев — при повторном запуске сценарий не сделает никаких изменений. Писать неидемпотентный код на Ansible очень просто, например использование модулей command и shell, запускающих произвольные команды, неидемпотентно, т.к. Ansible не может отследить что именно изменили эти команды (и изменили ли вообще).  </p>
+<p>Исправим неидемпотентность нашего плея: запустим плейбук, включив более подробный вывод (-v) и заметим, что все задачи после запуска выводят какой-то JSON документ — это результат выполнения задачи. Он зависит от модуля, но содержит несколько общих параметров, например статус задачи.  </p>
+<p>Мы можем записать результат выполнения задачи в переменную Ansible при помощи директивы register. Сохраним результат задачи Copy config, чтобы запускать Reload Nginx service только тогда, когда Copy config выполнила изменения:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__config_src: nginx.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+        state: present
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      register: __copy_config
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>Теперь добавим условие запуска для задачи Reload Nginx service при помощи директивы when -- она принимает как аргумент выражение Jinja2 без скобок ({{ и }}), которое должно возвращать true или false.  </p>
+<p>Наш случай очень прост, т.к. для него в Ansible предусмотрен Jinja2 тест changed. Тесты Jinja2 — это функции, принимающие один аргумент и возвращающие true или false, они вызываются так — ARG is TEST_NAME и используются для проверки условий.  </p>
+<p>Добавим when к задаче Reload Nginx service:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__config_src: nginx.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+        state: present
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      register: __copy_config
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+      when: __copy_config is changed
+</code></pre></div>
+<p>Список тестов Jinja2 смотри в <a href="https://jinja.palletsprojects.com/en/3.0.x/templates/#list-of-builtin-tests">документации</a>, также Ansible определяет свои тесты, такие как changed — <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_tests.html">документация</a>.</p>
+<p>Перезапустим плейбук и обратим внимание, что задача Reload Nginx service завершилась со статусом skipped — это статус для задач, пропущенных из-за невыполненного условия when.  </p>
+<p>Вы можете подумать, что это довольно неуклюжее решение для такой простой проблемы и будете абсолютно правы. Для решения этой проблемы Ansible опрелеляет хендлеры (handlers) —- задачи, запускаемые при изменении в других задачах.  </p>
+<p>Перенесем задачу Reload Nginx service в секцию handlers плея:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__config_src: nginx.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+        state: present
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+  handlers:
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>Мы вынесли задачу Reload Nginx service в отдельный список handlers. Задачи в этом списке независимы и не запускаются последовательно. Вместо этого они запускаются в конце выполнения плея в случае, если они были запрошены одной из основных задач.  </p>
+<p>Запрос выполняется директивой notify, которая принимает как аргумент имя одного или нескольких хендлеров.<br />
+Изменим конфиг Nginx, добавив комментарий:</p>
+<div class="highlight"><pre><span></span><code>user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+  worker_connections 768;
+}
+
+http {
+  sendfile on;
+  tcp_nopush on;
+  types_hash_max_size 2048;
+
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
+
+  gzip on;
+
+  server {
+    listen 80 default_server;
+
+    # Proxy to httpbin.org
+    location / {
+      proxy_pass https://httpbin.org;
+    }
+  }
+}
+</code></pre></div>
+<p>Перезапустим плейбук:</p>
+<div class="highlight"><pre><span></span><code>$ ansible-playbook nginx_simple.play.yml
+</code></pre></div>
+<p>Обратите внимание на появившуюся секцию RUNNING HANDLER в выводе ansible-playbook. Запустим плейбук еще раз и заметим, что хендлеры не запустились, т.к. Copy config ничего не изменила.  </p>
+<p>Также добавим хендлер к задаче Install nginx package, чтобы перезапускать Nginx при обновлении:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__config_src: nginx.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: restarted
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>Приглядимся внимательнее к задаче Install nginx package: как вообще обновить Nginx при помощи этой задачи? Ее параметры говорят, что задача устанавливает Nginx какой-либо версии и если Nginx уже установлен, то ее запуск не создаст изменений.<br />
+Следовательно, после первой установки такой плейбук никогда не обновит Nginx и со временем его использование приведет к дрейфу конфигураций (configuration drift) — ситуации, когда фактическое состояние однотипных целей (настраиваемых при помощи одинаковых сценариев с одинаковым набором переменных) отличается.  </p>
+<p>В нашей ситуации дрейф наступает при настройке второго хоста через несколько месяцев, после выхода следующего релиза Nginx. На практике дрейф неизбежен и наша задача как разработчиков сценариев автоматизации -- минимизировать его.  </p>
+<p>Как это сделать здесь? Документация модуля apt говорит о параметре state: latest, который вынудит задачу Install nginx package обновлять Nginx до последней версии при запуске. Такое решение частично решит проблему, но снова сделает плей неидемпотентным, что также нас не устраивает. Фиксация версии пакета в переменной решает обе проблемы:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__version: &quot;1.18.0*&quot;
+    nginx__config_src: nginx.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version }\}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: restarted
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>Теперь, чтобы обновить Nginx, нужно обновить версию пакета в плейбуке, что сделает изменение явным. Но фиксация версий всех пакетов хоста и их регулярное обновление — трудоемкая задача, поэтому помните, что лучшее — враг хорошего, и фиксируйте действительно важные для системы параметры.<br />
+[Версия пакета PostgreSQL на серверах БД должна быть зафиксирована, но, например, службу NetworkManager можно обновлять произвольно.]  </p>
+<p>Сейчас мы предполагаем, что конфиг, передаваемый в Copy config корректен, но это часто не так. Текущая реализация, получив некорректный конфиг, заменит старый конфиг и либо уронит Nginx, либо Nginx напишет в лог предупреждение и не заменит конфиг, что вызовет падение при следующем перезапуске Nginx в будущем.  </p>
+<p>К счастью, Nginx умеет валидировать свои конфиги командой nginx -t -c ABSOLULE_PATH_TO_CONFIG. Модифицируем наш плейбук так, чтобы валидировать конфиг перед обновлением:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__version: &quot;1.18.0&quot;
+    nginx__config_src: nginx.conf
+    nginx__config_temp: /etc/nginx/nginx.new.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version }\}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_temp }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t -c &#39;{\{ nginx__config_temp }\}&#39;&quot;
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_temp }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+        remote_src: true
+      notify:
+        - Reload Nginx service
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: restarted
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>Здесь мы использовали модуль command, чтобы выполнить произвольную команду на цели и снова сделали плейбук неидемпотентным, т.к. Ansible не знает изменил ли что-либо запуск команды на хосте. Мы же знаем, что эта команда ничего не изменяет.  </p>
+<p>Чтобы задать это явно используется директива changed_when, которая принимает выражение Jinja2, возвращающее true, когда команда сделала изменения и false иначе (для вычисления этого выражения часто используют результат выполнения модуля). В нашем случае команда никогда не приводит к изменениям, напишем в условии false:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  become: true
+  vars:
+    nginx__version: &quot;1.18.0&quot;
+    nginx__config_src: nginx.conf
+    nginx__config_temp: /etc/nginx/nginx.new.conf
+    nginx__config_dest: /etc/nginx/nginx.conf
+  tasks:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version }\}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ nginx__config_temp }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t -c &#39;{\{ nginx__config_temp }\}&#39;&quot;
+      changed_when: false
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_temp }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+        remote_src: true
+      notify:
+        - Reload Nginx service
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: restarted
+    - name: Reload Nginx service
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        state: reloaded
+</code></pre></div>
+<p>На этом закончим доработки нашего плея.</p>
+<p>Роли</p>
+<p>Несложно представить, что нам потребуется использовать этот сценарий в нескольких инвентарях или на нескольких независимых целях в одном. Для таких случаев в Ansible предусмотрены роли (roles) — именованные группы задач, у которых явно объявлены входные параметры.  </p>
+<p>Создадим в рабочей области папку для будущих ролей:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir -p roles
+</code></pre></div>
+<p>Теперь создадим новую роль при помощи утилиты ansible-galaxy:</p>
+<div class="highlight"><pre><span></span><code>$ ansible-galaxy init ./roles/nginx
+</code></pre></div>
+<p>Роли Ansible состоят из нескольких компонентов, организованных в фиксированную структуру папок:</p>
+<div class="highlight"><pre><span></span><code>$ tree ./roles/nginx
+./roles/nginx
+├── defaults
+│   └── main.yml
+├── files
+├── handlers
+│   └── main.yml
+├── meta
+│   └── main.yml
+├── tasks
+│   └── main.yml
+├── templates
+├── tests
+│   ├── inventory
+│   └── test.yml
+├── vars
+│   └── main.yml
+└── README.md
+</code></pre></div>
+<p>defaults — значения по умолчанию для параметров роли; здесь описываются все переменные, которые может переопределить пользователь роли;<br />
+files — статичные файлы (чаще всего для копирования на цели);<br />
+handlers — хендлеры роли;<br />
+meta — метаданные для публикации в репозитории Ansible ролей;<br />
+tasks — задачи роли;<br />
+templates — шаблонизированные файлы (чаще всего для копирования на хосты параметризованных конфигов);<br />
+tests — тесты роли;<br />
+vars — внутренние переменные роли, которые не должны переопределяться пользователем;<br />
+<a href="http://readme.md/">README.md</a> — описание роли.</p>
+<p>Подробнее смотри в <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html#role-directory-structure">документации</a>.</p>
+<p>Мы не будем сегодня рассматривать публикацию ролей и их тестирование, поэтому удалим эти директории (здесь и далее все команды выполняются из папки с ролью):</p>
+<div class="highlight"><pre><span></span><code>$ rm -rf ./tests ./meta
+</code></pre></div>
+<p>Структура репозитория</p>
+<div class="highlight"><pre><span></span><code>$ tree .
+.
+├── inventories
+│   └── main
+│       ├── group_vars
+│       ├── host_vars
+│       └── hosts.yaml
+├── roles
+│   └── nginx
+├── ansible.cfg
+├── nginx_simple.play.yml
+└── README.md
+</code></pre></div>
+<p>Он отличается от текущего тем, что инвентари вынесены в отдельные папки (main) в папке inventories. Изменим инвентарь:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir -p inventories/main/{group_vars,host_vars}
+$ mv hosts.yaml inventories/main/hosts.yaml
+</code></pre></div>
+<p>Также изменим путь к инвентарю по-умолчанию в ansible.cfg:</p>
+<div class="highlight"><pre><span></span><code>[defaults]
+host_key_checking = false
+inventory = inventories/main
+</code></pre></div>
+<p>Подробнее о структуре репозитория смотри в <a href="https://docs.ansible.com/ansible/latest/tips_tricks/sample_setup.html#alternative-directory-layout">документации</a>.</p>
+<p>Установка Nginx в виде роли</p>
+<p>Приступим к написанию роли Nginx. Для начала перенесем плейбук в роль без изменений. Скопируем параметры в defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>nginx__version: &quot;1.18.0&quot;
+nginx__config_src: nginx.conf
+nginx__config_temp: /etc/nginx/nginx.new.conf
+nginx__config_dest: /etc/nginx/nginx.conf
+</code></pre></div>
+<p>Вынесем переменную nginx__config_temp, т.к. это деталь реализации, которую пользователь может проигнорировать. Перенесем ее в vars/main.yml, переименовав в __config_temp:</p>
+<div class="highlight"><pre><span></span><code>__config_temp: &quot;/etc/nginx/nginx.conf.new&quot;
+</code></pre></div>
+<p>Мы продолжаем давать переменным странные имена из-за того, что в Ansible все переменные глобальны и пересечение имен переменных приведет к сложным при отладке ошибкам.</p>
+<p>Скопируем задачи в tasks/main.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx package
+  ansible.builtin.apt:
+    name: &quot;nginx={\{ nginx__version }\}&quot;
+    update_cache: true
+    state: present
+  notify:
+    - Restart Nginx
+- name: Copy new config
+  ansible.builtin.copy:
+    src: &quot;{\{ nginx__config_src }\}&quot;
+    dest: &quot;{\{ __config_temp }\}&quot;
+    owner: root
+    group: root
+    mode: &quot;644&quot;
+- name: Validate new config
+  ansible.builtin.command:
+    cmd: &quot;nginx -t -c &#39;{\{ __config_temp }\}&#39;&quot;
+  changed_when: false
+- name: Copy config
+  ansible.builtin.copy:
+    src: &quot;{\{ __config_temp }\}&quot;
+    dest: &quot;{\{ nginx__config_dest }\}&quot;
+    owner: root
+    group: root
+    mode: &quot;644&quot;
+    remote_src: true
+  notify:
+    - Reload Nginx service
+- name: Enable Nginx service now
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    enabled: true
+    state: started
+</code></pre></div>
+<p>Заметим, что теперь нам негде указать become: true, т.к. раньше мы делали это в параметрах плея. Мы можем указать этот параметр в каждой задаче, но это довольно громоздко.  </p>
+<p>Для вынесения общих параметров группы задач в Ansible используется специальный модуль block — он принимает на вход группу задач и применяет к ним свои директивы:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version }\}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ __config_temp }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t -c &#39;{\{ __config_temp }\}&#39;&quot;
+      changed_when: false
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ __config_temp }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+        remote_src: true
+      notify:
+        - Reload Nginx service
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+</code></pre></div>
+<p>К блокам можно применить почти все параметры задач, например when, чтобы выполнить группу задач по условию.  </p>
+<p>Также блоки можно использовать как аналог try-catch для обработки ошибок при помощи директив always и rescue — они принимают на вход список задач, которые выполняются после блока либо всегда (независимо от того, возникла ли ошибка в одной из задач модуля), либо при ошибке в одной из задач.  </p>
+<p>Добавим удаление временного конфига ({{ __config_temp }}) при ошибке:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version }\}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: &quot;{\{ nginx__config_src }\}&quot;
+        dest: &quot;{\{ __config_temp }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t -c &#39;{\{ __config_temp }\}&#39;&quot;
+      changed_when: false
+    - name: Copy config
+      ansible.builtin.copy:
+        src: &quot;{\{ __config_temp }\}&quot;
+        dest: &quot;{\{ nginx__config_dest }\}&quot;
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+        remote_src: true
+      notify:
+        - Reload Nginx service
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+  rescue:
+    - name: Remove new config on error
+      file:
+        path: &quot;{\{ __config_temp }\}&quot;
+        state: absent
+</code></pre></div>
+<p>Скопируем хендлеры в handlers/main.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Restart Nginx
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: restarted
+- name: Reload Nginx service
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: reloaded
+</code></pre></div>
+<p>Столкнемся с проблемой, аналогичной задачам: негде указать become: true. Но в отличие от задач мы не можем объединять хендлеры в блоки, т.к. каждый хендлер — независимая задача. Напишем become: true явно в каждом:</p>
+<div class="highlight"><pre><span></span><code>- name: Restart Nginx
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: restarted
+  become: true
+- name: Reload Nginx service
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: reloaded
+  become: true
+</code></pre></div>
+<p>Мы переделали наш плей в роль, заменим задачи в плейбуке nginx_simple.play.yml на вызов роли:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx on vm2
+  hosts: vm2
+  roles:
+    - nginx
+</code></pre></div>
+<p>Наша роль подойдет для настройки Nginx в качестве простой TCP прокси, но Nginx чаще используют для сложных сценариев L7 балансировки, когда за прокси скрывается множество HTTP сервисов. Пользователю роли в таком случае придется написать полный конфиг руками, что не очень удобно и чревато ошибками.  </p>
+<p>На следующем занятии переработаем роль для установки Nginx как L7 балансировщика.</p>
+<p>Домашнее задание</p>
+<p>Напишите роль для установки PostgreSQL и плейбук, устанавливающий СУБД на ВМ2.  </p>
+<p>Роль должна выполнять следующие операции:<br />
+</p>
+<ol>
+<li>Установку пакета PostgreSQL из стандартных репозиториев Ubuntu (подключать deb-репозитории PostgreSQL не нужно);</li>
+<li>Настройку директорий с данными PostgreSQL (роль должна принимать директорию с данными как параметр, значение по-умолчанию -- /data/postgres/data);</li>
+<li>Первичную инициализацию БД при помощи команды pg_ctl initdb -D $PGDATA;</li>
+<li>Конфигурация PostgreSQL при помощи файла $PGDATA/postgresql.conf (роль должна принимать параметры конфигурации PostgreSQL в виде словаря);</li>
+<li>Конфигурация параметров авторизации при помощи файла $PGDATA/pg_hba.conf (роль должна принимать последовательность правил авторизации в виде списка словарей);</li>
+<li>Запуск PostgreSQL как systemd-службы;</li>
+<li>Проверку работоспособности PostgreSQL при помощи выполнения в СУБД запроса SELECT 1;</li>
+<li>Создание пользовательских БД;</li>
+<li>Создание пользователей;</li>
+<li>Установку <a href="https://github.com/prometheus-community/postgres_exporter">postgres-exporter</a> на цели;</li>
+<li>Запуск postgres-exporter как systemd-службы;</li>
+</ol>
+<p>Для проверки предоставьте:  </p>
+<ul>
+<li>Ссылку на исходный код роли в репозитории оформленном в соответствии структуры из занятия 3;</li>
+<li>Ссылку на исходный код плейбука в том же репозитории;</li>
+</ul>
+<p>Пояснения</p>
+<p>Права директорий PostgreSQL<br />
+В пункте 2 убедитесь, что создаете папку /data с владельцем root: root и правами 0755, чтобы избежать ограничений доступа при просмотре корня файловой системы. Директорию /data/postgres создавайте с владельцем postgres: postgres и правами 0700.  </p>
+<p>Директива creates для отслеживания изменений в модулях command и shell<br />
+В третьей практике мы обсуждали один из способов выполнить модули command и shell идемпотентно — задать условие changed_when вручную. Во втором пункте такое решение неоптимально, т.к. оно полагается на парсинг вывода команды pg_ctl initdb.  </p>
+<p>Вместо него используйте директиву creates, которая принимает как аргумент путь на цели и считает, что указанный модуль должен создать этот путь. Т. е. задача считается changed, если до запуска этого пути не было, а после -- появился. Если же путь существовал до запуска, то задача пропускается со статусом ok.  </p>
+<p>Пример:</p>
+<div class="highlight"><pre><span></span><code>- name: Create directory via command
+  ansible.builtin.command:
+    cmd: mkdir /data
+  creates: /data
+</code></pre></div>
+<p>Не делайте так, используйте модуль file со state: directory.</p>
+<p>Сохранение значений по умолчанию <br />
+в конфиге PostgreSQL</p>
+<p>Обратите внимание, что initdb создает непустой конфиг postgresql. conf и вам нужно позаботиться о сохранении значений по-умолчанию. Вы можете подойти к этой задаче двумя способами:  </p>
+<ol>
+<li>Генерация полного конфига при помощи <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html">template</a>. Значения по-умолчанию подставляются из приватных переменных роли путем слияния с пользовательскими параметрами;</li>
+<li>Точечная замена конфигурационных опций при помощи модуля <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/lineinfile_module.html">lineinfile</a>;</li>
+</ol>
+<p>Первый способ выглядит так:<br />
+Объявляем пользовательские переменные в defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>postgres__opts:
+  param1: value1
+  param2: value2
+</code></pre></div>
+<p>И параметры по-умолчанию в vars/main.yml (скопируйте их из сгенерированного конфига):</p>
+<div class="highlight"><pre><span></span><code>__opts_default:
+  param1: value1_default
+  param3: value3_default
+</code></pre></div>
+<p>Затем сливаем их при помощи фильтра <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/combine_filter.html">combine</a> в шаблоне templates/postgresql.conf.j2:</p>
+<div class="highlight"><pre><span></span><code>{\% set opts = __opts_default | combine(postgres__opts) \%}
+</code></pre></div>
+<p>И копируем конфиг при помощи модуля <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html">template</a>.<br />
+Во втором способе будем использовать модуль <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/lineinfile_module.html">lineinfile</a>, который использует регулярное выражение, чтобы найти строку с нашей опцией и заменить ее на пользовательское значение.<br />
+Аналогично объявим пользовательские переменные в defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>postgres__opts:
+  param1: value1
+  param2: value2
+</code></pre></div>
+<p>Теперь напишем цикл по параметрам с поиском каждого из них:</p>
+<div class="highlight"><pre><span></span><code>- name: Edit postgresql.conf
+  ansible.builtin.lineinfile:
+    path: &quot;{\{ postgres__data_dir }\}/postgresql.conf&quot;
+    regexp: &quot;^#?{\{ item.key | regex_escape() }\}\s*=&quot;
+    line: &quot;{\{ item.key }\} = {\{ item.value }\}&quot;
+    create: false
+  loop: &quot;{\{ postgres__opts | dict2items }\}&quot;
+  loop_control:
+    label: &quot;{\{ item.key }\}&quot;
+</code></pre></div>
+<p>Здесь мы использовали следующие фильтры:  </p>
+<ul>
+<li>dict2items — конвертирует словарь в список словарей с ключами key и value, нужен для использования словарей как параметров циклов;</li>
+<li>regex_escape () — экранирование спец-символов регулярных выражений в строке, нужно чтобы все символы в item. key воспринимались буквально.</li>
+</ul>
+<p>Коллекция community.postrgesql</p>
+<p>Для выполнения пунктов 5, 7, 8, 9 можете воспользоваться коллекцией community.postgresql, установку которой обсудили на пятой практике. Обратите внимание, что коллекция требует установки на цели Python пакета psycopg2. Установите его в первом пункте вместе с пакетами PostgreSQL, если планируете использовать. Название пакета в дистрибутиве Ubuntu: python3-psycopg2.</p>
+<p>Значения по умолчанию <br />
+в модулях community.postgresql</p>
+<p>Довольно часто мы предоставляем в ролях интерфейсы к модулям со своими значениями по-умолчанию. Чтобы не дублировать эти значения в фильтре default так:</p>
+<div class="highlight"><pre><span></span><code>- name: Create Databases
+  community.postgresql.postgresql_db:
+    name: &quot;{\{ item.name }\}&quot;
+    encoding: &quot;{\{ item.encoding | default(&#39;&#39;) }\}&quot;
+    state: &quot;{\{ item.state | default(&#39;present&#39;) }\}&quot;
+  loop: &quot;{\{ postgres__databases }\}&quot;
+</code></pre></div>
+<p>используйте специальную константу <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_filters.html#making-variables-optional">omit</a> — если эта константа является результатом шаблона в параметре модуля, то Ansible игнорирует этот параметр будто он не был написан вовсе.  </p>
+<p>Получим:</p>
+<div class="highlight"><pre><span></span><code>- name: Create Databases
+  community.postgresql.postgresql_db:
+    name: &quot;{\{ item.name }\}&quot;
+    encoding: &quot;{\{ item.encoding | default(omit) }\}&quot;
+    state: &quot;{\{ item.state | default(omit) }\}&quot;
+  loop: &quot;{\{ postgres__databases }\}&quot;
+</code></pre></div>
+<p>Таким образом, если элементом цикла будет {"name": «database"}, то после подстановки шаблона получим такую задачу:</p>
+<div class="highlight"><pre><span></span><code>- name: Create Databases
+  community.postgresql.postgresql_db:
+    name: &quot;database&quot;
+</code></pre></div>
 
 
 

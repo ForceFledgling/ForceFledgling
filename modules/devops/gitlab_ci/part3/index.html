@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,516 @@
 
   <h1>GitLab CI ч.3</h1>
 
+<p>Раздельный CI и CD</p>
+<p>Разделение Continuous Integration (CI) и Continuous Delivery (CD) на разные репозитории может иметь как плюсы, так и минусы, в зависимости от контекста и требований проекта. Вот некоторые преимущества разделения CI и CD репозиториев для развертывания:  </p>
+<p>Чистота и независимость: Раздельные репозитории для CI и CD могут помочь держать кодовую базу чистой и не загромождать ее скриптами и конфигурациями для развертывания.  </p>
+<p>Управление правами доступа: Разделение позволяет более точно настроить права доступа к репозиториям. Например, команда для CI может иметь более широкий доступ, чем команда для CD, что повышает безопасность.  </p>
+<p>Упрощение развертывания на сторонних платформах: Часто CI процессы могут быть настроены для запуска на сторонних CI-серверах, в то время как CD процессы могут выполняться напрямую на серверах развертывания, таким образом проще настроить CI/CD процессы для совместного использования.  </p>
+<p>Улучшение шаблонирования и переиспользования: Разделенные репозитории позволяют создавать шаблоны или библиотеки, которые могут быть повторно использованы между различными проектами для CI и CD, что облегчает поддержку и управление процессами.  </p>
+<p>Улучшение управления изменениями: Разделение CI и CD репозиториев помогает лучше контролировать изменения в процессах CI/CD и позволяет более гибко обновлять и адаптировать их без влияния на другие компоненты процесса.  </p>
+<p>Однако стоит отметить, что разделение CI и CD может привести к увеличению сложности и настройки в зависимости от требований проекта и командных процессов. Важно тщательно продумать и оценить плюсы и минусы разделения CI и CD репозиториев для конкретного проекта перед принятием данного решения.</p>
+<p>Пайплайны развертывания</p>
+<p>До этого мы заканчивали пайплайны публикацией Docker-образа, т. е. мы находились только в области CI: проверяли, что код работает, делали интеграции для упрощения процесса разработки, собирали и упаковывали наш код. После публикации образов (или других артефактов) в репозиторий нам остается лишь установить эти артефакты на целевые ВМ (или другие платформы запуска приложений), т. е. развернуть их в целевые окружения.  </p>
+<p>Для начала определимся с методом развертывания: очевидно что наши проекты counter-frontend и counter-backend сильно связаны, т.к. они реализуют клиентскую и серверную часть одного приложения, а их разделение на два отдельных репозитория — чисто организационное решение, т.к. они используют разный стек технологий и пишут их разные люди.  </p>
+<p>Если бы counter было нативным приложением, то обе эти части располагались бы в одном репозитории, но в разных модулях. Из этих соображений логично развертывать их вместе (в одном пайплайне), чтобы контролировать версии обоих проектов при развертывании.  </p>
+<p>Для начала создадим проект, содержащий конфигурацию развертывания, в своей группе. Назовите его counter-deploy и инициализируйте <a href="http://readme.md/">README.md</a>. Мы вернемся к нему позднее.  </p>
+<p>Чтобы обезопасить себя от случайных или зловредных изменений, инфраструктуру, на которой работают промышленные версии (те к которым имеют доступ пользователи), отделяют от остальной инфраструктуры при помощи политик доступа, межсетевых экранов и т. д.  </p>
+<p>У нас в компании это реализуется при помощи размещения приложений в изолированных корпоративным межсетевым экраном (в простонародье — файрволлом) участках сети (так называемых DMZ сегментах) с предоставлением доступа минимально необходимому набору сотрудников.  </p>
+<p>Сейчас для сборки наших проектов мы пользуемся общим на весь сервер GitLab раннером, очевидно, если мы решим развертывать приложение тем же раннером, то мы лишимся как минимум одного слоя защиты — сетевого (забудьте на секунду, что все курсовые ВМ расположены в одной подсети), также при взломе соседнего проекта (получении push прав в репозиторий стороннего проекта) злоумышленник сможет получить доступ к раннеру целиком и, следовательно, к развертываниям всех проектов, которые пользовались этим раннером.  </p>
+<p>Из этих соображений будем пользоваться для развертывания отдельными раннерами, размещенными в том же окружении, что и приложение. Представим в нашем примере, что у нас одно окружение — промышленное, и оно расположено на ВМ2. Для самого развертывания воспользуемся Shell движком GitLab раннера (запускает задачи в обычном Shell на хосте, без контейнеров) и Docker Compose.</p>
+<p>Настройка раннера</p>
+<p>Сервис gitlab runner</p>
+<p>Для начала установим раннер. Зайдем на ВМ2 и выполним следующие команды:</p>
+<div class="highlight"><pre><span></span><code>$ curl -L &quot;https://packages.GitLab.com/install/repositories/runner/gitlab-runner/script.deb.sh&quot; | sudo bash
+$ sudo apt install --yes gitlab-runner
+</code></pre></div>
+<p>Так как мы будем использовать раннер для работы с Docker, то добавим пользователя gitlab-runner в группу docker:</p>
+<div class="highlight"><pre><span></span><code># usermod -aG docker gitlab-runner
+</code></pre></div>
+<p>Символ # перед командой означает, что ее нужно выполнить с правами суперпользователя.</p>
+<p>GitLab раннер использует в качестве конфигов TOML файлы; по структуре они совпадают с JSON или YAML файлами. TOML файлы используют, т.к. они внешне имеют более плоскую структуру, что упрощает чтение конфигов с небольшим уровнем вложенности.  </p>
+<p>Напишем следующий шаблон конфига и сохраним его в /etc/gitlab-runner/template.toml:</p>
+<div class="highlight"><pre><span></span><code>concurrent = 1
+[[runners]]
+  name = &quot;Deploy runner&quot;
+  url = &quot;https://git.devops-teta.ru&quot;
+  executor = &quot;shell&quot;
+  shell = &quot;bash&quot;
+  limit = 1
+  builds_dir = &quot;/data/gitlab-runner/builds&quot;
+  cache_dir = &quot;/data/gitlab-runner/cache&quot;
+  [runners.custom_build_dir]
+    enabled = true
+</code></pre></div>
+<p>Такой файл в YAML формате выглядит так:</p>
+<div class="highlight"><pre><span></span><code>concurrent: 1
+runners:
+  - name: Deploy runner
+    url: https://git.devops-teta.ru
+    executor: shell
+    shell: bash
+    limit: 1
+    builds_dir: /data/gitlab-runner/builds
+    cache_dir: /data/gitlab-runner/cache
+    custom_build_dir:
+      enabled: true
+</code></pre></div>
+<p>Как видите, секции [name] — это ключи словарей, [[name]] — ключи коллекций (списков, элементами которых являются словари).<br />
+Смысл большинства опций понятен исходя из нашего опыта работы с GitLab CI, поясним некоторые:<br />
+limit — количество задач, которые одновременно будет выполнять этот раннер;<br />
+builds_dir, cache_dir — директории на хосте, где будут храниться склонированные проекты и кеши;<br />
+runners.custom_build_dir.enabled — разрешить ли использование опции GIT_CLONE_PATH, переопределяющей путь клонирования проекта.  </p>
+<p>Остальные опции смотри в <a href="https://docs.gitlab.com/runner/configuration/advanced-configuration.html">документации</a>.  </p>
+<p>Создадим указанные в шаблоне директории:</p>
+<div class="highlight"><pre><span></span><code># mkdir -p /data/gitlab-runner/builds /data/gitlab-runner/cache
+# chown -R gitlab-runner:gitlab-runner /data/gitlab-runner
+# chmod -R 0700 /data/gitlab-runner
+</code></pre></div>
+<p>Теперь нужно зарегистрировать раннер на нашем сервере GitLab. Для этого откройте проект counter-deploy в GitLab, перейдите в Settings -&gt; CI/CD -&gt; Runners и скопируйте регистрационный токен (registration token), затем выполните команду на ВМ2 (подставьте вместо «$(cat token.txt)» ваш токен или сохраните токен в файл token.txt):</p>
+<div class="highlight"><pre><span></span><code># gitlab-runner register \
+  --template-config /etc/gitlab-runner/template.toml \
+  --registration-token &quot;$(cat token.txt)&quot; \
+  --access-level ref_protected \
+  --tag-list &#39;deploy,prom&#39; \
+  --run-untagged false
+</code></pre></div>
+<p>Здесь мы указали некоторые параметры раннера, хранящиеся на сервере GitLab:<br />
+--access_level ref_protected — использовать раннер только для задач, запускаемых в защищенных ветках или тегах (значение по умолчанию — not_protected);<br />
+--tag-list 'deploy, prom' — теги раннера, разделенные запятой;<br />
+--run-untagged false — не выполнять этим раннером задачи без тегов.  </p>
+<p>До этого в пайплайнах мы не сталкивались с понятием тэгов. Этот механизм служит для распределения задач между раннерами: в задаче GitLab СI (или в секции default) можно указать директиву tags, которая содержит список тегов.  </p>
+<p>Эта задача будет отправлена на раннер, когда он содержит все теги указанные в задаче. Если задача не содержит тегов, то она будет запущена на одном из раннеров, согласных запускать нетегированные задачи. Если же раннеров с нужным набором тегов нет, то задача не будет запущена и <em>зависнет</em>.</p>
+<p>Здесь мы используем теги, чтобы задачи развертывания не запускались на общем сборочном раннере.</p>
+<p>Снова откройте меню Settings -&gt; CI/CD -&gt; Runners в проекте counter-deploy и проверьте, что раннер зарегистрирован. Указанные нами при регистрации настройки можно изменить в этом же интерфейсе.</p>
+<p>Про безопасность пайплайнов<br />
+Внимательный читатель заметит противоречие: мы разворачиваем отдельный Shell раннер из соображений безопасности, когда документация GitLab CI и другие авторитетные источники говорят, что Shell — самый небезопасный движок раннера и рекомендуют избегать его. Это правда и описанные здесь условия, когда раннер используется отдельным проектом для развертывания приложения на выделенную ВМ — одни из немногих, когда использование Shell раннера оправдано и относительно безопасно. Если вы планируете повторить описанный здесь подход (не стоит, это учебный пример), то дополнительно ограничьте доступ к репозиторию развертывания и его пайплайнам:<br />
+</p>
+<ul>
+<li>предоставьте доступ к репозиторию развертывания минимально необходимому числу людей;</li>
+<li>переопределите источник пайплайна в настройках проекта, вместо включения переиспользуемого пайплайна в. gitlab-ci.yml (см. <a href="https://docs.gitlab.com/ee/ci/pipelines/settings.html#specify-a-custom-cicd-configuration-file">документацию</a>);</li>
+<li>ссылайтесь на фиксированную версию пайплайна из <a href="https://docs.gitlab.com/ee/user/project/protected_tags.html">защищенного тега</a>; удостоверьтесь, что права на изменение защищенных тегов в репозитории с пайплайнами есть только у тех людей, у которых есть права на изменение репозитория развертывания;</li>
+<li>если изменения в вашем репозитории развертывания выполняются ботами (например после сборки новой версии приложения бот загружает в репозиторий развертывания ссылку на новый образ), то распространите  доступ к пайплайнам на все связанные проекты.</li>
+</ul>
+<p>Пайплайн развертывания</p>
+<p>Теперь напишем сам пайплайн развертывания. Склонируйте counter-deploy и создайте файл .gitlab-ci.yml, затем скопируйте в него скелет пайплайна:</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - deploy
+variables:
+  GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_PATH_SLUG
+  COMPOSE_PROJECT_NAME: $CI_PROJECT_PATH_SLUG
+default:
+  before_script:
+    - set -eu
 
+Deploy - Prom:
+  tags:
+    - deploy
+    - prom
+  script:
+    - echo 1
+</code></pre></div>
+<p>Во-первых, мы здесь переопределили GIT_CLONE_PATH, чтобы гарантировать постоянный путь для склонированного проекта (для монтирования локальных конфигов в контейнеры).  </p>
+<p>Во-вторых, мы явно задали имя проекта Docker Compose переменной COMPOSE_PROJECT_NAME. В-третьих, как уже было сказано выше, мы используем теги, чтобы явно указать раннер, использующийся для выполнения этой задачи.  </p>
+<p>Ключевое отличие задач развертывания от сборочных в том, что они изменяют состояние внешних систем, составляющих окружение развертывания. GitLab CI позволяет отслеживать число и состояние таких окружений при помощи механизма с одноименным названием:</p>
+<div class="highlight"><pre><span></span><code>Deploy - Prom:
+  # ...
+  environment:
+    name: prom
+    deployment_tier: production
+</code></pre></div>
+<p>Здесь директива environment указывает, что задача выполняет развертывание в окружение с именем prom (промышленное) и это окружение имеет класс (deployment_dier) — промышленное (production). При указании в задаче окружения GitLab начнет отслеживать все развертывания в это окружение и будет отображать в интерфейсе коммит, содержащий последнее состояние этого окружения.  </p>
+<p>Также GitLab позволяет определять переменные CI для конкретного окружения при настройке проектных/групповых переменных. Таким образом мы можем задать разные параметры запуска для одного и того же пайплайна в разных окружениях (аналогично заданию разных параметров для роли Ansible в двух инвентарях).  </p>
+<p>Наполним задачу Deploy — Prom:</p>
+<div class="highlight"><pre><span></span><code>Deploy - Prom:
+  tags:
+    - deploy
+    - prom
+  environment:
+    name: prom
+    deployment_tier: production
+  script:
+    - docker-compose up --remove-orphans --detach
+</code></pre></div>
+<p>Создадим конфиги развертывания:</p>
+<p><strong>Конфигурация Docker Compose docker-compose.yml:</strong></p>
+<div class="highlight"><pre><span></span><code>services:
+  frontend:
+    image: counter-frontend:latest
+  backend:
+    image: counter-backend:latest
+  nginx:
+    image: nginx:1.20
+    volumes:
+      - ./files/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - 8080:8080/tcp
+</code></pre></div>
+<p><strong>Конфигурация Nginx files/default.conf:</strong></p>
+<div class="highlight"><pre><span></span><code>server {
+  listen 8080 _ default_server;
+
+  location / {
+    proxy_pass http://frontend:8080;
+  }
+
+  location /api {
+    proxy_pass http://backend:8080;
+  }
+}
+</code></pre></div>
+<p>Такая конфигурация работает, но она не расширяема. Добавим в репозиторий поддержку dotenv файлов для различных окружений:</p>
+<div class="highlight"><pre><span></span><code>Deploy - Prom:
+  stage: deploy
+  tags:
+    - deploy
+    - prom
+  environment:
+    name: prom
+    deployment_tier: production
+  script:
+    - |-
+      for script in $(find &#39;env&#39; &quot;env/$CI_ENVIRONMENT_NAME&quot; -maxdepth 1 -type f -name &#39;*.env&#39;); do
+        printf &gt;&amp;2 &#39;reading environment variables from %s\n&#39; &quot;$script&quot;
+        eval &quot;$(sed -e &#39;s/^/export /&#39; &lt;&quot;$script&quot;)&quot;
+      done
+    - docker-compose up --remove-orphans --detach
+</code></pre></div>
+<p>И перенесем имена образов в отдельные dotenv файлы:</p>
+<p><strong>env/prom/frontend.image.env:</strong></p>
+<div class="highlight"><pre><span></span><code>FRONTEND_IMAGE=&quot;counter-frontend:latest&quot;
+</code></pre></div>
+<p><strong>env/prom/backend.image.env:</strong></p>
+<div class="highlight"><pre><span></span><code>BACKEND_IMAGE=&quot;counter-backend:latest&quot;
+</code></pre></div>
+<p>Изменим docker-compose.yml так, чтобы имена образов подставлялись из переменных окружения:</p>
+<div class="highlight"><pre><span></span><code>services:
+  frontend:
+    image: $FRONTEND_IMAGE
+  backend:
+    image: $BACKEND_IMAGE
+  nginx:
+    image: nginx:1.20
+    volumes:
+      - ./files/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - 8080:8080/tcp
+</code></pre></div>
+<p>Задача развертывания должна запускаться только при коммите в ветку по-умолчанию, добавим соответствующие правила:</p>
+<div class="highlight"><pre><span></span><code>Deploy - Prom:
+  # ...
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+</code></pre></div>
+<p>И приведем пайплайн целиком:</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - deploy
+variables:
+  GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_PATH_SLUG
+  COMPOSE_PROJECT_NAME: $CI_PROJECT_PATH_SLUG
+  HARBOR_HOST: harbor.devops-teta.ru
+  HARBOR_USER: robot_demo+gitlab
+  HARBOR_PASSWORD: $__HARBOR_PASSWORD
+default:
+  before_script:
+    - set -eu
+
+Deploy - Prom:
+  stage: deploy
+  tags:
+    - deploy
+    - prom
+  environment:
+    name: prom
+    deployment_tier: production
+  script:
+    - docker login -u $HARBOR_USER -p $HARBOR_PASSWORD $HARBOR_HOST
+    - |-
+      for script in $(find &#39;env&#39; &quot;env/$CI_ENVIRONMENT_NAME&quot; -maxdepth 1 -type f -name &#39;*.env&#39;); do
+        printf &gt;&amp;2 &#39;reading environment variables from %s\n&#39; &quot;$script&quot;
+        eval &quot;$(sed -e &#39;s/^/export /&#39; &lt;&quot;$script&quot;)&quot;
+      done
+    - docker-compose up --remove-orphans --detach
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+</code></pre></div>
+<p>При успешном выполнении пайплайна, у нас запустятся 3 контейнера с нашим приложением на нашем сервере, где установлен docker runner.</p>
+<p><img alt="" src="../img/image_1892295205.png" /></p>
+<p>Интеграция репозитория кода и репозитория деплоя</p>
+<p>Несложно заметить, что наш репозиторий деплоя никоим образом не интегрирован с репозиториями counter-frontend и counter-backend. Нам предстоит это исправить. Наша задача состоит в том, что бы обновлять переменные в репозитории деплоя.  </p>
+<p>Для этого нам необходимо организовать дополнительный job в пайплайне приложений, который будет обновлять наш репозиторий деплоя. Приступим.</p>
+<p>Доработка скриптов развертывания</p>
+<p>Изменим название переменных в шаблоне docker-compose.yml. При написании шаблонов очень удобно опираться на неизменяемые и легко определяемые сущности. В нашем примере это название репозиториев counter-frontend и counter-backend.</p>
+<div class="highlight"><pre><span></span><code>services:
+  frontend:
+    image: $counter_frontend_IMAGE
+  backend:
+    image: $counter_backend_IMAGE
+  nginx:
+    image: nginx:1.20
+    volumes:
+      - ./files/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - 8080:8080/tcp
+</code></pre></div>
+<p>Создаем ключ для доступа к репозиторию counter-deploy</p>
+<p>В репозиториях counter-backend и counter-frontend  мы будем использовать скрипт для автоматизации нашего репозитория деплоя. Для доступа к репозиторию в гитлаб, отличных от источника, запустившего задачу на runner, необходим токен для доступа. Создадим его в репозитории counter-deploy:</p>
+<p><img alt="" src="../img/%D0%A1%D0%BE%D0%B7%D0%B4%D0%B0%D0%B5%D0%BC_%D0%BA%D0%BB%D1%8E%D1%87_%D0%B4%D0%BB%D1%8F_%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%D0%B0_%D0%BA_%D1%80%D0%B5%D0%BF%D0%BE%D0%B7%D0%B8%D1%82%D0%BE%D1%80%D0%B8%D1%8E_counter_deploy.mp4" /></p>
+<p>Сохраним полученный токен в переменных группы нашего проекта.</p>
+<p><img alt="" src="../img/image_1892295206.png" /></p>
+<p>Создаем задачу с git push в репозиториях с кодом</p>
+<p>Воспользуемся нашим репозиторием шаблонов templates. Создадим новый скрипт-шаблон, который будем использовать в counter-frontend и counter-backend.<br />
+Сначала доработаем текущую последнюю джобу Publish Package. Ведь именно там есть нужная нам информация о текущем собранном имени образа.</p>
+<p><strong>jobs/kaniko.yml</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+  - local: jobs/git_strategy.yml
+
+variables:
+  IMAGE_TAG: &quot;&quot;
+  IMAGE_OUTPUT_DOTENV_KEY: $CI_PROJECT_NAME
+  IMAGE_OUTPUT_DOTENV_FILE: $CI_PROJECT_NAME
+
+.job__kaniko_publish_image:
+  extends:
+    - .job__shallow_clone
+  stage: publish
+  needs:
+    - job: Build Package
+      artifacts: true
+  interruptible: false
+  image:
+    name: $KANIKO_IMAGE
+    entrypoint: [&quot;&quot;]
+  script:
+    - b64_auth=$(printf &#39;%s:%s&#39; &quot;$HARBOR_USER&quot; &quot;$HARBOR_PASSWORD&quot; | base64 | tr -d &#39;\n&#39;)
+    - &gt;-
+      printf &#39;{&quot;auths&quot;: {&quot;%s&quot;: {&quot;auth&quot;: &quot;%s&quot;}}}&#39; &quot;$HARBOR_HOST&quot; &quot;$b64_auth&quot;
+      &gt;/kaniko/.docker/config.json
+    - &gt;-
+      /kaniko/executor
+      --cache
+      --use-new-run
+      --skip-unused-stages
+      --context &quot;$CI_PROJECT_DIR&quot;
+      --dockerfile &quot;$CI_PROJECT_DIR/Dockerfile&quot;
+      --destination &quot;$HARBOR_IMAGE:$IMAGE_TAG&quot;
+      --cache-repo &quot;$HARBOR_IMAGE/cache&quot;
+    # добавленный скрипт
+    - &gt;-
+      if [ -n &quot;${IMAGE_OUTPUT_DOTENV_KEY:-}&quot; ]
+      ; then printf &#39;%s=%s&#39; &quot;${IMAGE_OUTPUT_DOTENV_KEY//-/_}_IMAGE&quot; &quot;$HARBOR_IMAGE:$IMAGE_TAG&quot; &gt;&quot;$IMAGE_OUTPUT_DOTENV_FILE&quot;
+      ; fi
+  artifacts:
+    paths:
+      - $IMAGE_OUTPUT_DOTENV_FILE
+</code></pre></div>
+<p>Записываем в файл имя образа и тег. И упаковываем этот файл в артефакт для передачи в другую джобу. Его то мы и должны передать в наш counter-deploy.  </p>
+<p>${IMAGE_OUTPUT_DOTENV_KEY//-/_}_IMAGE — имя переменной указанной в docker-compose  </p>
+<p>$IMAGE_OUTPUT_DOTENV_FILE — имя файла, который мы передаем в следующую джобу, может быть произвольным.</p>
+<p><strong>jobs/dotenv_push.yml:</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+  - local: jobs/git_strategy.yml
+  - local: variables/dotenv_vars.yml
+.job__dotenv_push:
+  stage: publish
+  image:
+    name: $KANIKO_IMAGE
+    entrypoint: [&quot;&quot;]
+  script:
+    - export PUSH_DOTENV_TOKEN=$__DEPLOY_TOKEN # Используем токен созданный для counter-deploy
+    - cat $CI_PROJECT_NAME # Проверяем, что файл передался и содержит нужные нам данные
+    - git clone --depth 1 --branch &quot;$PUSH_DOTENV_PROJECT_BRANCH&quot; &quot;https://ci-bot:$PUSH_DOTENV_TOKEN@$CI_SERVER_HOST/${PUSH_DOTENV_PROJECT_PATH}.git&quot; $PUSH_DOTENV_TARGET_DIR # Клонируем репозиторий counter-deploy
+    - git -C $PUSH_DOTENV_TARGET_DIR config user.name ci-bot # Настраиваем обязательные парамметры для git commit
+    - git -C $PUSH_DOTENV_TARGET_DIR config user.email ci-bot@git.devops-teta.ru # Настраиваем обязательные парамметры для git commit
+    - ls -l $PUSH_DOTENV_TARGET_DIR/$PUSH_DOTENV_VARS_PATH
+    - PUSH_DOTENV_TARGET_PATH=&quot;$PUSH_DOTENV_TARGET_DIR/$PUSH_DOTENV_VARS_PATH/${CI_PROJECT_NAME//-/_}.env&quot; # Определяем путь до файла с переменной, которую нам необходимо изменить.
+    - cp $CI_PROJECT_NAME $PUSH_DOTENV_TARGET_PATH
+    - IFCHANGED=$(git -C $PUSH_DOTENV_TARGET_DIR  status --porcelain) # Проверяем, было ли изменение или запущен текущий коммит/тег.
+    - if [ ! -n &quot;${IFCHANGED:-}&quot; ]; then echo &quot;Not changed&quot;; exit 0; fi
+    - git -C $PUSH_DOTENV_TARGET_DIR add .
+    - git -C $PUSH_DOTENV_TARGET_DIR commit -m &quot;$CI_COMMIT_MESSAGE&quot;
+    - git -C $PUSH_DOTENV_TARGET_DIR push origin &quot;HEAD:$PUSH_DOTENV_PROJECT_BRANCH&quot; #делаем коммит и пуш
+  extends:
+    - .job__no_clone # используем no_clone, т.к. никакие исходные коды приложения на данном этапе нам не нужны. Экономит время выполнения.
+</code></pre></div>
+<p>Разберем некоторые моменты нашей новой задачи.  </p>
+<p>PUSH_DOTENV_TARGET_PATH — Определяем путь до файла с переменной, которую нам необходимо изменить. Именно тут мы ссылаемся на имя репозитория в котором запущена джоба. Таким образом обеспечивается и уникальность файлов внутри counter-deploy и постоянность при сборке одного и того же проекта.  </p>
+<p>Также в задаче есть условие, если файл не изменился — значит изменения образа приложения не было. Чтобы попусту не запускать задачу деплоя и не выполнять ненужную итерацию скриптов на «боевом» сервере, просто выходим и не продолжаем работу.  </p>
+<p>Мы объявили много переменных, порах их заполнить.</p>
+<p><strong>variables/dotenv_vars.yml:</strong></p>
+<div class="highlight"><pre><span></span><code>variables:
+  PUSH_DOTENV_PROJECT_BRANCH: main
+  PUSH_DOTENV_PROJECT_PATH: $CI_PROJECT_NAMESPACE/counter-deploy
+  PUSH_DOTENV_TARGET_DIR: cloned_repo
+  PUSH_DOTENV_VARS_PATH: env/prom
+</code></pre></div>
+<p>Добавим нашу новую джобу в пайплайн для frontend.</p>
+<p><strong>jobs/nextjs_standalone_docker.yml:</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+  - local: jobs/dotenv_push.yml
+
+{...}
+
+Deploy Job:
+  stage: deploy
+  extends:
+    - .job__dotenv_push
+  needs:
+    - job: Publish Package
+      artifacts: true
+  rules:
+    - !reference [.rule__on_default_branch]
+    - !reference [.rule__on_release_tag]
+</code></pre></div>
+<p>Если все сработало как мы ожидали, теперь у нас работает цепочка пайплайнов. Коммит в код после сборки приложения и публикации докер образа в harbor, обновляет файл с переменной в counter-deploy. После чего counter-deploy запускает задачу на обновление стенда.</p>
+<p>Основные способы ускорения выполнения задач CI/CD в пайплайнах</p>
+<p>Ранее в курсе мы делали фокус на построение пайплайна оптимизируя его. Пайплайн запускается часто, и время его работы существенно. Хотелось бы ещё раз проговорить основные оптимизации, которые влияют на ускорение выполнения задач нашего пайплайна.</p>
+<p>Оптимизация зависимостей устанавливаемых в базовые Docker образы</p>
+<p><img alt="" src="../img/Frame_2087327175.jpg" /></p>
+<p>Slim образы — это образы, в которых присутствует минимальное количество пакетов и, в первую очередь, такие образы предназначены для запуска написанных программ. В качестве примера можно привести образ node: slim, в котором отсутствует компилятор.  </p>
+<p>Alpine образы — это образы, которые содержат в себе одноименную операционную систему, разработанную специально для запуска внутри контейнера. Легковесность Alpine объясняется тем, что в данном дистрибутиве не используются привычные функции, которые доступны в других дистрибутивах Linux, такие как пакетные менеджеры apt/yum/dnf, система инициализации systemd, а также существенно сокращён список используемых стандартных утилит.  </p>
+<p>У многих разработчиков велик соблазн использовать стандартный slim образ, в который по мере надобности устанавливаются нужные инструменты во время выполнения пайплайнов. Чаще всего это ведет к тому, что одни и те же компоненты скачиваются и устанавливаются несколько раз. Сам по себе процесс выкачивания и установки зависимостей занимает <strong>больше</strong>времени, чем скачивание и подгрузка подготовленного образа. Таким образом необходимо использовать заранее подготовленный образ, заточенный для конкретной задачи и содержащий в себе минимальный набор требуемых зависимостей и библиотек. Если такого базового образа нет, мы можем его создать сами.</p>
+<p>Оптимизация образов Docker</p>
+<p>Это обратная оптимизация. Не нужно в один и тот же образ добавлять все возможные инструменты, которые могут потребоваться для выполнения задач (как на практике, так и в теории). Это в свою очередь приводит к разрастанию образа до гигантских размеров. Хотя это упрощает процесс написания пайплайнов (автору не требуется выбирать и подготавливать образ), но ведет к снижению эффективности их выполнения. Чем меньше наш образ, тем быстрее CI задача.  </p>
+<ul>
+<li>Используем базовые slim образы (но смотрим на зависимости выше).</li>
+<li>Избегаем установки пользовательских инструментов (vim, curl, и т. д.).</li>
+<li>Отключаем установку man-страниц и прочей документации.</li>
+<li>Минимизируем количество слоев RUN (комбинируя команды в один слой)</li>
+<li>Используйте мультисборки</li>
+<li>Если используем apt, то отключаем установку ненужных зависимостей при помощи ключа --no-install-recommends</li>
+<li>Не забываем почистить кэш (например, rm -rf /var/lib/apt/lists/* для Debian)</li>
+<li>Такие инструменты как <a href="https://github.com/wagoodman/dive">dive</a> или <a href="https://github.com/docker-slim/docker-slim">DockerSlim</a> могут помочь с дальнейшей оптимизацией</li>
+</ul>
+<p>Docker кэш при сборке образов</p>
+<p>При выполнении команды docker build, сборка слоев производятся с нуля. Использование ключа --cache-from с указанием образов, которые послужат источником кэша, может значительно ускорить сборку. Мы также можем передать процессу несколько аргументов --cache-from, задействовав таким образом несколько образов.</p>
+<div class="highlight"><pre><span></span><code>#.gitlab-ci.yml
+---
+build:
+  stage: build
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+</code></pre></div>
+<p>Локальное кэширование Docker образов</p>
+<p>Где хранятся базовые образы и как добиться минимизации задержки сети при работе с ними? GitLab содержит в себе Container Registry Dependency Proxy, который умеет проксировать и кэшировать образы. Таким образом GitLab может использоваться как pull-through сервис. В зависимости от нашей сети и того, где располагаются GitLab раннеры, подобное кэширование может значительно ускорить процесс запуска CI задач. Использование Dependency Proxy так же позволяет обойти ограничения количества запросов на Docker Hub в «100 скачиваний».  </p>
+<p>Для использование этой возможности нам необходимо:<br />
+</p>
+<ol>
+<li>Включить функционал на уровне группы (Settings &gt; Packages &amp; Registries &gt; Dependency Proxy &gt; Enable Proxy)</li>
+<li>Добавить префикс ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX} к имени образа в. gitlab-ci.yml</li>
+</ol>
+<div class="highlight"><pre><span></span><code># .gitlab-ci.yml
+---
+    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/alpine:latest
+</code></pre></div>
+<p>Ну или мы можем использовать специально подготовленные для этого корпоративные зеркала.</p>
+<p>Политики скачивания Docker образов</p>
+<p>При настройке собственных раннеров мы можем указать политику скачивания при помощи параметра pull_policy (делается это в конфигурационном файле config. toml). Этот параметр определяет то, как раннер будет подгружать требуемые образы из регистра.  </p>
+<p>Возможные значения:<br />
+</p>
+<ul>
+<li>always (дефолтное значение): образы каждый раз подгружаются из удаленного регистра.</li>
+<li>never: образы вообще не выгружаются из удаленного регистра, а должны быть вручную закэшированы на Docker хосте.</li>
+<li>if-not-present: раннер сначала проверит локальный кэш и лишь при отсутствии искомого образа скачает его из внешнего регистра.</li>
+</ul>
+<p>Значения if-not-present может сократить задержки на скачивание и анализ слоев за счет использования локального кэша, а, значит, ускорить запуск и выполнение задач. Однако если образ часто меняется, то появляется быстрорастущий кэш, который необходимо регулярно чистить, что может свести все выигрыши по времени на нет.</p>
+<div class="highlight"><pre><span></span><code># config.toml 
+---
+[runners.docker]
+  pull_policy = &quot;if-not-present&quot;
+</code></pre></div>
+<p>Файл .dockerignore</p>
+<p>В данном файле можно указывать, какие файлы и директории не нужно включать в итоговую сборку образа, а следовательно и копировать. Файл. dockerignore (имя файла начинается с символа точки, так как этот файл является скрытым) помещается в корневую папку с проектом и располагается там же, где и файл Dockerfile.</p>
+<p>Кэширование CI/CD</p>
+<p>Кэш в GitLab CI — мощный и гибкий инструмент для оптимизации работы пайплайнов. Наверно, одним из самых часто встречаемых и популярных примеров его использования является кэширования зависимостей (.npm/, node_modules, .cache/pip, .go/pkg/mod/, и т. д.).<br />
+Ранее мы уже пользовались им в курсе:</p>
+<div class="highlight"><pre><span></span><code>Build Package:
+# ...Остальная часть
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+      unprotect: true
+    - key: npm-next-cache
+      paths:
+        - .next/cache
+---
+</code></pre></div>
+<p>Важной особенностью является то, что CI/CD кэш может быть как локальным (файлы остаются на хосте, на котором запушен раннер), так и распределенным (кэш в виде архива сохраняется в S3 хранилище). Это позволяет оптимизировать работу пайплайнов даже в том случае, если у вас нет выделенных раннеров или если они создаются динамически, а значит является эффективным решением как для собственных, так и для публичных (shared) раннеров</p>
+<p>Политика кэширования CI/CD</p>
+<p>Использование механизмов кэширования, описанных выше — это хорошо. Однако многие забывают о дополнительных возможностях оптимизации за счёт использования правильной политики. Дело в том, что при стандартной конфигурации кэш скачивается в начале выполнения CI задачи и загружается обратно в конце. При большом размере кэша и медленных сетях это может стать проблемой. В курсе мы уже конфигурировали этот процесс можно за счет параметра cache: policy.<br />
+</p>
+<ul>
+<li>push-pul<strong>l</strong> (стандартное поведение): кэш скачивается в начале и загружается обратно в конце выполнения задачи</li>
+<li>pull: кэш скачивается в начале выполнения задачи, но не загружается в конце</li>
+<li>push: кэш не скачивается, но загружается в конце выполнения задачи.</li>
+</ul>
+<p>Таким образом мы можем оптимизировать продолжительность выполнения задачи за счет использования политики pull для некоторых задач</p>
+<div class="highlight"><pre><span></span><code>Lint
+# ...Остальная часть
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+      policy: pull
+---
+</code></pre></div>
+<p>Изменение уровня компрессии</p>
+<p>Все артефакты и кэш, требуемые для выполнения задач, передаются в сжатом виде. Это означает, что архивы должны разжиматься в начале выполнения задачи и сжиматься в её конце. GitLab Позволяет выбирать желаемый уровень компрессии для этого процесса (<em>fastest, fast, default, slow, slowest</em>). Конфигурация производится за счёт использования переменных окружения и может выполняться как для всего пайплайна, так и для индивидуальных задач. Необходимо также включить feature flag FF_USE_FASTZIP.</p>
+<div class="highlight"><pre><span></span><code># .gitlab-ci.yml
+variables:
+  # Enable feature flag
+  FF_USE_FASTZIP: &quot;true&quot;
+  # применимо для задачи или пайплайна
+  ARTIFACT_COMPRESSION_LEVEL: &quot;fast&quot;
+  CACHE_COMPRESSION_LEVEL: &quot;fast&quot;
+</code></pre></div>
+<p>Стратегии git клонирования</p>
+<p>В начале выполнения любой задачи происходит клонирование git репозитория. Влиять на это можно за счет конфигурирования стратегии git клонирования при помощи переменной окружения (GIT_STRATEGY).  </p>
+<p>Доступные значение GIT_STRATEGY:<br />
+</p>
+<ul>
+<li>none: репозиторий не клонируется вообще</li>
+<li>fetch: с использованием локальной рабочей копии (обычно быстрее, особенно на выделенных раннерах)</li>
+<li>clone: без использования локальной рабочей копии</li>
+</ul>
+<p>Ранее в курсе мы уже использовали fetch и clone</p>
+<div class="highlight"><pre><span></span><code># jobs/git_strategy.yml
+.job__shallow_clone:
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: 20
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_PATH_SLUG
+.job__no_clone:
+  variables:
+    GIT_STRATEGY: none
+</code></pre></div>
+<p>Дополнительные возможности GitLab CI</p>
+<p>В курсе мы так же использовали некоторые оптимизации задач, вспомним о них:  </p>
+<p>rules: директива помогает запускать задачи только тогда, когда они нужны, а так же модифицировать их поведение.<br />
+needs: директива позволяет построить пайплайны таким образом, что задачи не будут ожидать завершения предыдущей стадии, а запустятся в тот момент, когда все зависимости будут удовлетворены (оптимизируя таким образом общее время выполнения)<br />
+interruptible: задачи, помеченные как прерываемые, могут быть автоматически отменены при запуске нового пайплайна на той же ветке кода. Позволяет свести на нет выполнение ненужных задач</p>
+<p>Использование собственных раннеров</p>
+<p>Использование собственных раннеров бесспорно влияет на ускорение CI/CD задач в пайплайнах.</p>
+<p>Домашнее задание</p>
+<ol>
+<li>Доработайте шаблон counter-backend для передачи имени образа в counter-deploy.</li>
+<li>Перепишите пайплайн в counter-deploy на использование шаблона.</li>
+</ol>
+<p>Для проверки предоставьте:<br />
+</p>
+<ul>
+<li>ссылки на успешно отработанные пайплайны в counter-backend и counter-deploy.</li>
+<li>ссылки на шаблон для counter-deploy.</li>
+</ul>
 
 
 

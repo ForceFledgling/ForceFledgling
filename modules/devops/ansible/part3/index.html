@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,772 @@
 
   <h1>Ansible ч.3</h1>
 
+<p>На прошлом занятии мы рассмотрели основные конструкции Ansible и написали роль для настройки Nginx в качестве L7 балансировщика.  </p>
+<p>Сегодня мы рассмотрим оставшиеся темы по Ansible и обзорно рассмотрим PostgreSQL, роль для установки которой мы пишем в рамках ДЗ.</p>
+<p>Подключение внешнего кода</p>
+<p>Ранее мы самостоятельно писали Ansible роли и плеи для настройки ВМ, но довольно часто встречаются ситуация, когда автоматизация уже сделала нашими коллегами или open-source сообществом. Также бывают ситуации, когда авторы ПО сами предоставляют средства автоматизации. В таких случаях лучше воспользоваться уже готовыми сторонними решениями.  </p>
+<p>Для подключения внешних зависимостей в Ansible встроен пакетный менеджер ansible-galaxy, который позволяет ставить пакеты двух видов:  </p>
+<p>Роли — обычные роли, вынесенные в отдельный пакет;<br />
+Коллекции — наборы ролей, плейбуков и различных плагинов, объединенные в одно пространство имен.  </p>
+<p>Распространение готовых Ansible сценариев в виде ролей — более старый, традиционный подход, но он имеет огромный минус: если роли требуются пользовательские модули или различные плагины, то не существует способа упаковать их вместе с ролью. Чтобы решить эту проблему и распространять другие Ansible-сущности придумали коллекции.  </p>
+<p>Примеры отдельных Ansible-ролей:<br />
+</p>
+<ol>
+<li><a href="https://github.com/geerlingguy/ansible-role-postgresql">geerlingguy.postgresql</a> — установка PostgreSQL;</li>
+<li><a href="https://galaxy.ansible.com/ui/standalone/roles/elastic/elasticsearch/">elastic.elasticsearch</a> — установка Elasticsearch (устаревшая роль).</li>
+</ol>
+<p>Другие роли можно искать в центральном репозитории Ansible Galaxy — <a href="https://galaxy.ansible.com/ui/">https://galaxy.ansible.com/ui/</a>.  </p>
+<p>Примеры коллекций:<br />
+</p>
+<ol>
+<li><a href="https://github.com/prometheus-community/ansible">prometheus.prometheus</a> — Ansible-роли для настройки мониторинга в экосистеме Prometheus. Включены роли для установки многих популярных экспортеров, Prometheus, Grafana;</li>
+<li><a href="https://github.com/confluentinc/cp-ansible">confluent.platform</a> — установка компонентов Confluent платформы — Zookeeper, Kafka, Kafka Connect, Schema Registry;</li>
+<li><a href="https://github.com/kubernetes-sigs/kubespray">kubernetes_sigs.kubespray</a> — настройка Kubernetes;</li>
+<li>Установка ролей или коллекций производится при помощи файла requirements. yml, в котором указываются зависимости текущей рабочей области.</li>
+</ol>
+<p>Добавим в requirements. yml коллекцию prometheus. prometheus:</p>
+<div class="highlight"><pre><span></span><code>---
+collections:
+  - name: prometheus.prometheus
+    version: &quot;&gt;=0.14.0&quot;
+</code></pre></div>
+<p>Теперь установим все указанные зависимости при помощи ansible-galaxy:</p>
+<div class="highlight"><pre><span></span><code>$ ansible-galaxy install -r requirements.yml
+Starting galaxy collection install process
+Process install dependency map
+Starting collection install process
+Downloading https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/artifacts/prometheus-prometheus-0.14.0.tar.gz to /home/user/.ansible/tmp/ansible-local-36920oy7ggm60/tmpgtprtbxy/prometheus-prometheus-0.14.0-7y219qxx
+Installing &#39;prometheus.prometheus:0.14.0&#39; to &#39;/home/user/.ansible/collections/ansible_collections/prometheus/prometheus&#39;
+prometheus.prometheus:0.14.0 was installed successfully
+&#39;community.general:8.3.0&#39; is already installed, skipping.
+</code></pre></div>
+<p>Полное описание requirements.yml смотри в <a href="https://docs.ansible.com/ansible/latest/galaxy/user_guide.html#installing-multiple-roles-from-a-file">документации</a>.</p>
+<p>Чтобы использовать роли из коллекции в своих плеях вызовите их по полному имени, состоящему из имени коллекции и локального имени роли.  </p>
+<p>Например, добавим установку node_exporter в плей настройки Nginx.  </p>
+<p>Изменим nginx_simple.play.yml:</p>
+<div class="highlight"><pre><span></span><code>---
+- name: Install Nginx on vm2
+  hosts: vm2
+  roles:
+    - prometheus.prometheus.node_exporter
+    - nginx
+</code></pre></div>
+<p>Также доступна установка ролей и коллекций не из центрального репозитория Galaxy. Для внутренних коллекций удобно использовать установку напрямую из Git репозитория, заменим в requirements.yml установку с Galaxy на скачивание в GitHub:</p>
+<div class="highlight"><pre><span></span><code>collections:
+  - name: https://github.com/prometheus-community/ansible.git
+    type: git
+    version: &quot;0.14.0&quot;
+</code></pre></div>
+<p>Шифрование переменных</p>
+<p>Часто переменными инвентаря включают в себя секреты: пароли пользователей БД, серверные ключи шифрования для Nginx, токены доступа к внешним сервисам и т. п. Хранение таких переменных в репозиториях инфрастуруктуры представляет очевидный риск, что любой человек с доступом на чтение репозитория имеет доступ к инфраструктуре.  </p>
+<p>Стратегии работы с такими секретами сводятся к двум подходам:<br />
+</p>
+<ol>
+<li>Использование внешнего хранилища секретов с получением доступа во время запуска сценариев;</li>
+<li>Хранение секретов в зашифрованном виде вместе с остальной конфигурацией.</li>
+</ol>
+<p>Первый подход более сложный и требует дополнительной инфраструктуры — мы рассмотрим его на будущих занятиях. Второй же подход прост в первом приближении и реализуется встроенным в Ansible инструментом ansible-vault.</p>
+<p>На самом деле второй подход также требует внешнего хранилища секретов — для хранения и разграничения доступа к ключам шифрования. Несмотря на это его стоит рассматривать отдельно, т.к. он не создает второго источника истины о конфигурации целей. Чтобы обновить пароль БД, нужно обновить файлы в рабочей области Ansible, а не в хранилище секретов.</p>
+<p>Vault в базовой конфигурации позволяет шифровать файлы с переменными/обычные файлы/значения переменных при помощи пароля, задаваемого при запуске плейбука или указанного в файле.  </p>
+<p>Настроим в рабочей области шифрование при помощи чтения пароля из файла: создадим файл vault-pass и сохраним в него супер-секретный пароль (ilovefish занят, выберите другой):</p>
+<div class="highlight"><pre><span></span><code>echo ilovefish &gt;vault-pass
+</code></pre></div>
+<p>Теперь укажем в ansible.cfg путь к файлу с паролем:</p>
+<div class="highlight"><pre><span></span><code>[defaults]
+host_key_checking = false
+inventory = inventories/main
+vault_password_file = vault-pass
+</code></pre></div>
+<p>И добавим в файл .gitignore путь к vault-pass, чтобы случайно не загрузить его на GitLab:</p>
+<div class="highlight"><pre><span></span><code>.venv/
+__pycache__/
+vault-pass
+</code></pre></div>
+<p>После этого создадим папку для переменных группы all нашего инвентаря main:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir -p inventories/main/group_vars/all
+</code></pre></div>
+<p>И при помощи ansible-vault — зашифрованный файл с переменными encrypted.yml:</p>
+<div class="highlight"><pre><span></span><code>$ ansible-vault create inventories/main/group_vars/all/encrypted.yml
+</code></pre></div>
+<p>Со следующим содержимым:</p>
+<div class="highlight"><pre><span></span><code>---
+encrypted_var: test
+</code></pre></div>
+<p>Теперь напишем тестовый плейбук vault_test.play.yml:</p>
+<div class="highlight"><pre><span></span><code>---
+- name: Show ansible-vault variable
+  hosts: all
+  tasks:
+    - name: Show var
+      ansible.builtin.debug:
+        var: encrypted_var
+</code></pre></div>
+<p>И запустим его:</p>
+<div class="highlight"><pre><span></span><code>$ ansible-playbook -v vault_test.play.yml
+</code></pre></div>
+<p>Ansible расшифрует файл автоматически и подставит значение переменной. Также при помощи команды ansible-vault encrypt мы можем шифровать обычные файлы для использования их, например, в модуле copy.  </p>
+<p>Теперь обзорно рассмотрим язык запросов SQL и базовые административные операции в СУБД PostgreSQL, которые будем выполнять используя его.  </p>
+<p>Эта информация пригодится для понимания последних пунктов ДЗ и для расширения кругозора, т.к. большинство систем используют реляционные СУБД и PostgreSQL в частности.</p>
+<p>SQL</p>
+<p>Язык структурированных запросов (SQL) — это язык программирования для хранения и обработки информации в реляционной базе данных.  </p>
+<p>Реляционная база данных хранит информацию в табличной форме со строками и столбцами, представляющими различные атрибуты данных и различные связи между значениями данных.  </p>
+<p>Инструкции SQL можно использовать для хранения, обновления, удаления, поиска и извлечения информации из базы данных. Можно также использовать SQL для поддержания и оптимизации производительности базы данных.  </p>
+<p>Для нас основная ценность SQL это получение выборок данных из СУБД. Потому что это напрямую связано с получением информации о состоянии базы данных.  </p>
+<p>Для начала немножко о подключении к базе. Поскольку мы рассматриваем Postgres то будем говорить про него. Реализации способов подключения к другим базам из консольного режима могут отличатся и стоит это учесть.  </p>
+<p>Рассматривать мы будем только консольный вариант подключения.  </p>
+<p>Установим недостающий пакет, если он не был установлен до этого:</p>
+<div class="highlight"><pre><span></span><code>sudo apt install postgresql-client-common
+</code></pre></div>
+<p>В Postgres используется psql. Если вы находитесь на машине с локальной базой данных то достаточно просто использовать следующую команду:</p>
+<div class="highlight"><pre><span></span><code>sudo --login --user=postgres
+</code></pre></div>
+<p>Почему sudo и postgres? По умолчанию современные версии PostgreSQL настроены на так называемую одноранговую аутентификацию.  </p>
+<p>Одноранговая аутентификация автоматически аутентифицирует пользователей, если существует действительный пользователь PostgreSQL, соответствующий имени пользователя в операционной системе.  </p>
+<p>Однако маловероятно, что с вашим обычным именем пользователя в операционной системе уже связано имя пользователя PostgreSQL.<br />
+Поэтому обычно вам необходимо войти в PostgreSQL, используя имя пользователя операционной системы, с которым уже связана роль PostgreSQL.  </p>
+<p>По умолчанию учетная запись суперпользователя или администратора PostgreSQL называется postgres. После установки в операционной системе также создается пользователь с именем postgres.  </p>
+<p>Итак, чтобы войти в PostgreSQL как пользователь postgres, вам необходимо подключиться как пользователь операционной системы postgres.  </p>
+<p>Если нет необходимости запускать дополнительные shell, команды можно сделать так:</p>
+<div class="highlight"><pre><span></span><code>sudo --login --user=postgres psql
+</code></pre></div>
+<p>Для подключения к удаленным базам данных используется формат вида</p>
+<div class="highlight"><pre><span></span><code>psql -h &lt;hostname&gt; -p &lt;port&gt; -U &lt;username&gt; -d &lt;database&gt;
+</code></pre></div>
+<p>Для сервисов обычно используется формат connection string</p>
+<div class="highlight"><pre><span></span><code>postgresql://&lt;username&gt;:&lt;password&gt;@&lt;hostname&gt;:&lt;port&gt;/&lt;database&gt;
+</code></pre></div>
+<p>И так мы подключились к базе данных. Что же внутри и как получить необходимую информацию?  </p>
+<p>Для начала поговорим о структуре SQL запросов и командах.<br />
+Общая структура запроса выглядит в большинстве случаев так:</p>
+<div class="highlight"><pre><span></span><code>SELECT (&#39;столбцы или * для выбора всех столбцов; обязательно&#39;)
+FROM (&#39;таблица; обязательно&#39;)
+WHERE (&#39;условие/фильтрация, например, city = &#39;Moscow&#39;; необязательно&#39;)
+GROUP BY (&#39;столбец, по которому хотим сгруппировать данные; необязательно&#39;)
+HAVING (&#39;условие/фильтрация на уровне сгруппированных данных; необязательно&#39;)
+ORDER BY (&#39;столбец, по которому хотим отсортировать вывод; необязательно&#39;)
+JOIN — (&#39;необязательный элемент, используется для объединения таблиц по ключу, 
+который присутствует в обеих таблицах. Перед ключом ставится оператор ON.&#39;)
+</code></pre></div>
+<p>Попробуем на примере. Поскольку в основном нас интересуют управляющие структуры базы то давайте сразу обращаться к ним.</p>
+<div class="highlight"><pre><span></span><code>SELECT * FROM pg_stat_activity;
+</code></pre></div>
+<p>Здесь можно увидеть информацию о происходящим внутри базы. В неотфильтрованном виде информация черезмерна, но мы можем ее отсортировать/отфильтровать под необходимые нам задачи.</p>
+<p>Расшифровка состояний процессов в pg_stat_activity</p>
+<table>
+<thead>
+<tr>
+<th>Столбец</th>
+<th>Тип</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>datid</td>
+<td>oid</td>
+<td>OID базы данных, к которой подключён этот серверный процесс</td>
+</tr>
+<tr>
+<td>datname</td>
+<td>name</td>
+<td>Имя базы данных, к которой подключён этот серверный процесс</td>
+</tr>
+<tr>
+<td>pid</td>
+<td>integer</td>
+<td>Идентификатор процесса этого серверного процесса</td>
+</tr>
+<tr>
+<td>usesysid</td>
+<td>oid</td>
+<td>OID пользователя, подключённого к этому серверному процессу</td>
+</tr>
+<tr>
+<td>usename</td>
+<td>name</td>
+<td>Имя пользователя, подключённого к этому серверному процессу</td>
+</tr>
+<tr>
+<td>application_name</td>
+<td>text</td>
+<td>Название приложения, подключённого к этому серверному процессу</td>
+</tr>
+<tr>
+<td>client_addr</td>
+<td>inet</td>
+<td>IP-адрес клиента, подключённого к этому серверному процессу. Значение null в этом поле означает, что клиент подключён через сокет Unix на стороне сервера или что это внутренний процесс, например, автоочистка.</td>
+</tr>
+<tr>
+<td>client_hostname</td>
+<td>text</td>
+<td>Имя компьютера для подключённого клиента, получаемое в результате обратного поиска в DNS по client_addr. Это поле будет отлично от null только в случае соединений по IP и только при включённом режиме log_hostname.</td>
+</tr>
+<tr>
+<td>client_port</td>
+<td>integer</td>
+<td>Номер TCP-порта, который используется клиентом для соединения с этим серверным процессом, или -1, если используется сокет Unix</td>
+</tr>
+<tr>
+<td>backend_start</td>
+<td>timestamp with time zone</td>
+<td>Время запуска процесса, т. е. время, когда клиент подсоединился к серверу</td>
+</tr>
+<tr>
+<td>xact_start</td>
+<td>timestamp with time zone</td>
+<td>Время начала текущей транзакции в этом процессе или null при отсутствии активной транзакции. Если текущий запрос был первым в своей транзакции, то значение в этом столбце совпадает со значением столбца query_start.</td>
+</tr>
+<tr>
+<td>query_start</td>
+<td>timestamp with time zone</td>
+<td>Время начала выполнения активного в данный момент запроса, или, если state не active, то время начала выполнения последнего запроса</td>
+</tr>
+<tr>
+<td>state_change</td>
+<td>timestamp with time zone</td>
+<td>Время последнего изменения состояния (поля state)</td>
+</tr>
+<tr>
+<td>waiting</td>
+<td>boolean</td>
+<td>True, если этот серверный процесс ожидает освобождения блокировки</td>
+</tr>
+<tr>
+<td>state</td>
+<td>text</td>
+<td>Общее текущее состояние этого серверного процесса. Возможные значения:</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>active: серверный процесс выполняет запрос.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>idle: серверный процесс ожидает новой команды от клиента.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>idle in transaction: серверный процесс находится внутри транзакции, но в настоящее время не выполняет никакой запрос.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>idle in transaction (aborted): Это состояние подобно idle in transaction, за исключением того, что один из операторов в транзакции вызывал ошибку.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>fastpath function call: серверный процесс выполняет fast-path функцию.</td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>disabled: Это состояние отображается для серверных процессов, у которых параметр track_activities отключён.</td>
+</tr>
+<tr>
+<td>backend_xid</td>
+<td>xid</td>
+<td>Идентификатор верхнего уровня транзакции этого серверного процесса или любой другой.</td>
+</tr>
+<tr>
+<td>backend_xmin</td>
+<td>xid</td>
+<td>текущая граница xmin для серверного процесса.</td>
+</tr>
+<tr>
+<td>query</td>
+<td>text</td>
+<td>Текст последнего запроса этого серверного процесса. Если state имеет значение active, то в этом поле отображается запрос, который выполняется в настоящий момент. Если процесс находится в любом другом состоянии, то в этом поле отображается последний выполненный запрос.</td>
+</tr>
+</tbody>
+</table>
+<p>Попробуем получить информацию о запущенных запросах из таблицы pg_stat_activity:</p>
+<div class="highlight"><pre><span></span><code>###
+### Список сессий на БД только с активными запросами 
+###
+SELECT pid, age(clock_timestamp(), query_start), usename, query 
+FROM pg_stat_activity 
+WHERE state != &#39;idle&#39; AND pid != pg_backend_pid()
+ORDER BY query_start desc;
 
+###
+### Все сессии
+###
+SELECT pid, age(clock_timestamp(), query_start), usename, query
+FROM pg_stat_activity
+WHERE pid != pg_backend_pid()
+ORDER BY query_start desc;
+</code></pre></div>
+<p>Как видим их не так много поскольку база не нагружена.  </p>
+<p>В дальнейшем мы еще вернемся к запросам.<br />
+А пока давайте поговорим о ролях внутри PostgreSQL.</p>
+<p>Роли PostgreSQL</p>
+<p>Роли базы данных концептуально полностью отличаются от пользователей операционной системы. На практике поддержание соответствия между ними может быть удобным, но не является обязательным.  </p>
+<p>Роли базы данных являются глобальными для всей установки кластера базы данных (не для отдельной базы данных). Для создания роли используется команда SQL CREATE ROLE:</p>
+<div class="highlight"><pre><span></span><code>CREATE ROLE имя;
+</code></pre></div>
+<p>Здесь имя соответствует правилам именования идентификаторов SQL: либо обычное, без специальных символов, либо в двойных кавычках.  </p>
+<p>На практике, к команде обычно добавляются другие указания, такие как LOGIN. Подробнее об этом ниже.  </p>
+<p>Для удаления роли используется команда DROP ROLE:</p>
+<div class="highlight"><pre><span></span><code>DROP ROLE имя;
+</code></pre></div>
+<p>Каждое подключение к серверу базы данных выполняется под именем конкретной роли, и эта роль определяет начальные права доступа для команд, выполняемых в этом соединении.  </p>
+<p>Имя роли для конкретного подключения к базе данных указывается клиентской программой характерным для неё способом, таким образом инициируя запрос на подключение.  </p>
+<p>Например, программа psql для указания роли использует аргумент командной строки -U.  </p>
+<p>Многие приложения предполагают, что по умолчанию нужно использовать имя пользователя операционной системы (включая createuser и psql).  </p>
+<p>Поэтому часто бывает удобным поддерживать соответствие между именами ролей и именами пользователей операционной системы.<br />
+Можно посмотреть под какой ролью мы сейчас залогинены:</p>
+<div class="highlight"><pre><span></span><code>SELECT current_user, session_user;
+</code></pre></div>
+<p>session_user обычно будет пользователем, от имени которого вы подключились к базе данных (хотя его можно изменить, установив SET SESSION AUTHORIZATION).  </p>
+<p>current_user — это пользователь, от имени которого вы действуете, — это пользователь, который будет проверяться при оценке привилегий и политик.  </p>
+<p>current_user изменяется с помощью SET ROLE и RESET ROLE (или запуска функций SECURITY DEFINER).  </p>
+<p>Немножко про SECURITY DEFINER.  </p>
+<p>SECURITY DEFINER позволяет пользователям «заимствовать» некоторые повышенные привилегии только во время выполнения функции.  </p>
+<p>Допустим, у меня есть функция, которая вставляет данные, и я хочу, чтобы пользователь с ограниченными правами мог ее выполнить.  </p>
+<p>Я бы предпочел, чтобы пользователь временно эмулировал «владельца» функции, который может выполнить только SELECT и INSERT, а не суперпользователя, который может создавать функции, а также DELETE, TRUNCATE, UPDATE и т. д. Для этого используется SECURITY DEFINER.  </p>
+<p>Чтобы посмотреть списки ролей присутствующих в базе можно воспользоваться метакомандой:</p>
+<div class="highlight"><pre><span></span><code>\du
+</code></pre></div>
+<p>Сильно углубляться в использование ролей мы не будем, вся необходимая информация есть в <a href="https://www.postgresql.org/docs/current/role-membership.html">https://www.postgresql.org/docs/current/role-membership.html</a></p>
+<p>Привилегии</p>
+<p>Права доступа на работу с объектами базы данных контролируются привилегиями, управляемыми с помощью команд GRANT и REVOKE.  </p>
+<p>Мы можем проверить привилегии в psql с помощью команды:</p>
+<div class="highlight"><pre><span></span><code>\dp
+</code></pre></div>
+<p>При создании объекта ему назначается владелец. Владельцем обычно является роль, выполнившая оператор создания.  </p>
+<p>Для большинства типов объектов исходное состояние таково, что только владелец (или суперпользователь) может что-либо делать с объектом.  </p>
+<p>Чтобы разрешить другим ролям использовать его, необходимо предоставить привилегии.  </p>
+<p>Существуют различные виды привилегий: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, CREATE, CONNECT, TEMPORARY, EXECUTE, USAGE, SET and ALTER SYSTEM.  </p>
+<p>Привилегии, применимые к конкретному объекту, различаются в зависимости от типа объекта (таблица, функция и т. д.).  </p>
+<p>Право на изменение или уничтожение объекта присуще владельцу объекта и не может быть предоставлено или отозвано само по себе.<br />
+(Однако, как и все привилегии, это право может быть унаследовано членами роли владельца).  </p>
+<p>Объекту можно назначить нового владельца с помощью команды ALTER.</p>
+<div class="highlight"><pre><span></span><code>ALTER TABLE table_name OWNER TO new_owner;
+</code></pre></div>
+<p>Привилегии, предоставленные для конкретного объекта, отображаются в виде списка записей aclitem, где каждый aclitem описывает разрешения одного получателя прав, предоставленные конкретным лицом, предоставляющим право.</p>
+<p>Список привилегий</p>
+<table>
+<thead>
+<tr>
+<th>Privilege</th>
+<th>Abbreviation</th>
+<th>Applicaple Object Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SELECT</td>
+<td>r (“read”)</td>
+<td>LARGE OBJECT, SEQUENCE, TABLE (and table-like objects), table column</td>
+</tr>
+<tr>
+<td>INSERT</td>
+<td>a (“append”)</td>
+<td>TABLE, table column</td>
+</tr>
+<tr>
+<td>UPDATE</td>
+<td>w (“write”)</td>
+<td>LARGE OBJECT, SEQUENCE, TABLE, table column</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>d</td>
+<td>TABLE</td>
+</tr>
+<tr>
+<td>TRUNCATE</td>
+<td>D</td>
+<td>TABLE</td>
+</tr>
+<tr>
+<td>REFERENCES</td>
+<td>x</td>
+<td>TABLE, table column</td>
+</tr>
+<tr>
+<td>TRIGGER</td>
+<td>t</td>
+<td>TABLE</td>
+</tr>
+<tr>
+<td>CREATE</td>
+<td>C</td>
+<td>DATABASE, SCHEMA, TABLESPACE</td>
+</tr>
+<tr>
+<td>CONNECT</td>
+<td>c</td>
+<td>DATABASE</td>
+</tr>
+<tr>
+<td>TEMPORARY</td>
+<td>T</td>
+<td>DATABASE</td>
+</tr>
+<tr>
+<td>EXECUTE</td>
+<td>X</td>
+<td>FUNCTION, PROCEDURE</td>
+</tr>
+<tr>
+<td>USAGE</td>
+<td>U</td>
+<td>DOMAIN, FOREIGN DATA WRAPPER, FOREIGN SERVER, LANGUAGE, SCHEMA, SEQUENCE, TYPE</td>
+</tr>
+<tr>
+<td>SET</td>
+<td>s</td>
+<td>PARAMETER</td>
+</tr>
+<tr>
+<td>ALTER SYSTEM</td>
+<td>A</td>
+<td>PARAMETER</td>
+</tr>
+</tbody>
+</table>
+<p>Команды для проверки привилегий каждого объекта</p>
+<table>
+<thead>
+<tr>
+<th>Object Type</th>
+<th>All Privileges</th>
+<th>Default Public Privileges</th>
+<th>psql Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DATABASE</td>
+<td>CTc</td>
+<td>Tc</td>
+<td>\l</td>
+</tr>
+<tr>
+<td>DOMAIN</td>
+<td>U</td>
+<td>U</td>
+<td>\dD+</td>
+</tr>
+<tr>
+<td>FUNCTION or PROCEDURE</td>
+<td>X</td>
+<td>X</td>
+<td>\df+</td>
+</tr>
+<tr>
+<td>FOREIGN DATA WRAPPER</td>
+<td>U</td>
+<td>none</td>
+<td>\dew+</td>
+</tr>
+<tr>
+<td>FOREIGN SERVER</td>
+<td>U</td>
+<td>none</td>
+<td>\des+</td>
+</tr>
+<tr>
+<td>LANGUAGE</td>
+<td>U</td>
+<td>U</td>
+<td>\dL+</td>
+</tr>
+<tr>
+<td>LARGE OBJECT</td>
+<td>rw</td>
+<td>none</td>
+<td>\dl+</td>
+</tr>
+<tr>
+<td>PARAMETER</td>
+<td>sA</td>
+<td>none</td>
+<td>\dconfig+</td>
+</tr>
+<tr>
+<td>SCHEMA</td>
+<td>UC</td>
+<td>none</td>
+<td>\dn+</td>
+</tr>
+<tr>
+<td>SEQUENCE</td>
+<td>rwU</td>
+<td>none</td>
+<td>\dp</td>
+</tr>
+<tr>
+<td>TABLE (and table-like objects)</td>
+<td>arwdDxt</td>
+<td>none</td>
+<td>\dp</td>
+</tr>
+<tr>
+<td>Table column</td>
+<td>arwx</td>
+<td>none</td>
+<td>\dp</td>
+</tr>
+<tr>
+<td>TABLESPACE</td>
+<td>C</td>
+<td>none</td>
+<td>\db+</td>
+</tr>
+<tr>
+<td>TYPE</td>
+<td>U</td>
+<td>U</td>
+<td>\dT+</td>
+</tr>
+</tbody>
+</table>
+<p>Пример выдачи привилегий:</p>
+<div class="highlight"><pre><span></span><code>GRANT SELECT ON mytable TO PUBLIC;
+GRANT SELECT, UPDATE, INSERT ON mytable TO admin;
+GRANT SELECT (col1), UPDATE (col1) ON mytable TO &lt;user&gt;;
+</code></pre></div>
+<p>WAL PostgreSQL</p>
+<p>Давайте теперь поговорил о логах транзакций. Они же Write-Ahead Log.<br />
+Что это для чего нужно и как посмотреть что там происходит.  </p>
+<p>Основная задача логов транзакций это помощь в восстановлении после сбоев. Особенно если информация хранится в оперативной памяти.<br />
+Увы, чудес не бывает: чтобы пережить потерю информации в оперативной памяти, все необходимое должно быть своевременно записано на диск (или другое энергонезависимое устройство).  </p>
+<p>Поэтому вместе с изменением данных ведется еще и журнал этих изменений. Когда мы что-то меняем на странице в буферном кэше, мы создаем в журнале запись об этом изменении.  </p>
+<p>Запись содержит минимальную информацию, достаточную для того, чтобы при необходимости изменение можно было повторить.<br />
+Чтобы это работало, журнальная запись в обязательном порядке должна попасть на диск до того, как туда попадет измененная страница. Отсюда и название: журнал предзаписи (write-ahead log).  </p>
+<p>Если происходит сбой, данные на диске оказываются в рассогласованном состоянии: какие-то страницы были записаны раньше, какие-то — позже.<br />
+Но остается и журнал, который можно прочитать и выполнить повторно те операции, которые уже были выполнены до сбоя, но результат которых не успел дойти до диска.  </p>
+<p>Журналировать нужно все операции, при выполнении которых есть риск получить несогласованность на диске в случае сбоя.  </p>
+<p>В частности, в журнал записываются следующие действия:<br />
+</p>
+<ol>
+<li>изменение страниц в буферном кеше (как правило, это страницы таблиц и индексов) — так как измененная страница попадает на диск не сразу;</li>
+<li>фиксация и отмена транзакций — изменение статуса происходит в буферах XACT и тоже попадает на диск не сразу;</li>
+<li>файловые операции (создание и удаление файлов и каталогов, например, создание файлов при создании таблицы) — так как эти операции должны происходить синхронно с изменением данных.</li>
+</ol>
+<p>В журнал НЕ записываются:<br />
+</p>
+<ol>
+<li>операции с нежурналируемыми (unlogged) таблицами — их название говорит само за себя;</li>
+<li>операции с временными таблицами — нет смысла, поскольку время жизни таких таблиц не превышает времени жизни создавшего их сеанса.</li>
+</ol>
+<p>Логически журнал можно представить себе как последовательность записей различной длины. Каждая запись содержит данные о некоторой операции, предваренные стандартным заголовком.  </p>
+<p>В заголовке, в числе прочего, указаны:<br />
+</p>
+<ol>
+<li>номер транзакции, к которой относится запись;</li>
+<li>менеджер ресурсов — компонент системы, ответственный за запись;</li>
+<li>контрольная сумма (CRC) — позволяет определить повреждение данных;</li>
+<li>длина записи и ссылка на предыдущую запись.</li>
+</ol>
+<p>На диске журнал хранится в виде файлов в каталоге $PGDATA/pg_wal.<br />
+Каждый файл по умолчанию занимает 16 Мб. Размер можно увеличить, чтобы избежать большого числа файлов в одном каталоге.  </p>
+<p>Журнальные записи попадают в текущий использующийся файл и когда он заканчивается — начинает использоваться следующий.  </p>
+<p>В разделяемой памяти сервера для журнала выделены специальные буферы. Размер журнального кэша задается параметром wal_buffers (значение по умолчанию подразумевает автоматическую настройку: выделяется 1/32 часть буферного кеша).  </p>
+<p>Журнальный кэш устроен наподобие буферного кэша, но работает преимущественно в режиме кольцевого буфера: записи добавляются в «голову», а записываются на диск с «хвоста».  </p>
+<p>Для того, чтобы сослаться на определенную запись, используется тип данных pg_lsn (LSN = log sequence number) — это 64-битное число, представляющее собой байтовое смещение до записи относительно начала журнала.  </p>
+<p>LSN выводится как два 32-битных числа в шестнадцатеричной системе через косую черту.  </p>
+<p>Можно узнать, в каком файле мы найдем нужную позицию, и с каким смещением от начала файла:</p>
+<div class="highlight"><pre><span></span><code>SELECT file_name, upper(to_hex(file_offset)) file_offset
+FROM pg_walfile_name_offset(&#39;0/331E4E64&#39;);
+</code></pre></div>
+<p>Журнальные файлы можно увидеть специальной функцией:</p>
+<div class="highlight"><pre><span></span><code>SELECT * FROM pg_ls_waldir() WHERE name = &#39;&lt;number&gt;&#39;;
+</code></pre></div>
+<p>Когда мы стартуем сервер, первым делом запускается процесс postmaster, а он, в свою очередь, запускает процесс startup, задача которого — обеспечить восстановление, если произошел сбой.  </p>
+<p>Чтобы определить, требуется ли восстановление, startup заглядывает в специальный управляющий файл $PGDATA/global/pg_control и смотрит на статус кластера. Мы можем и сами проверить статус с помощью утилиты pg_controldata:</p>
+<div class="highlight"><pre><span></span><code>sudo /usr/lib/postgresql/14/bin/pg_controldata -D /var/lib/postgresql/14/main/ | grep state
+</code></pre></div>
+<p>У аккуратно остановленного сервера статус будет «shut down». Если сервер не работает, а статус остался «in production», это означает, что СУБД упала и тогда автоматически будет выполнено восстановление.  </p>
+<p>Для восстановления процесс startup будет последовательно читать журнал и применять записи к страницам, если в этом есть необходимость. Необходимость можно проверить, сравнив LSN страницы на диске с LSN журнальной записи.  </p>
+<p>Если LSN страницы оказался больше, то запись применять не нужно. А на самом деле — даже и нельзя, потому что записи рассчитаны на строго последовательное применение.  </p>
+<p>Изменение страниц при восстановлении происходит в буферном кэше, как при обычной работе — для этого postmaster запускает необходимые фоновые процессы.  </p>
+<p>Аналогично журнальные записи применяются и к файлам: например, если запись говорит о том, что файл должен существовать, а его нет — файл создается.  </p>
+<p>Ну и в самом конце процесса восстановления все не журналируемые таблицы перезаписываются «пустышками» из своих init-слоев.<br />
+«По классике» процесс восстановления состоит из двух фаз. На первой фазе (roll forward) накатываются журнальные записи, при этом сервер повторяет всю потерянную при сбое работу.  </p>
+<p>На второй (roll back) — откатываются транзакции, которые не были зафиксированы на момент сбоя.  </p>
+<p>Но PostgreSQL не нуждается во второй фазе. Благодаря особенностям реализации многоверсионности транзакции не надо откатывать физически; достаточно того, что в XACT не будет установлен бит фиксации.  </p>
+<p>Конечно это достаточно сильное упрощение происходящего. Поэтому если интересно остальное можно прочитать в документации.</p>
+<p>Статистика использования диска и другие полезные запросы</p>
+<p>Для того что бы посмотреть сколько места занимает база данных или отдельная таблица на деске можно использовать следующие запросы.  </p>
+<p>Для начала метакоманды:</p>
+<div class="highlight"><pre><span></span><code>\l+
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>\d+
+</code></pre></div>
+<p>Селекты<br />
+Размер структур PostgreSQL</p>
+<div class="highlight"><pre><span></span><code>SELECT pg_database.datname, 
+pg_database_size(pg_database.datname) AS size 
+FROM pg_database;
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>SELECT pg_database.datname, 
+pg_size_pretty(pg_database_size(pg_database.datname)) AS size 
+ FROM pg_database;
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>SELECT pg_size_pretty(pg_total_relation_size(&#39;&quot;&lt;schema&gt;&quot;.&quot;&lt;table&gt;&quot;&#39;));
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>SELECT pg_size_pretty(pg_database_size(&#39;example&#39;));
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>SELECT
+    table_name,
+    pg_size_pretty(table_size) AS table_size,
+    pg_size_pretty(indexes_size) AS indexes_size,
+    pg_size_pretty(total_size) AS total_size
+FROM (
+    SELECT
+        table_name,
+        pg_table_size(table_name) AS table_size,
+        pg_indexes_size(table_name) AS indexes_size,
+        pg_total_relation_size(table_name) AS total_size
+    FROM (
+        SELECT (&#39;&quot;&#39; || table_schema || &#39;&quot;.&quot;&#39; || table_name || &#39;&quot;&#39;) AS table_name
+        FROM information_schema.tables
+    ) AS all_tables
+    ORDER BY total_size DESC
+) AS pretty_sizes;
+</code></pre></div>
+<p>Проверка на блокировки:</p>
+<div class="highlight"><pre><span></span><code>SELECT
+  t.relname,
+  l.locktype,
+  page,
+  virtualtransaction,
+  pid,
+  mode,
+  granted
+FROM
+  pg_locks l,
+  pg_stat_all_tables t
+WHERE
+  l.relation = t.relid
+ORDER BY
+  relation asc;
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>SELECT
+  S.pid,
+  age(clock_timestamp(), query_start),
+  usename,
+  query,
+  L.mode,
+  L.locktype,
+  L.granted
+FROM
+  pg_stat_activity S
+JOIN
+  pg_locks L ON S.pid = L.pid
+ORDER BY
+  L.granted,
+  L.pid DESC
+</code></pre></div>
+<p>Домашнее задание</p>
+<p>Напишите роль для установки PostgreSQL и плейбук, устанавливающий СУБД на ВМ2.  </p>
+<p>Роль должна выполнять следующие операции:<br />
+</p>
+<ol>
+<li>Установку пакета PostgreSQL из стандартных репозиториев Ubuntu (подключать deb-репозитории PostgreSQL не нужно);</li>
+<li>Настройку директорий с данными PostgreSQL (роль должна принимать директорию с данными как параметр, значение по умолчанию — /data/postgres/data);</li>
+<li>Первичную инициализацию БД при помощи команды pg_ctl initdb -D $PGDATA;</li>
+<li>Конфигурация PostgreSQL при помощи файла $PGDATA/postgresql.conf (роль должна принимать параметры конфигурации PostgreSQL в виде словаря);</li>
+<li>Конфигурация параметров авторизации при помощи файла $PGDATA/pg_hba.conf (роль должна принимать последовательность правил авторизации в виде списка словарей);</li>
+<li>Запуск PostgreSQL как systemd-службы;</li>
+<li>Проверку работоспособности PostgreSQL при помощи выполнения в СУБД запроса SELECT 1;</li>
+<li>Создание пользовательских БД;</li>
+<li>Создание пользователей;</li>
+<li>Установку <a href="https://github.com/prometheus-community/postgres_exporter">postgres-exporter</a> на цели;</li>
+<li>Запуск postgres-exporter как systemd-службы.</li>
+</ol>
+<p>Для проверки предоставьте  </p>
+<ul>
+<li>Ссылку на исходный код роли в репозитории оформленном в соответствии структуры из занятия 3;</li>
+<li>Ссылку на исходный код плейбука в том же репозитории.</li>
+</ul>
+<p>Пояснения</p>
+<p>Права директорий PostgreSQL<br />
+В пункте 2 убедитесь, что создаете папку /data с владельцем root: root и правами 0755, чтобы избежать ограничений доступа при просмотре корня файловой системы. Директорию /data/postgres создавайте с владельцем postgres: postgres и правами 0700.  </p>
+<p>Директива creates для отслеживания изменений в модулях command и shell<br />
+В третьей практике мы обсуждали один из способов выполнить модули command и shell идемпотентно — задать условие changed_when вручную. В третьем пункте такое решение неоптимально, т.к. оно полагается на парсинг вывода команды pg_ctl initdb.  </p>
+<p>Вместо него используйте директиву creates, которая принимает как аргумент путь на цели и считает, что указанный модуль должен создать этот путь. Т. е. задача считается changed, если до запуска этого пути не было, а после — появился. Если же путь существовал до запуска, то задача пропускается со статусом ok.  </p>
+<p>Пример:</p>
+<div class="highlight"><pre><span></span><code>- name: Create directory via command
+  ansible.builtin.command:
+    cmd: mkdir /data
+  creates: /data
+</code></pre></div>
+<p>Не делайте так, используйте модуль file со state: directory.</p>
+<p>Сохранение значений по умолчанию в конфиге PostgreSQL</p>
+<p>Обратите внимание, что initdb создает непустой конфиг postgresql. conf и вам нужно позаботиться о сохранении значений по-умолчанию. Вы можете подойти к этой задаче двумя способами:<br />
+</p>
+<ol>
+<li>Генерация полного конфига при помощи <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html">template</a>. Значения по-умолчанию подставляются из приватных переменных роли путем слияния с пользовательскими параметрами;</li>
+<li>Точечная замена конфигурационных опций при помощи модуля <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/lineinfile_module.html">lineinfile</a>;</li>
+</ol>
+<p>Первый способ выглядит так:<br />
+Объявляем пользовательские переменные в defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>postgres__opts:
+  param1: value1
+  param2: value2
+</code></pre></div>
+<p>И параметры по-умолчанию в vars/main.yml (скопируйте их из сгенерированного конфига):</p>
+<div class="highlight"><pre><span></span><code>__opts_default:
+  param1: value1_default
+  param3: value3_default
+</code></pre></div>
+<p>Затем сливаем их при помощи фильтра <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/combine_filter.html">combine</a> в шаблоне templates/postgresql.conf.j2:</p>
+<div class="highlight"><pre><span></span><code>{\% set opts = __opts_default | combine(postgres__opts) \%}
+</code></pre></div>
+<p>И копируем конфиг при помощи модуля <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html">template</a>.  </p>
+<p>Во втором способе будем использовать модуль <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/lineinfile_module.html">lineinfile</a>, который использует регулярное выражение, чтобы найти строку с нашей опцией и заменить ее на пользовательское значение.  </p>
+<p>Аналогично объявим пользовательские переменные в defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>postgres__opts:
+  param1: value1
+  param2: value2
+</code></pre></div>
+<p>Теперь напишем цикл по параметрам с поиском каждого из них:</p>
+<div class="highlight"><pre><span></span><code>- name: Edit postgresql.conf
+  ansible.builtin.lineinfile:
+    path: &quot;{\{ postgres__data_dir \}}/postgresql.conf&quot;
+    regexp: &quot;^#?{\{ item.key | regex_escape() \}}\s*=&quot;
+    line: &quot;{\{ item.key \}} = {\{ item.value \}}&quot;
+    create: false
+  loop: &quot;{\{ postgres__opts | dict2items \}}&quot;
+  loop_control:
+    label: &quot;{\{ item.key \}}&quot;
+</code></pre></div>
+<p>Здесь мы использовали следующие фильтры:  </p>
+<p><a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dict2items_filter.html#ansible-collections-ansible-builtin-dict2items-filter">dict2items</a> — конвертирует словарь в список словарей с ключами key и value, нужен для использования словарей как параметров циклов;  </p>
+<p><a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/regex_replace_filter.html#ansible-collections-ansible-builtin-regex-replace-filter">regex_escape ()</a> — экранирование спец-символов регулярных выражений в строке, нужно чтобы все символы в item. key воспринимались буквально.</p>
+<p>Коллекция community.postrgesql</p>
+<p>Для выполнения пунктов 5, 7, 8, 9 можете воспользоваться коллекцией community.postgresql, установку которой обсудили на пятой практике. Обратите внимание, что коллекция требует установки на цели Python пакета psycopg2. Установите его в первом пункте вместе с пакетами PostgreSQL, если планируете использовать. Название пакета в дистрибутиве Ubuntu: python3-psycopg2.</p>
+<p>Значения по умолчанию в модулях community. postgresql</p>
+<p>Довольно часто мы предоставляем в ролях интерфейсы к модулям со своими значениями по-умолчанию. Чтобы не дублировать эти значения в фильтре default так:</p>
+<div class="highlight"><pre><span></span><code>- name: Create Databases
+  community.postgresql.postgresql_db:
+    name: &quot;{\{ item.name \}}&quot;
+    encoding: &quot;{\{ item.encoding | default(&#39;&#39;) \}}&quot;
+    state: &quot;{\{ item.state | default(&#39;present&#39;) \}}&quot;
+  loop: &quot;{\{ postgres__databases \}}&quot;
+</code></pre></div>
+<p>используйте специальную константу <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_filters.html#making-variables-optional">omit</a> — если эта константа является результатом шаблона в параметре модуля, то Ansible игнорирует этот параметр будто он не был написан вовсе.  </p>
+<p>Получим:</p>
+<div class="highlight"><pre><span></span><code>- name: Create Databases
+  community.postgresql.postgresql_db:
+    name: &quot;{\{ item.name \}}&quot;
+    encoding: &quot;{\{ item.encoding | default(omit) \}}&quot;
+    state: &quot;{\{ item.state | default(omit) \}}&quot;
+  loop: &quot;{\{ postgres__databases \}}&quot;
+</code></pre></div>
+<p>Таким образом, если элементом цикла будет {"name": «database"}, то после подстановки шаблона получим такую задачу:</p>
+<div class="highlight"><pre><span></span><code>- name: Create Databases
+  community.postgresql.postgresql_db:
+    name: &quot;database&quot;
+</code></pre></div>
 
 
 

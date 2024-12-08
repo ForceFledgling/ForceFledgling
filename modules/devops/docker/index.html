@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ipsec/" class="md-nav__link">
+      <a href="../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,879 @@
 
   <h1>Docker</h1>
 
+<p>Контейнеризация</p>
+<p>Люди всегда опираются на опыт и знания предшественников.<br />
+Разработчики не исключение: программы переиспользуют написанный код, либо копируя его в новые программы, либо подключая как отдельные пакеты.  </p>
+<p>Первый подход обычно называют статическим связыванием (копирование исходного кода в новую программу, статическая линковка для компилируемых программ, вендоринг и т. д.), второй — динамическим связыванием (подключение раздельных библиотек, поиск кода в глобальном реестре и т. д.).  </p>
+<p>Очевидно, статическое связывание проще, т.к. мы приносим все зависимости с собой: мы можем гарантировать совместимость версий используемого кода, не нужно волноваться об источниках получения зависимостей. Но минусы такого подхода также очевидны — каждая программа копирует все нужные ей зависимости, раздувая размер, усложняется аудит зависимостей.<br />
+Также, на Linux, самая популярная реализация стандартной библиотеки C (glibc) по сути не поддерживает статическую линковку.  </p>
+<p>Поэтому во всех дистрибутивах Linux широко используется динамическая линковка, причем в некоторых вообще запрещена публикация статически собранных пакетов в системные репозитории. Это привело к тому, что большинство языков программирования, пакетных менеджеров не поддерживают статическую сборку.  </p>
+<p>Контейнеры — радикальное решение этой проблемы. Программа и все ее зависимости упаковываются в будто бы образ цельной операционной системы и запускается изолированно, опять же, будто единственный процесс этой операционной системы.  </p>
+<p>При этом контейнеры используют для изоляции встроенные механизмы Linux и не эмулируют отдельное ядро операционной системы, в отличии от систем виртуализации. Поэтому при помощи контейнеров нельзя запускать программы, написанные для Windows, MacOS или скомпилированных для архитектуры процессора, отличной от хост-архитектуры. Но контейнеры менее требовательны к ресурсам, что позволяет запускать большее их число.  </p>
+<p>Далее мы будем рассматривать Docker и его подход к контейнерам, где один контейнер — это программа с ее зависимостями, а взаимодействие нескольких программ реализуется не при помощи упаковки нескольких программ в один контейнер и оркестрации внутри, а запуска множества контейнеров и оркестрации при помощи инструментов межпроцессного взаимодействия ОС: файловой системы, пайп, сокетов и т. д.  </p>
+<p>Такой подход «тонких» контейнеров поощряет отделение состояния программы от кода: контейнер это лишь сама программа, состояние должно монтироваться извне при помощи сети, файловой системы хоста и т. п.  </p>
+<p>Такой подход доминирует в индустрии, но он не единственный: поверх тех же механизмов Linux работают LXC (Linux Containers) и systemd-nspawn — менее популярные системы контейнеризации, реализующие механизм «толстых» контейнеров, когда, по аналогии с виртуальными машинами, все взаимодействия строятся внутри контейнера.</p>
+<p>Образы</p>
+<p>Программы, упакованные для использования в качестве контейнеров, называют образами (images)<em>.</em> По-сути они состоят из слепка файловой системы и конфигурации, указывающей как запустить стартовый процесс. Эти образа распространяются при помощи контейнерных реестров (container registry)<em>.</em> Доступно множество публичных реестров от различных вендоров, также существуют программы, позволяющие запустить приватный реестр. Все эти реестры реализуют одинаковый интерфейс загрузки/публикации/поиска образов и поэтому взаимозаменяемы.</p>
+<p>Open Container Initiative — OCI</p>
+<p>При работе с контейнерами вам встретятся термины «OCI совместимые образы», «OCI реестры», «OCI артефакты», «OCI среда выполнения». Это не что-то совершенно новое, а открытый стандарт для Docker контейнеров. OCI сущности выполняют ту же функцию, только основаны на открытом стандарте, а не на конкретной реализации Docker. Docker способен запускать OCI образы и Docker образы могут быть однозначно конвертированы в OCI образы.</p>
+<p>Запуск первого контейнера</p>
+<p>Мы запустили службу Docker на первой практике, напомним команду для запуска:</p>
+<div class="highlight"><pre><span></span><code>$ systemctl enable --now docker.service
+</code></pre></div>
+<p>Контейнеры запускаются командой docker run, например запустим nginx:</p>
+<div class="highlight"><pre><span></span><code>$ docker run nginx
+Unable to find image &#39;nginx:latest&#39; locally
+latest: Pulling from library/nginx
+Digest: sha256:32da30332506740a2f7c34d5dc70467b7f14ec67d912703568daff790ab3f755
+Status: Downloaded newer image for nginx:latest
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+...
+</code></pre></div>
+<p>Эта команда запустит образ nginx и подключится к его выводу. Обратите внимание, что имя образа nginx было конвертировано в nginx: latest. latest -- тэг по умолчанию, он подставляется автоматически если не указать тег в имени образа. Нажмите CTRL+C, чтобы закрыть контейнер.  </p>
+<p>Другие опции docker run можно просмотреть в man docker-run.  </p>
+<p>docker run автоматически скачивает образ, если такой образ не сохранен локально.<br />
+Команда docker pull загружает образ явно. Например загрузим nginx:1.20 :</p>
+<div class="highlight"><pre><span></span><code>$ docker pull nginx:1.20
+1.20: Pulling from library/nginx
+214ca5fb9032: Pull complete 
+50836501937f: Pull complete 
+d838e0361e8e: Pull complete 
+fcc7a415e354: Pull complete 
+dc73b4533047: Pull complete 
+e8750203e985: Pull complete 
+Digest: sha256:38f8c1d9613f3f42e7969c3b1dd5c3277e635d4576713e6453c6193e66270a6d
+Status: Downloaded newer image for nginx:1.20
+docker.io/library/nginx:1.20
+</code></pre></div>
+<p>По умолчанию docker run не перекачивает образ, если образ с таким тегом уже загружен. Вы можете использовать docker pull, чтобы принудительно обновить образ перед запуском контейнера.  </p>
+<p>Чаще всего Docker используют для запуска фоновых служб, для этого воспользуемся опцией -d (-- detach) docker run :</p>
+<div class="highlight"><pre><span></span><code>$ docker run \
+  --name test \
+  --publish 127.0.0.1:8080:80/tcp \
+  --detach nginx:1.20
+70ab136de007179f27abf2b1b69bf50d3b0646758c1ff2d5908a9cef552b9509
+</code></pre></div>
+<p>Мы запустили контейнер в фоне, явно указав его имя опцией --name и опубликовав порт при помощи --publish (-p). Опция --publish позволяет пробросить порт из виртуальной сети контейнера в сеть хоста. Эта опция принимает как аргумент строку формата:</p>
+<div class="highlight"><pre><span></span><code>[HOST_ADDRESS:]&lt;HOST_PORT&gt;:&lt;CONTAINER_PORT&gt;[/PROTOCOL]
+</code></pre></div>
+<p>Здесь:<br />
+HOST_INTERFACE (опционально, по умолчанию 0.0.0.0) — IP адрес, к которому привязать порт в сети хоста. Укажите 127.0.0.1, чтобы порт был доступен только локально или 0.0.0.0, чтобы порт слушался на всех адресах, привязанных к хосту;<br />
+HOST_PORT (обязательно) — слушаемый порт в сети хоста;<br />
+CONTAINER_PORT (обязательно) — слушаемый порт в сети контейнера;<br />
+PROTOCOL (опционально, по умолчанию tcp) — протокол слушаемого порта, вы можете указатьtcp либо udp.  </p>
+<p>Воспользуемся командой docker ps, чтобы посмотреть запущенные контейнеры:</p>
+<div class="highlight"><pre><span></span><code>$ docker ps
+CONTAINER ID   IMAGE     COMMAND                  CREATED              STATUS              PORTS     NAMES
+70ab136de007   nginx     &quot;/docker-entrypoint.…&quot;   About a minute ago   Up About a minute   80/tcp    test
+</code></pre></div>
+<p>По умолчанию docker ps выводит список запущенных контейнеров в человекочитаемом формате.<br />
+Используйте man docker-ps, чтобы просмотреть другие опции.<br />
+Обратите внимание, что имя контейнера сгенерировано случайно. Чтобы задать имя явно используйте docker run --name NAME .  </p>
+<p>Просмотрим логи контейнера (у вас будет другой ID контейнера):</p>
+<div class="highlight"><pre><span></span><code>$ docker logs --follow 70ab136de007
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+...
+</code></pre></div>
+<p>Откроем вторую консоль и сделаем запрос к запущенному контейнеру при помощи curl:</p>
+<div class="highlight"><pre><span></span><code>$ curl http://localhost:8080
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Welcome to nginx!&lt;/title&gt;
+...
+</code></pre></div>
+<p>Обратите внимание, что в логе появилась новая запись.  </p>
+<p>Чтобы просмотреть детали по запущенному контейнеру воспользуемся docker top и docker stats:</p>
+<div class="highlight"><pre><span></span><code>$ docker top 70ab136de007
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+root                19021               19002               0                   00:00               ?                   00:00:00            nginx: master process nginx -g daemon off;
+systemd+            19077               19021               0                   00:00               ?                   00:00:00            nginx: worker process
+systemd+            19078               19021               0                   00:00               ?                   00:00:00            nginx: worker process
+</code></pre></div>
+<p>docker top показывает информацию о процессах, запущенных внутри контейнера. После идентификатора или имени контейнера она принимает аргументы команды ps, детали смотрите в man ps. Например, чтобы просмотреть текущую нагрузку в разбивке по процессам:</p>
+<div class="highlight"><pre><span></span><code>$ docker top 70ab136de007 -o pid,ppid,uid,gid,%cpu,%mem,cmd
+PID                 PPID                UID                 GID                 %CPU                %MEM                CMD
+19021               19002               0                   0                   0.0                 0.3                 nginx: master process nginx -g daemon off;
+19077               19021               101                 101                 0.0                 0.1                 nginx: worker process
+19078               19021               101                 101                 0.0                 0.1                 nginx: worker process
+</code></pre></div>
+<p>docker stats показывает ресурсы потребляемые контейнером в реальном времени:</p>
+<div class="highlight"><pre><span></span><code>$ docker stats 70ab136de007
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT    MEM %     NET I/O       BLOCK I/O         PIDS
+70ab136de007   test      0.00%     7.215MiB / 1.99GiB   0.35%     1.67kB / 0B   12.4MB / 12.3kB   3
+</code></pre></div>
+<p>Чтобы запустить новый процесс в уже существующем контейнере существует команда docker exec. Например, просмотрим конфигурацию nginx:</p>
+<div class="highlight"><pre><span></span><code>$ docker exec 70ab136de007 cat /etc/nginx/nginx.conf
+</code></pre></div>
+<p>Или терминал:</p>
+<div class="highlight"><pre><span></span><code>$ docker exec --interactive --tty 70ab136de007 bash
+</code></pre></div>
+<p>Опция --interactive (-i) насильно подключает stdin к сессии docker exec, а --tty (-t)создает псевдо-консоль для процесса.<br />
+Внутри контейнера информацию о процессах, как она выглядит изнутри контейнера. Воспользуемся виртуальной файловой системой /proc:</p>
+<div class="highlight"><pre><span></span><code>$ printf &#39;PID\tPPID\tUID\tGID\tCMD\n&#39; ; \
+  find /proc -maxdepth 1 \
+      -regex &#39;/proc/[0-9]+&#39; \
+    | while read -r p
+      do [ -r &quot;$p/cmdline&quot; ] || continue
+         printf &#39;%s\t%s\t%s\t%s\t%s\n&#39; \
+                &quot;$(echo $p | cut -d/ -f3)&quot; \
+                &quot;$(grep -F PPid &lt;&quot;$p/status&quot; | cut -f2)&quot; \
+                &quot;$(grep -F Uid  &lt;&quot;$p/status&quot; | cut -f2)&quot; \
+                &quot;$(grep -F Gid  &lt;&quot;$p/status&quot; | cut -f2)&quot; \
+                &quot;$(tr &#39;\0&#39; &#39; &#39; &lt;&quot;$p/cmdline&quot;)&quot;
+      done
+PID PPID    UID GID CMD
+1   0       0   0   nginx: master process nginx -g daemon off;
+30  1       101 101 nginx: worker process
+31  1       101 101 nginx: worker process
+...
+</code></pre></div>
+<p>Обратите внимание на идентификаторы процессов и пользователей. Первые изолированы в отдельное пространство имен Linux, вторые — нет.  </p>
+<p>Остановим запущенный контейнер:</p>
+<div class="highlight"><pre><span></span><code>$ docker stop 70ab136de007
+70ab136de007
+</code></pre></div>
+<p>Запустим docker ps еще раз:</p>
+<div class="highlight"><pre><span></span><code>$ docker ps
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+</code></pre></div>
+<p>По умолчанию docker ps выводит только запущенные контейнеры, добавим -a (--all) чтобы увидеть только что остановленный контейнер:</p>
+<div class="highlight"><pre><span></span><code>$ docker ps --all
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                     PORTS     NAMES
+70ab136de007   nginx     &quot;/docker-entrypoint.…&quot;   4 minutes ago   Exited (0) 3 minutes ago             test
+</code></pre></div>
+<p>Запустим контейнер снова командой docker start:</p>
+<div class="highlight"><pre><span></span><code>$ docker start 70ab136de007
+70ab136de007
+</code></pre></div>
+<p>Наконец удалим контейнер:</p>
+<div class="highlight"><pre><span></span><code>$ docker rm 70ab136de007
+Error response from daemon: You cannot remove a running container 
+70ab136de007179f27abf2b1b69bf50d3b0646758c1ff2d5908a9cef552b9509. Stop the container 
+before attempting removal or force remove
+</code></pre></div>
+<p>Мы должны остановить контейнер, чтобы удалить его:</p>
+<div class="highlight"><pre><span></span><code>$ docker stop 70ab136de007 &amp;&amp; docker rm 70ab136de007
+70ab136de007
+70ab136de007
+</code></pre></div>
+<p>Или же воспользуйтесь опцией -f (--force) команды docker rm :</p>
+<div class="highlight"><pre><span></span><code>$ docker rm --force 70ab136de007
+70ab136de007
+</code></pre></div>
+<p>Мы, очевидно, рассмотрели далеко не все команды. Остальные можно просмотреть либо в справке (docker --help, man docker) или <a href="https://docs.docker.com/engine/reference/commandline/docker/">онлайн-документации</a>. Обратите внимание на следующие команды:<br />
+docker create — создать контейнер без запуска;<br />
+docker diff — просмотреть изменения файловой системы контейнера, по сравнению с изначальным образом;<br />
+docker export — экспортировать файловую систему контейнера в архив;<br />
+docker save — сохранить образ в архив;<br />
+docker restart — перезапустить контейнер.</p>
+<p>Сборка образов</p>
+<p>Мы запускали контейнер из существующего образа. Довольно часто мы будем упаковывать свои приложения в контейнеры, рассмотрим как собирать Docker образы.</p>
+<p>Dockerfile</p>
+<p>Рассмотрим стандартный способ сборки Docker образов: Dockerfile. Этот файл состоит из последовательности команд, которые позволяют выполнять команды в окружении сборки, выставлять параметры конфигурации и т. д.  </p>
+<p>Рассмотрим основные команды на примере, склонируйте проект <a href="https://git.devops-teta.ru/materials/counter-frontend">counter-frontend</a>на рабочую ВМ и перейдите в папку с проектом:</p>
+<div class="highlight"><pre><span></span><code>git clone git@git.devops-teta.ru:materials/counter-frontend.git &amp;&amp; cd counter-frontend
+</code></pre></div>
+<p>Если вы используете VSCode на ВМ, то откройте VSCode в текущей папке так: code.  </p>
+<p>Этот проект — простой фронтэнд на NextJS, реализующий счетчик. Напишем простой Dockerfile для сборки и запуска этого проекта.  </p>
+<p>Создайте в корневой папке проекта файл Dockerfile со следующим содержимым:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+</code></pre></div>
+<p>Директива FROM указывает базовый образ, т. е. образ поверх которого мы строим образ своего приложения.  </p>
+<p>Теперь нам нужно скопировать исходный код приложения внутрь нового образа:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+</code></pre></div>
+<p>Директива WORKDIR задает рабочую директорию, воспринимайте ее как аналог cd, который используется остальными директивами, работающими с файловой системой. Если такой папки не существует, то она будет создана.  </p>
+<p>COPY копирует файлы из текущего контекста сборки внутрь образа. Эта команда принимает на вход список путей, последний путь — это целевой путь в образе, остальные — исходные пути в контексте сборки. Если путь заканчивается на /, то он считается директорией. Можно копировать несколько файлов в папку одной директивой, для копирования папок нужно написать отдельную директиву.  </p>
+<p>Контекст сборки — это папка хоста, из которой копируются файлы директивами ADD и COPY. По умолчанию это папка, из которой была запущена команда docker build, но ее можно переопределить. При старте сборки Docker копирует все файлы из контекста во временную директорию, чтобы зафиксировать состояние на начало сборки.  </p>
+<p>Если контекст занимает много места (например, если здесь мы скачаем все зависимости в папку node_modules), то сборка будет долго запускаться и иногда завершаться с ошибкой, если в /var/lib/docker недостаточно места.  </p>
+<p>Чтобы избежать этой проблемы используется файл. dockerignore — это файл, где на каждой строке указывается подстановочный шаблон (синтаксис очень похож на таковые из Shell) и если файл из контекста подходит под шаблон, то он не копируется в слепок контекста в начале сборки.  </p>
+<p>Обратите внимание, что при попытке скопировать проигнорированный файл Docker выдаст такую ошибку, как будто этого файла не существует. Используйте. dockerignore осторожно и проверяйте его содержимое при ошибках копирования.  </p>
+<p>Создадим .dockerignore:</p>
+<p><strong>.dockerignore</strong></p>
+<div class="highlight"><pre><span></span><code># NodeJS modules
+/node_modules
+</code></pre></div>
+<p># — обозначает комментарий. Мы скопировали исходные файлы и сборочную конфигурацию внутрь образа, теперь соберем проект:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+ARG NODE_ENV=production
+RUN npx next build
+</code></pre></div>
+<p>RUN запускает Shell команду в текущем состоянии образа. Она запускается как будто в контейнере, собранном при помощи предыдущих директив. Также для нее используется отдельный процесс Shell, т. е. изменения состояния оболочки не сохранятся. Изменения cd и setне применятся к последующим директивам RUN .  </p>
+<p>ARG задает параметр сборки — переменную окружения доступную во время сборки контейнера. Эти переменные доступны в командах, запускаемых директивами RUN и при подстановке переменных. Чтобы задать глобальные параметры оболочки, в которой запускаются директивы RUN используется SHELL:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+RUN npm install
+RUN npx next build
+</code></pre></div>
+<p>Аргументы SHELL — список в формате JSON, которым задается команда, запускающая оболочку для RUN, т. е. полная команда RUN будет выглядеть так:</p>
+<div class="highlight"><pre><span></span><code>/bin/sh -eu -c &#39;npx next build&#39;
+</code></pre></div>
+<p>Теперь установим собранный проект в /app:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
 
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN npm install
+RUN npx next build
+
+RUN cp --recursive .next/standalone /app
+RUN cp --recursive public /app/public
+RUN cp --recursive .next/static /app/.next/static
+</code></pre></div>
+<p>И укажем какую команду запускать при старте контейнера:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN npm install
+RUN npx next build
+
+RUN cp --recursive .next/standalone /app
+RUN cp --recursive public /app/public
+RUN cp --recursive .next/static /app/.next/static
+
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>ENTRYPOINT, аналогично SHELL принимает как аргумент JSON список, из которого формируется запускаемая команда. Аналогично вместо JSON списка вы можете передать как аргумент произвольную строку и она будет запущена командой /bin/sh -c.  </p>
+<p>Почти всегда Shell форма используется по ошибке, когда вы ошибаетесь в JSON строке. Внимательно проверяйте запятые и кавычки, т.к. Docker не укажет вам на ошибку.  </p>
+<p>Запускаемая нами команда по умолчанию слушает TCP порт 3000, мы можем указать на это директивой EXPOSE:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN npm install
+RUN npx next build
+
+RUN cp --recursive .next/standalone /app
+RUN cp --recursive public /app/public
+RUN cp --recursive .next/static /app/.next/static
+
+EXPOSE 3000/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>EXPOSE указывает, что внутри контейнера запущен процесс, слушающий указанный порт. Она никак не влияет на поведение docker run.  </p>
+<p>Наш сервер позволяет переопределить слушаемый порт переменной окружения PORT:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN npm install
+RUN npx next build
+
+RUN cp --recursive .next/standalone /app
+RUN cp --recursive public /app/public
+RUN cp --recursive .next/static /app/.next/static
+
+ENV PORT=&quot;8080&quot;
+EXPOSE ${PORT}/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>ENV задает переменную окружения, такие переменные, аналогично параметрам сборки доступны при сборке контейнера, но также они выставляются при запуске контейнера. Обратите внимание, что в директивах можно использовать переменные окружения и параметры сборки. Список поддерживаемых директив см. в <a href="denied:3 https://docs.docker.com/engine/reference/builder/#environment-replacement"></a> <a href="https://docs.docker.com/engine/reference/builder/#environment-replacement">документации</a>.  </p>
+<p>Вы можете переопределить значение переменной окружения при запуске контейнера, но это не изменит результаты подстановок т.к. они выполняются при сборке и в образ сохраняется результат. Даже если вы зададите переменную окружения PORT при запуске контейнера порт, указанный в EXPOSE не изменится.  </p>
+<p>Запустим сборку образа командой docker build :</p>
+<div class="highlight"><pre><span></span><code>$ docker build --tag image .
+</code></pre></div>
+<p>Мы указываем два обязательных параметра:<br />
+--tag (-t) — имя собранного образа;<br />
+. — контекст сборки;</p>
+<p>Строение образа</p>
+<p>Docker образ состоит из последовательности слоев — архивов, содержащих слепок файловой системы будущего контейнера. При создании контейнера эти слепки последовательно распаковываются в пустую файловую систему и полученный набор файлов становится файловой системой нового контейнера.  </p>
+<p>Слои идентифицируются своей контрольной суммой. Контрольные суммы вычисляются так, чтобы минимизировать вероятность их совпадения для различных архивов. Это позволяет независимо генерировать уникальные идентификаторы для слоев.  </p>
+<p>Docker хранит слои отдельно, образы лишь указывают их идентификаторы и порядок. Также образ содержит остальную конфигурацию, такую как переменные окружения образа, точку входа и т. д. Вся эта конфигурация хранится в одном JSON файле. Такой подход к хранению позволяет эффективно реализовать концепцию базовых образов: директива FROM imageговорит, что в качестве первых слоев образа нужно использовать слои образа image.<br />
+Формат образа довольно прост, несложно представить альтернативные инструменты сборки.  </p>
+<p>Мы рассмотрим один из них в будущем, когда будем рассматривать проблему сборки образов внутри Docker контейнеров при написании пайплайнов Gitlab CI.  </p>
+<p>Мы можем просмотреть строение образа командой docker image save. Эта команда используется для распространения образов без использования реестров.</p>
+<div class="highlight"><pre><span></span><code>$ docker pull nginx:1.20  # Сначала загружаем образ
+$ docker image save --output nginx.tgz nginx:1.20
+</code></pre></div>
+<p>Распакуем образ в папку и перейдем в нее:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir --parents nginx
+$ tar --extract --verbose --directory nginx --file nginx.tgz
+$ cd nginx
+</code></pre></div>
+<p>Просмотрим содержимое образа:</p>
+<div class="highlight"><pre><span></span><code>$ tree
+.
+├── 0584b370e957bf9d09e10f424859a02ab0fda255103f75b3f8c7d410a4e96ed5.json
+├── 0f363816624a8a468120a586323f47356ff12b78aa366cd56838c776b6f8a1fe
+│   ├── json
+│   ├── layer.tar
+│   └── VERSION
+├── 113c0561792ebb622236711a2025c47610078086f300659530cb000f6d8919dc
+│   ├── json
+│   ├── layer.tar
+│   └── VERSION
+├── 429ee11cfd71d01b280e7f2b906d9ae9c41c950f2c1781698f2c42a00d2ec615
+│   ├── json
+│   ├── layer.tar
+│   └── VERSION
+├── 671a1d9053e403e9c149ce5f7360117b8ce8d77e441849d5396eb4843f198e78
+│   ├── json
+│   ├── layer.tar
+│   └── VERSION
+├── 8afcedb90abfd1ca2924ca223dd9e4d26ca3053537663a607be3ee2fc1eefec0
+│   ├── json
+│   ├── layer.tar
+│   └── VERSION
+├── 8dfd5b8b88d1474acf828115a543c879247d2ff710e55f45b2ec5453cb6571db
+│   ├── json
+│   ├── layer.tar
+│   └── VERSION
+├── manifest.json
+└── repositories
+2 directories, 18 files
+</code></pre></div>
+<p>Образ состоит из:<br />
+Манифеста — JSON файла, содержащего ссылки на остальные части образа: конфигурацию и слои;<br />
+Конфиг — JSON файл, содержащий метаданные образа: переменные окружения, точку входа, аргументы, историю сборки, платформу под которую собран образ и т. д.;<br />
+Слоев — слепков файловой системы с их метаданными.  </p>
+<p>Посмотрим манифест:</p>
+<div class="highlight"><pre><span></span><code>$ jq . manifest.json
+[
+ {
+ &quot;Config&quot;: 
+&quot;0584b370e957bf9d09e10f424859a02ab0fda255103f75b3f8c7d410a4e96ed5.json&quot;,
+ &quot;RepoTags&quot;: [
+ &quot;nginx:1.20&quot;
+ ],
+ &quot;Layers&quot;: [
+ &quot;429ee11cfd71d01b280e7f2b906d9ae9c41c950f2c1781698f2c42a00d2ec615/layer.tar&quot;,
+ &quot;0f363816624a8a468120a586323f47356ff12b78aa366cd56838c776b6f8a1fe/layer.tar&quot;,
+ &quot;8dfd5b8b88d1474acf828115a543c879247d2ff710e55f45b2ec5453cb6571db/layer.tar&quot;,
+ &quot;113c0561792ebb622236711a2025c47610078086f300659530cb000f6d8919dc/layer.tar&quot;,
+ &quot;671a1d9053e403e9c149ce5f7360117b8ce8d77e441849d5396eb4843f198e78/layer.tar&quot;,
+ &quot;8afcedb90abfd1ca2924ca223dd9e4d26ca3053537663a607be3ee2fc1eefec0/layer.tar&quot;
+ ]
+ }
+]
+</code></pre></div>
+<p>Заметим, что все объекты идентифицируются своими контрольными суммами, в т. ч. конфиг. Docker всегда использует алгоритм SHA-256. Манифест используется для параллельной загрузки образов:<br />
+сначала скачивается манифест, затем из него извлекаются идентификаторы слоев и конфигурации для параллельной загрузки.  </p>
+<p>Просмотрим конфигурацию:</p>
+<div class="highlight"><pre><span></span><code>$ jq . 0584b370e957bf9d09e10f424859a02ab0fda255103f75b3f8c7d410a4e96ed5.json
+{
+ &quot;architecture&quot;: &quot;amd64&quot;,
+ &quot;config&quot;: {
+ &quot;Hostname&quot;: &quot;&quot;,
+ &quot;Domainname&quot;: &quot;&quot;,
+ &quot;User&quot;: &quot;&quot;,
+ &quot;AttachStdin&quot;: false,
+ &quot;AttachStdout&quot;: false,
+ &quot;AttachStderr&quot;: false,
+ &quot;ExposedPorts&quot;: {
+ &quot;80/tcp&quot;: {}
+ },
+ &quot;Tty&quot;: false,
+ &quot;OpenStdin&quot;: false,
+ &quot;StdinOnce&quot;: false,
+ &quot;Env&quot;: [
+ &quot;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;,
+ &quot;NGINX_VERSION=1.20.2&quot;,
+ &quot;NJS_VERSION=0.7.3&quot;,
+ &quot;PKG_RELEASE=1~bullseye&quot;
+ ],
+ &quot;Cmd&quot;: [
+ &quot;nginx&quot;,
+ &quot;-g&quot;,
+ &quot;daemon off;&quot;
+ ],
+ &quot;Image&quot;: 
+&quot;sha256:568a65393e894cd19a0473a1716fdee1b96246c302b2446296c555744e8d919e&quot;,
+ &quot;Volumes&quot;: null,
+ &quot;WorkingDir&quot;: &quot;&quot;,
+ &quot;Entrypoint&quot;: [
+ &quot;/docker-entrypoint.sh&quot;
+ ],
+ &quot;OnBuild&quot;: null,
+ &quot;Labels&quot;: {
+ &quot;maintainer&quot;: &quot;NGINX Docker Maintainers &lt;docker-maint@nginx.com&gt;&quot;
+ },
+ &quot;StopSignal&quot;: &quot;SIGQUIT&quot;
+ },
+ &quot;container&quot;: &quot;758f963724ce27609407bcc02105d7a411d09b61e3d7af87b84ef884179ab8b5&quot;,
+ &quot;container_config&quot;: {
+ &quot;Hostname&quot;: &quot;758f963724ce&quot;,
+ &quot;Domainname&quot;: &quot;&quot;,
+ &quot;User&quot;: &quot;&quot;,
+ &quot;AttachStdin&quot;: false,
+ &quot;AttachStdout&quot;: false,
+ &quot;AttachStderr&quot;: false,
+ &quot;ExposedPorts&quot;: {
+ &quot;80/tcp&quot;: {}
+ },
+ &quot;Tty&quot;: false,
+ &quot;OpenStdin&quot;: false,
+ &quot;StdinOnce&quot;: false,
+ &quot;Env&quot;: [
+ &quot;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;,
+ &quot;NGINX_VERSION=1.20.2&quot;,
+ &quot;NJS_VERSION=0.7.3&quot;,
+ &quot;PKG_RELEASE=1~bullseye&quot;
+ ],
+ &quot;Cmd&quot;: [
+ &quot;/bin/sh&quot;,
+ &quot;-c&quot;,
+ &quot;#(nop) &quot;,
+ &quot;CMD [\&quot;nginx\&quot; \&quot;-g\&quot; \&quot;daemon off;\&quot;]&quot;
+ ],
+ &quot;Image&quot;: 
+&quot;sha256:568a65393e894cd19a0473a1716fdee1b96246c302b2446296c555744e8d919e&quot;,
+ &quot;Volumes&quot;: null,
+ &quot;WorkingDir&quot;: &quot;&quot;,
+ &quot;Entrypoint&quot;: [
+ &quot;/docker-entrypoint.sh&quot;
+ ],
+ &quot;OnBuild&quot;: null,
+ &quot;Labels&quot;: {
+ &quot;maintainer&quot;: &quot;NGINX Docker Maintainers &lt;docker-maint@nginx.com&gt;&quot;
+ },
+ &quot;StopSignal&quot;: &quot;SIGQUIT&quot;
+ },
+ &quot;created&quot;: &quot;2022-05-17T22:37:17.011072851Z&quot;,
+ &quot;docker_version&quot;: &quot;20.10.12&quot;,
+ &quot;history&quot;: [
+ {
+ &quot;created&quot;: &quot;2022-05-11T01:20:16.520708229Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) ADD 
+file:4a0bb88956083aa56032fdd9601d9b66c39b18c896ba35ea33594cd75621640a in / &quot;
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-11T01:20:16.833449474Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) CMD [\&quot;bash\&quot;]&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-11T05:04:29.216415069Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) LABEL maintainer=NGINX Docker Maintainers 
+&lt;docker-maint@nginx.com&gt;&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-11T05:05:20.5186653Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) ENV NGINX_VERSION=1.20.2&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:36:58.109357274Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) ENV NJS_VERSION=0.7.3&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:36:58.209807672Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) ENV PKG_RELEASE=1~bullseye&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.079017297Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c set -x &amp;&amp; addgroup --system --gid 101 nginx 
+&amp;&amp; adduser --system --disabled-login --ingroup nginx --no-create-home --home /
+nonexistent --gecos \&quot;nginx user\&quot; --shell /bin/false --uid 101 nginx &amp;&amp; apt-get 
+update &amp;&amp; apt-get install --no-install-recommends --no-install-suggests -y gnupg1 
+ca-certificates &amp;&amp; NGINX_GPGKEY=573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; 
+found=&#39;&#39;; for server in hkp://keyserver.ubuntu.com:80 
+pgp.mit.edu ; do echo \&quot;Fetching GPG key $NGINX_GPGKEY from $server\&quot;; 
+apt-key adv --keyserver \&quot;$server\&quot; --keyserver-options timeout=10 --recv-keys 
+\&quot;$NGINX_GPGKEY\&quot; &amp;&amp; found=yes &amp;&amp; break; done; test -z \&quot;$found\&quot; &amp;&amp; echo &gt;&amp;2 
+\&quot;error: failed to fetch GPG key $NGINX_GPGKEY\&quot; &amp;&amp; exit 1; apt-get remove --
+purge --auto-remove -y gnupg1 &amp;&amp; rm -rf /var/lib/apt/lists/* &amp;&amp; dpkgArch=\&quot;$(dpkg 
+--print-architecture)\&quot; &amp;&amp; nginxPackages=\&quot; nginx=${NGINX_VERSION}-$
+{PKG_RELEASE} nginx-module-xslt=${NGINX_VERSION}-${PKG_RELEASE} 
+nginx-module-geoip=${NGINX_VERSION}-${PKG_RELEASE} nginx-module-imagefilter=${NGINX_VERSION}-${PKG_RELEASE} nginx-module-njs=${NGINX_VERSION}+$
+{NJS_VERSION}-${PKG_RELEASE} \&quot; &amp;&amp; case \&quot;$dpkgArch\&quot; in amd64|arm64) 
+echo \&quot;deb https://nginx.org/packages/debian/ bullseye nginx\&quot; &gt;&gt; /etc/apt/
+sources.list.d/nginx.list &amp;&amp; apt-get update ;; *) 
+echo \&quot;deb-src https://nginx.org/packages/debian/ bullseye nginx\&quot; &gt;&gt; /etc/apt/
+sources.list.d/nginx.list &amp;&amp; tempDir=\&quot;$(mktemp -d)\&quot; 
+&amp;&amp; chmod 777 \&quot;$tempDir\&quot; &amp;&amp; savedAptMark=\&quot;$(apt-mark 
+showmanual)\&quot; &amp;&amp; apt-get update &amp;&amp; apt-get builddep -y $nginxPackages &amp;&amp; ( cd \&quot;$tempDir\&quot; 
+&amp;&amp; DEB_BUILD_OPTIONS=\&quot;nocheck parallel=$(nproc)\&quot; apt-get source 
+--compile $nginxPackages ) &amp;&amp; apt-mark showmanual 
+| xargs apt-mark auto &gt; /dev/null &amp;&amp; { [ -z \&quot;$savedAptMark\&quot; ] || aptmark manual $savedAptMark; } &amp;&amp; ls -lAFh \&quot;$tempDir\&quot; 
+&amp;&amp; ( cd \&quot;$tempDir\&quot; &amp;&amp; dpkg-scanpackages . &gt; Packages ) &amp;&amp; grep 
+&#39;^Package: &#39; \&quot;$tempDir/Packages\&quot; &amp;&amp; echo \&quot;deb [ trusted=yes ] file://
+$tempDir ./\&quot; &gt; /etc/apt/sources.list.d/temp.list &amp;&amp; apt-get -o 
+Acquire::GzipIndexes=false update ;; esac &amp;&amp; apt-get install 
+--no-install-recommends --no-install-suggests -y 
+$nginxPackages gettext-base curl 
+&amp;&amp; apt-get remove --purge --auto-remove -y &amp;&amp; rm -rf /var/lib/apt/lists/* /etc/apt/
+sources.list.d/nginx.list &amp;&amp; if [ -n \&quot;$tempDir\&quot; ]; then apt-get 
+purge -y --auto-remove &amp;&amp; rm -rf \&quot;$tempDir\&quot; /etc/apt/sources.list.d/
+temp.list; fi &amp;&amp; ln -sf /dev/stdout /var/log/nginx/access.log &amp;&amp; ln -sf /
+dev/stderr /var/log/nginx/error.log &amp;&amp; mkdir /docker-entrypoint.d&quot;
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.308331577Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) COPY 
+file:65504f71f5855ca017fb64d502ce873a31b2e0decd75297a8fb0a287f97acf92 in / &quot;
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.42037498Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) COPY 
+file:0b866ff3fc1ef5b03c4e6c8c513ae014f691fb05d530257dfffd07035c1b75da in /dockerentrypoint.d &quot;
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.526730341Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) COPY 
+file:0fd5fca330dcd6a7de297435e32af634f29f7132ed0550d342cad9fd20158258 in /dockerentrypoint.d &quot;
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.63286206Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) COPY 
+file:09a214a3e07c919af2fb2d7c749ccbc446b8c10eb217366e5a65640ee9edcc25 in /dockerentrypoint.d &quot;
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.723840482Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) ENTRYPOINT [\&quot;/docker-entrypoint.sh\&quot;]&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.816451964Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) EXPOSE 80&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:16.912604472Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) STOPSIGNAL SIGQUIT&quot;,
+ &quot;empty_layer&quot;: true
+ },
+ {
+ &quot;created&quot;: &quot;2022-05-17T22:37:17.011072851Z&quot;,
+ &quot;created_by&quot;: &quot;/bin/sh -c #(nop) CMD [\&quot;nginx\&quot; \&quot;-g\&quot; \&quot;daemon off;\&quot;]&quot;,
+ &quot;empty_layer&quot;: true
+ }
+ ],
+ &quot;os&quot;: &quot;linux&quot;,
+ &quot;rootfs&quot;: {
+ &quot;type&quot;: &quot;layers&quot;,
+ &quot;diff_ids&quot;: [
+ &quot;sha256:fd95118eade99a75b949f634a0994e0f0732ff18c2573fabdfc8d4f95b092f0e&quot;,
+ &quot;sha256:c2a3d4a53f9adaef9826a74511dcab96c18c6cab06d39270b82dcd2b0c496e5f&quot;,
+ &quot;sha256:a64d597d6b14cfa4291fb73cbe9c998610d37d049b34b9e6271f0b72a893ebb2&quot;,
+ &quot;sha256:4f49c6d6dd075585b63d71ad3e63a3cc9ae2c3319a01ecb9ca1fbc78768d4b7b&quot;,
+ &quot;sha256:881700cb7ab2ce8da6ae29674416aa6dbe6ce0a652a9a81a9d5aefc36da122ee&quot;,
+ &quot;sha256:07ef16952879508db7972ea8a2815a3bc8caea4950c0195223d67ea938b44957&quot;
+ ]
+ }
+}
+</code></pre></div>
+<p>Конфигурация содержит все метаданные образа. Обратите внимание на переменные окружения и историю сборки: значения аргументов сборки сохраняются в истории, а значения переменных в отдельном списке. Не передавайте секреты как аргументы сборки и не сохраняйте их как переменные окружения, когда пользуетесь docker build.<br />
+Для передачи секретов используется расширение директивы RUN: <a href="https://docs.docker.com/engine/reference/builder/#run---mounttypesecret">RUN --mount-type=secret.</a></p>
+<p>Оптимизация образа</p>
+<p>При сборке при помощи Dockerfile каждая директива, изменяющая состояние файловой системы, создает новый слой в образе. Вернемся с новым знанием к нашему Dockerfile:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN npm install
+RUN npx next build
+
+RUN cp --recursive .next/standalone /app
+RUN cp --recursive public /app/public
+RUN cp --recursive .next/static /app/.next/static
+
+ENV PORT=&quot;8080&quot;
+EXPOSE ${PORT}/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>Заметим, что четыре последних директивы RUN создают по новому слою, но при изменении первого слоя, изменятся все остальные. Т. е. не имеет никакого смысла содержать четыре отдельных слоя:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN \
+  npm install \
+  &amp;&amp; npx next build \
+  &amp;&amp; cp --recursive .next/standalone /app \
+  &amp;&amp; cp --recursive public /app/public \
+  &amp;&amp; cp --recursive .next/static /app/.next/static
+
+ENV PORT=&quot;8080&quot;
+EXPOSE ${PORT}/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>Также после сборки нам не нужны исходные файлы, их можно удалить:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN \
+  npm install \
+  &amp;&amp; npx next build \
+  &amp;&amp; cp --recursive .next/standalone /app \
+  &amp;&amp; cp --recursive public /app/public \
+  &amp;&amp; cp --recursive .next/static /app/.next/static \
+  &amp;&amp; cd / \
+  &amp;&amp; rm --recursive --force /build
+
+WORKDIR /app
+ENV PORT=&quot;8080&quot;
+EXPOSE ${PORT}/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>Такой образ похож на оптимальный, но все еще содержит ненужные слои COPY, т.к. следующий слой RUN полностью удаляет их содержимое. Чтобы упростить сборку и не удалять ненужные файлы воспользуемся многоступенчатой сборкой (multi-stage build).</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim AS base
+
+
+FROM base AS build
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN \
+  npm install \
+  &amp;&amp; npx next build \
+  &amp;&amp; cp --recursive .next/standalone /app \
+  &amp;&amp; cp --recursive public /app/public \
+  &amp;&amp; cp --recursive .next/static /app/.next/static
+
+
+FROM base AS final
+
+WORKDIR /app
+COPY --from=build /app/ ./
+
+ENV PORT=&quot;8080&quot;
+EXPOSE ${PORT}/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>В таких сборках используется понятии стадия — последовательность директив между директивами FROM, включая начальную FROM. Имя стадии задается опцией AS в директиве FROM.<br />
+Наш Dockerfile состоит из трех стадий:</p>
+<p><strong>base</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim AS base
+</code></pre></div>
+<p><strong>build</strong></p>
+<div class="highlight"><pre><span></span><code>FROM base AS build
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN \
+  npm install \
+  &amp;&amp; npx next build \
+  &amp;&amp; cp --recursive .next/standalone /app \
+  &amp;&amp; cp --recursive public /app/public \
+  &amp;&amp; cp --recursive .next/static /app/.next/static
+</code></pre></div>
+<p><strong>final</strong></p>
+<div class="highlight"><pre><span></span><code>FROM base AS final
+
+WORKDIR /app
+COPY --from=build /app/ ./
+
+ENV PORT=&quot;8080&quot;
+EXPOSE ${PORT}/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>Мы можем использовать стадию как базовый образ, либо копировать файлы из одной стадии в другую.<br />
+Имена образов и стадий взаимозаменяемы.<br />
+При окончании сборки, все стадии, кроме последней, отбрасываются. Т. е. конечный образ будет состоять всего из N + 1 слоев, где N — число образов в базовом образе node:18-slim.</p>
+<p>Понижение привилегий</p>
+<p>По умолчанию процесс в контейнере запускается из-под пользователя root. Это считается плохой практикой, т.к. обычно повышенные привилегии не нужны для работы процесса, они лишь упрощают использование уязвимостей. Чтобы переопределить пользователя его нужно создать и выбрать директивой USER:</p>
+<p><strong>Dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM node:18-slim AS base
+
+
+FROM base AS build
+
+SHELL [ &quot;/bin/sh&quot;, &quot;-eu&quot;, &quot;-c&quot; ]
+
+WORKDIR /build
+COPY src/ src/
+COPY public/ public/
+COPY package.json package-lock.json next.config.js tsconfig.json ./
+
+RUN \
+  npm install \
+  &amp;&amp; npx next build \
+  &amp;&amp; cp --recursive .next/standalone /app \
+  &amp;&amp; cp --recursive public /app/public \
+  &amp;&amp; cp --recursive .next/static /app/.next/static
+
+
+FROM base AS final
+
+ARG USER=user
+ARG HOME=/app
+ARG UID=1001
+ARG GID=1001
+RUN \
+  addgroup --gid &quot;${GID}&quot; &quot;${USER}&quot; \
+  &amp;&amp; adduser --disabled-password --gecos &quot;&quot; \
+  --home &quot;${HOME}&quot; --ingroup &quot;${USER}&quot; --uid &quot;${UID}&quot; &quot;${USER}&quot;
+
+WORKDIR ${HOME}
+COPY --from=build /app/ ./
+
+USER ${USER}
+ENV PORT=&quot;8080&quot;
+EXPOSE ${PORT}/tcp
+ENTRYPOINT [ &quot;node&quot;, &quot;--&quot;, &quot;/app/server.js&quot; ]
+</code></pre></div>
+<p>Для создания пользователя и главной группы для него воспользуемся скриптами addgroupи adduser. Эти команды будут отличаться в зависимости от базового образа, но они есть в базовых образах debian и alpine.  </p>
+<p>Директива USER задает активного пользователя, в качестве ее аргумента можно передать идентификатор пользователя, либо его имя.<br />
+Заметим, что создание пользователя и копирование файлов в финальный слой — независимые операции. В таких случаях лучше размещать команды, результат выполнения которых меняется реже. Здесь, очевидно, что мы не будем часто менять имя пользователя и его идентификаторы.</p>
+<p>Проверка</p>
+<p>Запустим собранный нами образ:</p>
+<div class="highlight"><pre><span></span><code>$ docker run --detach --name counter --publish 8080:8080/tcp x
+</code></pre></div>
+<p>Вы можете проверить собранное приложение при помощи браузера или curl .</p>
+<p>Домашнее задание</p>
+<p>Соберите Docker образ для проекта <a href="https://git.devops-teta.ru/materials/counter-backend">counter-backend</a>. В качестве базового образа используйте <a href="https://hub.docker.com/_/python">python:3.11.6-slim-bookworm</a>. Для сборки используйте следующие команды:  </p>
+<p>Установка зависимостей для сборки пакета:</p>
+<div class="highlight"><pre><span></span><code>$ python -m pip install \
+    --no-color \
+    --no-cache-dir \
+    --disable-pip-version-check \
+    --no-python-version-warning \
+    --no-warn-script-location \
+    --break-system-packages \
+    --progress-bar off \
+    poetry setuptools wheel
+</code></pre></div>
+<p>Загрузка всех зависимостей в папку dist/vendor:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir -p dist
+$ poetry export \
+   --without-hashes \
+   --format constraints.txt \
+   --output dist/constraints.txt
+$ poetry run \
+    python -m pip wheel \
+      --isolated \
+      --requirement dist/constraints.txt \
+      --wheel-dir dist/vendor
+</code></pre></div>
+<p>Пакетирование проекта в папку dist:</p>
+<div class="highlight"><pre><span></span><code>$ poetry build --format wheel
+</code></pre></div>
+<p>Установка всех зависимостей:</p>
+<div class="highlight"><pre><span></span><code>$ packages=$(\
+    find &#39;dist&#39; &#39;dist/vendor&#39; \
+        -maxdepth 1 \
+        -iname &#39;*.whl&#39; \
+        -exec realpath {} \; \
+        -print0 \
+      | xargs --null)
+$ python -m pip install
+    --isolated \
+    --no-index \
+    --no-color \
+    --no-cache-dir \
+    --disable-pip-version-check \
+    --no-python-version-warning \
+    --no-warn-script-location \
+    --no-deps \
+    --break-system-packages \
+    --progress-bar off \
+    ${packages}
+</code></pre></div>
+<p>Эти команды находят все пакеты Python собранные предыдущими командами и затем устанавливают их.  </p>
+<p>Запуск модуля:</p>
+<div class="highlight"><pre><span></span><code>$ python -m counter_backend
+</code></pre></div>
+<p>Напишите три варианта Dockerfile:<br />
+</p>
+<ul>
+<li>Без использования многоступенчатой сборки и запуском процесса из-под суперпользователя</li>
+<li>С использованием многоступенчатой сборки ()</li>
+<li>С использованием многоступенчатой сборки и понижением привилегий:</li>
+<li>Загрузите пакеты первым и вторым набором команд, скопируйте в финальный слой и установите в нем;</li>
+<li>Воспользуйтесь приведенным выше скриптом для создания пользователя</li>
+</ul>
+<p>Загрузите написанные Dockerfile в курсовой GitLab, в отдельный репозиторий. Если вы не пользовались ранее Git, то просмотрите краткую справку, приведенную дальше.</p>
+<p>Справка по Git</p>
+<p>Чтобы создать новый Git репозиторий, создайте папку и инициализируйте в нет репозиторий командой git init:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir --parents new-project
+$ cd new-projects
+$ git init
+</code></pre></div>
+<p>Все данные репозитория хранятся в папке .git, которая создается git init.  </p>
+<p>После этого сделайте нужные правки, создайте файлы и т. д. Затем добавьте файлы, чтобы Git начал их отслеживать:</p>
+<div class="highlight"><pre><span></span><code>$ git add FILE1 FILE2
+</code></pre></div>
+<p>После этого зафиксируйте изменения:</p>
+<div class="highlight"><pre><span></span><code>$ git commit --message &#39;initial commit&#39;
+</code></pre></div>
+<p>Эта команда создаст новый коммит (фиксацию) — именованный набор изменений. Коммит — это минимальная единица истории Git.  </p>
+<p>После этого создайте новый проект на GitLab. Выключите опцию Initialize repository with a README, чтобы загрузить уже существующий репозиторий.  </p>
+<p>Добавьте в ваш локальный репозиторий ссылку на проект GitLab, скопировав команду из GitLab:</p>
+<div class="highlight"><pre><span></span><code>$ git remote add origin git@git.devops-teta.ru:....git
+</code></pre></div>
+<p>После этого загрузите изменения в GitLab, скопировав команду из GitLab:</p>
+<div class="highlight"><pre><span></span><code>$ git push -u origin main
+</code></pre></div>
 
 
 

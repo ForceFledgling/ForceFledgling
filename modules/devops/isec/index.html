@@ -10,7 +10,7 @@
     <meta name="author" content="Vladimir Penzin">
     
     
-    <link rel="canonical" href="https://github.com/ForceFledgling/ForceFledgling/modules/devops/ipsec/">
+    <link rel="canonical" href="https://github.com/ForceFledgling/ForceFledgling/modules/devops/isec/">
     
     
     <link rel="prev" href="../vault/">
@@ -28,11 +28,11 @@
 
     
 
-    <meta property="og:image" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/ipsec/assets/images/preview.jpg">
+    <meta property="og:image" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/isec/assets/images/preview.jpg">
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
-    <meta property="og:url" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/ipsec/">
+    <meta property="og:url" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/isec/">
     <meta property="og:type" content="website">
 
     
@@ -2763,7 +2763,7 @@
                   
 
   
-    <a href="https://github.com/ForceFledgling/ForceFledgling/blob/main/docs/modules/devops/ipsec/index.md" title="Редактировать страницу" class="md-content__button md-icon">
+    <a href="https://github.com/ForceFledgling/ForceFledgling/blob/main/docs/modules/devops/isec/index.md" title="Редактировать страницу" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"/></svg>
     </a>
@@ -2773,7 +2773,386 @@
 
   <h1>ISEC</h1>
 
+<p>Quality Check и Quality Gate</p>
+<p>Quality Check (QC), или проверка качества, — это процесс, при котором продукты или услуги проверяются на соответствие определенным стандартам или требованиям. Этот процесс важен для обеспечения высокого качества продукта или услуги, что в свою очередь приводит к увеличению удовлетворенности клиентов.  </p>
+<p>В контексте разработки программного обеспечения, Quality Check часто связан с рядом действий, направленных на обнаружение ошибок или проблем в коде.  </p>
+<p>Здесь несколько аспектов, которые могут включать в себя Quality Check:<br />
+Статический анализ кода. Этот процесс включает в себя анализ кода без его выполнения, чтобы найти потенциальные ошибки, уязвимости и нарушения стиля кодирования. Инструменты статического анализа, такие как SonarQube, ESLint или Checkstyle, могут автоматически проверять код на эти проблемы.  </p>
+<p>Динамический анализ кода. В отличие от статического анализа, динамический анализ включает в себя исполнение кода и анализ его поведения на различных входных данных. Инструменты динамического анализа, такие как системы автоматизированного тестирования (Junit, TestNG) и инструменты поведенческого тестирования (Cucumber, Behave), используются для этой цели.  </p>
+<p>Ручное тестирование. В дополнение к автоматическим методам проверки качества, ручное тестирование также важно для проверки функциональности и пользовательского интерфейса. Ручное тестирование обычно выполняется человеком, который переходит через различные функции продукта и проверяет их.  </p>
+<p>Проверка производительности. Проверка производительности заключается в тестировании приложения или системы на скорость, реакцию и стабильность при различных рабочих нагрузках. Инструменты, такие как Apache JMeter или Gatling, используются для этих целей.  </p>
+<p>Тестирование безопасности. Это подразумевает поиск уязвимостей, которые могут быть эксплуатированы злоумышленниками. Инструменты, такие как OWASP Zap и Nessus, могут быть использованы для выполнения этих проверок.<br />
+Важно понимать, что Quality Check это непрерывный процесс, который должен проводиться на протяжении всего цикла разработки программного обеспечения, начиная с фазы планирования и до фазы поддержки.  </p>
+<p>Quality Gate (QG) представляет собой проверку качества кода, которая должна быть пройдена перед тем, как изменения в коде могут быть приняты. Это механизм контроля, который обеспечивает соблюдение определенных стандартов и метрик качества в процессе разработки программного обеспечения.  </p>
+<p>Допустим, вы используете инструменты статического анализа кода такие как SonarQube, тогда Quality Gate может быть настроен для проверки следующих пунктов:<br />
+Технический долг. Quality Gate может проверять, не превышает ли технический долг (код или дизайн, которые должны быть улучшены) установленное значение.  </p>
+<p>Покрытие кода тестами. Quality Gate может проверять показатель покрытия кода тестами, чтобы быть уверенным, что больше установленного процента кода покрыто тестами.  </p>
+<p>Количество критических и блокирующих ошибок. Quality Gate может проверять количество таких ошибок и предупреждать, если их количество выше приемлемого.  </p>
+<p>Дублирование кода. Quality Gate может проверять, не превышает ли доля повторяющегося кода определенное значение.  </p>
+<p>Соответствие стандартам кодирования. Quality Gate может проверять, насколько код соответствует установленным стандартам кодирования.  </p>
+<p>Ошибки безопасности. Quality Gate может проверить код на наличие уязвимостей, связанных с безопасностью.  </p>
+<p>Важно понимать, что эти пункты могут варьироваться в зависимости от конкретных требований вашего проекта и сложности технологий. Это могут быть также прочие метрики, например, проверка производительности или соблюдение требований доступности. Цель состоит в том, чтобы наладить процесс постоянного контроля и улучшения качества кода во время его разработки.</p>
+<p>Использование Trivy для сканирования образов</p>
+<p>Trivy это компактный и простой в использовании сканер безопасности, предназначенный для поиска уязвимостей в контейнерах и образах контейнерах, а также в файлах проекта. Он разработан компанией Aqua Security.  </p>
+<p>Особенности Trivy:<br />
+Широкий спектр поддерживаемых форматов. Trivy может сканировать большинство образов контейнеров, поддерживая такие реестры, как Docker (<a href="http://docker.io/">docker.io</a>), Quay, и Google Container Registry (<a href="http://gcr.io/">gcr.io</a>). Кроме того, Trivy поддерживает сканирование Infrastructure as Code (IAC) файлов и файлов зависимостей, таких как package. json (Node.js), Gemfile. lock (Ruby), и pipfile. lock (Python).  </p>
+<p>Тщательный анализ. Trivy может производить глубокий анализ, ища уязвимости не только в операционной системе, но и в приложениях. Это делает его более полезным, чем некоторые другие инструменты сканирования, которые могут ограничиваться только базовым уровнем.  </p>
+<p>Простое использование. Trivy упрощает процесс сканирования. Вам просто нужно указать имя образа, и Trivy выполнит остальное. Сканирование можно легко встроить в процесс CI/CD.  </p>
+<p>Интеграции. Trivy можно легко интегрировать с такими системами как GitHub Actions, CircleCI, GitLab CI и другими, что позволяет заметно упростить включение процессов безопасности в рабочий процесс разработки.  </p>
+<p>База данных уязвимостей. Trivy использует общедоступные базы данных уязвимостей, такие как NVD (National Vulnerability Database), Red Hat Security Data и другие.  </p>
+<p>Совместимость и переносимость. Trivy доступен как Docker образ, что упрощает его использование в Docker-ориентированных рабочих процессах.<br />
+Важно отметить, что, несмотря на все его возможности, Trivy является одним паззлом в общей стратегии безопасности. Он не заменяет применение политик безопасности, контроля доступа, сетевой безопасности, мониторинга системы и рутинного аудита кода.</p>
+<p>Подключаем сканирование Trivy</p>
+<p>Основная наша цель сканирования образов Trivy, недопустить push образа с уязвимостями в реестр контейнеров. А наша текущая задача с kaniko сразу собирает и делает push.</p>
+<p>Доработка задачи kaniko</p>
+<p>Изменим задачу по сборке kaniko.<br />
+Введем переменную KANIKO_NOPUSH_FLAG. <br />
+Если она установлена, kaniko будет собирать образ в артефакт, но не будет загружать его в harbor. Так же сохраним tar файл образа в артефакт гитлаба, что бы он был доступен на следующей стадии для сканирования.</p>
+<p><strong>jobs/kaniko.yml</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+  - local: jobs/git_strategy.yml
 
+variables:
+  IMAGE_TAG: &quot;&quot;
+  IMAGE_OUTPUT_DOTENV_KEY: $CI_PROJECT_NAME
+  IMAGE_OUTPUT_DOTENV_FILE: $CI_PROJECT_NAME
+  KANIKO_NOPUSH_FLAG: &quot;&quot;
+  KANIKO_NOPUSH_OPTIONS: &quot;&quot;
+
+.job__kaniko_publish_image:
+  extends:
+    - .job__shallow_clone
+  stage: publish
+  needs:
+    - job: Build Package
+      artifacts: true
+  interruptible: false
+  image:
+    name: $KANIKO_IMAGE
+    entrypoint: [&quot;&quot;]
+  script:
+    - b64_auth=$(printf &#39;%s:%s&#39; &quot;$HARBOR_USER&quot; &quot;$HARBOR_PASSWORD&quot; | base64 | tr -d &#39;\n&#39;)
+    - &gt;-
+      printf &#39;{&quot;auths&quot;: {&quot;%s&quot;: {&quot;auth&quot;: &quot;%s&quot;}}}&#39; &quot;$HARBOR_HOST&quot; &quot;$b64_auth&quot;
+      &gt;/kaniko/.docker/config.json
+    - |
+      if [ &quot;${KANIKO_NOPUSH_FLAG}&quot; == &quot;true&quot; ]; then
+        export KANIKO_NOPUSH_OPTIONS=&quot;--no-push --tar-path ${CI_PROJECT_NAME}.tar&quot;
+      fi
+    - &gt;-
+      /kaniko/executor
+      --cache
+      --use-new-run
+      --skip-unused-stages
+      --context &quot;$CI_PROJECT_DIR&quot;
+      --dockerfile &quot;$CI_PROJECT_DIR/Dockerfile&quot;
+      --destination &quot;$HARBOR_IMAGE:$IMAGE_TAG&quot;
+      --cache-repo &quot;$HARBOR_IMAGE/cache&quot;
+      $KANIKO_NOPUSH_OPTIONS
+    - &gt;-
+      if [ -n &quot;${IMAGE_OUTPUT_DOTENV_KEY:-}&quot; ]
+      ; then printf &#39;%s=%s&#39; &quot;${IMAGE_OUTPUT_DOTENV_KEY//-/_}_IMAGE&quot; &quot;$HARBOR_IMAGE:$IMAGE_TAG&quot; &gt;&quot;$IMAGE_OUTPUT_DOTENV_FILE&quot;
+      ; fi
+  artifacts:
+    paths:
+      - $IMAGE_OUTPUT_DOTENV_FILE
+      - ${CI_PROJECT_NAME}.tar
+    when: on_success
+    expire_in: 1 day
+</code></pre></div>
+<p>Скрипт задачи сканирования Trivy</p>
+<p>После выполнения сборки проекта с помощью kaniko, необходимо запустить сканирование Trivy. Так как мы делаем Quality Gate из шага сканирования Trivy, нам необходимы некоторые ключи.  </p>
+<p>exit-on-eol — выдавать ошибки, если ОС образа больше не поддерживается и не получает устранения уязвимостей;<br />
+ignore-unfixed — игнорировать уязвимости, которые не имеют версии устранения;<br />
+exit-code — выдать ошибку, если найдены уязвимости равные указанному уровню severity.</p>
+<p><strong>jobs/trivy.yml</strong></p>
+<div class="highlight"><pre><span></span><code>.scan_image_script:
+  variables:
+    TRIVY_COMMON_OPTIONS: &quot;--ignore-unfixed --cache-dir /kaniko/cache/.trivycache --exit-on-eol 2 --no-progress&quot;
+  script:
+    - |
+      if [ &quot;$KANIKO_NOPUSH_FLAG&quot; != &quot;true&quot; ]; then
+        echo &#39;Для работы trivy сканера нужно чтобы push и build образа проходил раздельно&#39;
+        echo &#39;Для включения разделения build и push установите переменную KANIKO_NOPUSH_FLAG: true&#39;
+        exit 1
+      fi
+    - trivy image
+        --exit-code 1
+        --input ${CI_PROJECT_NAME}.tar
+        --severity ${IMAGE_SCAN_SEVERITY_LIST}
+        --scanners ${IMAGE_SCAN_SCANNERS}
+        --format ${IMAGE_SCAN_REPORT_FORMAT}
+        ${TRIVY_COMMON_OPTIONS}
+</code></pre></div>
+<p>Так же в задаче мы используем переменные для настройки сканирования. Их настроим чуть позже, в отдельном файле с переменными.</p>
+<p>Push образа</p>
+<p>Поскольку мы исправили задачу kaniko и при работе нашего quality gate — мы не загружаем образ заранее, нам необходима задача для загрузки образа в Harbor. Для этого воспользуемся простой утилитой для работы с контейнерами <a href="https://github.com/google/go-containerregistry">https://github.com/google/go-containerregistry</a>.  </p>
+<p>Напишем скрипт, загружающий tar образ в Harbor.</p>
+<p><strong>jobs/crane_push.yml</strong></p>
+<div class="highlight"><pre><span></span><code>.push_image_script:
+  script:
+    - &#39;echo &quot; INFO: Загрузка контейнера ${HARBOR_IMAGE}:${IMAGE_TAG} в реестр...&quot;&#39;
+    - crane auth login -u ${HARBOR_USER} -p ${HARBOR_PASSWORD} ${HARBOR_HOST}
+    - crane push ${CI_PROJECT_NAME}.tar ${HARBOR_IMAGE}:${IMAGE_TAG}
+</code></pre></div>
+<p>Rules для запуска задач сканирования</p>
+<p>Наш сканер Trivy будет использоваться как QG для проекта. Так как мы разрабатываем CI шаблон, нам необходимо предусмотреть возможность отключения проверки с помощью переменных. В Pipeline должны появится новые задача, сканирование и загрузка образа. При этом они не должны блокировать проекты, которые не используют на QG.  </p>
+<p>Для решения этой задачи, введем еще одну переменную ENABLED_SCAN_IMAGE на основе нее напишем правила, запрещающие запуск задач сканирования. Так же запретим запуск сканирования, если kaniko сразу делает push, а так же при задачах по расписанию и merge request.</p>
+<p><strong>rules/push_image.yml</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+  - local: rules/main.yml
+
+.push_image_app_rules:
+  stage: publish
+  interruptible: true
+  image:
+    name: ${WRK_IMG_CRANE}
+    entrypoint: [&quot;&quot;]
+  rules:
+    - if: &#39;$ENABLED_SCAN_IMAGE == &quot;false&quot; || $KANIKO_NOPUSH_FLAG != &quot;true&quot;&#39;
+      when: never
+    - if: &#39;$CI_PIPELINE_SOURCE == &quot;schedule&quot; || $CI_PIPELINE_SOURCE == &quot;merge_request_event&quot;&#39;
+      when: never
+    - !reference [.rule__on_default_branch]
+    - !reference [.rule__on_release_tag]
+    - when: never
+</code></pre></div>
+<p><strong>rules/scan_image.yml</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+  - local: rules/main.yml
+
+.scan_image_app_rules:
+  stage: publish
+  interruptible: true
+  image:
+    name: ${WRK_IMG_TRIVY}
+    entrypoint: [&quot;&quot;]
+  rules:
+    - if: &#39;$ENABLED_SCAN_IMAGE == &quot;false&quot; || $KANIKO_NOPUSH_FLAG != &quot;true&quot;&#39;
+      when: never
+    - !reference [.rule__on_default_branch]
+    - !reference [.rule__on_release_tag]
+    - when: never
+</code></pre></div>
+<p>Конечно, для задачи сканирования и загрузки образа нам нужен системный образ, на котором мы будет запускать задачи. Если образ trivy можно взять готовый, то <a href="https://github.com/google/go-containerregistry">go-containerregistry</a>необходимо подготовить.  </p>
+<p>Совместим эти операции:</p>
+<p><strong>Dockerfile:</strong></p>
+<div class="highlight"><pre><span></span><code>FROM aquasec/trivy:${TRIVY_VERSION} AS base
+
+ADD &quot;https://github.com/google/go-containerregistry/releases/download/v0.19.1/go-containerregistry_Linux_x86_64.tar.gz&quot; go-containerregistry_Linux_x86_64.tar.gz
+
+RUN tar -xf go-containerregistry_Linux_x86_64.tar.gz \
+  ; mv crane gcrane krane /usr/local/bin/ \
+  ; rm -rf go-containerregistry_Linux_x86_64.tar.gz LICENSE README.md
+
+ENTRYPOINT [&quot;&quot;]
+</code></pre></div>
+<p>Полученный образ загружаем в реестр образов и указываем как базовый для задач gitlab runner. Для этого создадим файл с переменными и заполним нужные нам для работы сканера.</p>
+<p>Переменные для задачи trivy</p>
+<p>Указываем получившийся образ, настраиваем уровень срабатывания сканера (severity). А так же добавляем переменные-флаги по-умолчанию, которые отключают наши задачи.</p>
+<p><strong>variables/trivy.yml</strong></p>
+<div class="highlight"><pre><span></span><code>variables:
+  WRK_IMG_TRIVY: registry.devops-teta.ru/materials/ci/images/trivy:0.51.4
+  WRK_IMG_CRANE: registry.devops-teta.ru/materials/ci/images/trivy:0.51.4
+  IMAGE_SCAN_SEVERITY_LIST: &quot;LOW,MEDIUM,HIGH,CRITICAL&quot;
+  IMAGE_SCAN_REPORT_FORMAT: &quot;table&quot;
+  IMAGE_SCAN_SCANNERS: &quot;vuln,misconfig&quot;
+  ENABLED_SCAN_IMAGE: &#39;false&#39;
+  KANIKO_NOPUSH_FLAG: &#39;false&#39;
+</code></pre></div>
+<p>Добавим новый файл в общий список.</p>
+<p><strong>variables/main.yml</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+ - variables/default.yml
+ - variables/vars.yml
+ - variables/harbor.yml
+ - variables/stages.yml
+ - variables/trivy.yml
+</code></pre></div>
+<p>Подключение задач в шаблон</p>
+<p>Осталась последняя часть разработки нашего pipeline. Добавление задач в наш endpoint для сервисов.  </p>
+<p>Добавим новые задачи Scan image и Push image а так же воспользуемся функционалом optional в needs. Что бы при отсутствии шагов не получать ошибки со сборкой.</p>
+<p><strong>pipelines/nextjs_standalone_docker.yml</strong></p>
+<div class="highlight"><pre><span></span><code>include:
+  - local: variables/main.yml
+  - local: rules/main.yml
+  - local: jobs/kaniko.yml
+  - local: jobs/npm.yml
+  - local: jobs/dotenv_push.yml
+  - local: /jobs/trivy.yml
+  - local: /jobs/crane_push.yml
+  - local: /rules/push_image.yml
+  - local: /rules/scan_image.yml
+
+
+
+Update Cache:
+  stage: .pre
+  needs: []
+  script:
+    - !reference [.script__npm_clean_install]
+  extends:
+    - .job__npm_build
+    - .npm_cache
+    - .rule__allow_falure
+  rules:
+    - !reference [.rule__enable_lint]
+    - !reference [.rule__on_merge_requests]
+    - !reference [.rule__on_default_branch]
+    - !reference [.rule__on_release_tag]
+
+Lint:
+  extends:
+    - .job__npm_build
+    - .rule__allow_falure  
+  stage: .pre
+  needs:
+    - job: Update Cache
+      artifacts: false
+  variables:
+    ESLINT_CODE_QUALITY_REPORT: eslint.codequality.json
+  script:
+    - !reference [.script__npm_clean_install]
+    - npm run lint -- --format gitlab
+  artifacts:
+    paths:
+      - $ESLINT_CODE_QUALITY_REPORT
+    reports:
+      codequality: $ESLINT_CODE_QUALITY_REPORT
+  rules:
+    - !reference [.rule__enable_lint]
+    - !reference [.rule__on_merge_requests]
+    - !reference [.rule__on_default_branch]
+
+Build Package:
+  extends:
+    - .job__npm_build
+  stage: build
+  needs:
+    - job: Update Cache
+      artifacts: false
+  artifacts:
+    expire_in: 1h
+    paths:
+      - dist
+  rules:
+    - !reference [.rule__on_merge_requests]
+    - !reference [.rule__on_default_branch]
+    - !reference [.rule__on_release_tag]
+
+Publish Package:
+  extends:
+    - .job__kaniko_publish_image
+  stage: publish
+  rules:
+    - !reference [.rule__on_default_branch]
+    - !reference [.rule__on_release_tag]
+
+scan image:
+  needs:
+    - job: Publish Package
+      optional: true
+      artifacts: true
+  extends:
+    - .scan_image_app_rules
+    - .scan_image_script
+
+push image:
+  needs:
+    - job: Publish Package
+      optional: true
+      artifacts: true
+    - job: scan image
+      optional: true
+      artifacts: true
+  extends:
+    - .push_image_app_rules
+    - .push_image_script
+
+Deploy Job:
+  stage: deploy
+  extends:
+    - .job__dotenv_push
+  needs:
+    - job: push image
+      optional: true
+      artifacts: true
+    - job: Publish Package
+      artifacts: true
+  rules:
+    - !reference [.rule__on_default_branch]
+    - !reference [.rule__on_release_tag]
+</code></pre></div>
+<p>Активация Quality Gate — Trivy в проект</p>
+<p>Для активации шагов сканирования в нашем проекте достаточно добавить переменные-флаги.</p>
+<div class="highlight"><pre><span></span><code>include:
+  - project: template
+    file:
+      - pipelines/nextjs_standalone_docker.yml
+
+variables:
+  KANIKO_NOPUSH_FLAG: &#39;true&#39;
+  ENABLED_SCAN_IMAGE: &#39;true&#39;
+</code></pre></div>
+<p><img alt="" src="img/Frame_2087327176.jpg" /></p>
+<p>SEVERITY</p>
+<p>В нашем проекте есть уязвимости уровня LOW, MEDIUM и HIGH. Может возникнуть ситуация, когда нас для работы GQ может интересовать только уровень CRITICAL.  </p>
+<p>Чтобы Trivy не блокировал push образа при отсутствии уровня CRITICAL, можно переопределить переменную:</p>
+<div class="highlight"><pre><span></span><code>IMAGE_SCAN_SEVERITY_LIST: &quot;CRITICAL&quot;
+</code></pre></div>
+<p>Использование SonarQube для анализа кода</p>
+<p>SonarQube — это приложение для внедрения статистического анализа кода в процесс разработки программного обеспечения, который поддерживает анализ многих языков программирования.<br />
+Под статическим анализом подразумевается, что Sonar создает снепшот первичного анализа кода и в последующем сравнивает состояния между собой.  </p>
+<p>SonarQube позволяет анализировать код на некачественное оформление, наличие багов, ошибок и возможных проблем безопасности при написании кода нового приложения.  </p>
+<p>SonarQube позволяет измерять качество программного кода по семи показателям:<br />
+Потенциальные ошибки — список багов.<br />
+Стиль программирования — например, для Python это проверка отступов внутри кода.<br />
+Тесты.<br />
+Повторения участков кода — используется DRY концепция.<br />
+Комментарии — по соответствию стилистике.<br />
+Архитектура и проектирование.<br />
+Сложность — в частности, Sonar поддерживает оценку когнитивной сложности кода.</p>
+<p>Основной состав SonarQube</p>
+<p>Пройдемся по основным вкладкам SonarQube  </p>
+<p>1) Панель проектов</p>
+<p><img alt="" src="img/Frame_2087327194.jpg" /></p>
+<p>2) Замечания</p>
+<p><img alt="" src="img/Frame_2087327178.jpg" /></p>
+<p>3) Правила</p>
+<p><img alt="" src="img/Frame_2087327179.jpg" /></p>
+<p>У правил есть следующие типы:<br />
+</p>
+<ol>
+<li>Ошибки</li>
+<li>Уязвимости</li>
+<li>Дефекты</li>
+</ol>
+<p>Для правил существует такое понятие как Важность.<br />
+Теги<br />
+Дата появления правила<br />
+И самое интересное — это техдолг, который возникает после срабатывания правила. Общий техдолг считается по формуле: все сработавшие правила умножаются на время их исправления, оцененное Сонаром, и делятся на рабочий день.  </p>
+<p>4) Quality Gate</p>
+<p><img alt="" src="img/Frame_2087327180.jpg" /></p>
+<p>Интеграция с GitLab</p>
+<p>Конечно для того, что бы использовать SonarQube необходимо сначала его проинтегрировать.<br />
+Мы рассмотрим самый простой способ интеграции в ручную.<br />
+Для этого вам будет необходимо выполнить следующие шаги:</p>
+<p>1. Залогинится в SonarQube и создать проект, связанный с Gitlab.</p>
+<p><img alt="" src="img/Frame_2087327185.jpg" /></p>
+<p>2. При создании проекта необходимо создать токен внутри Gitlab. Для этого заходим внутрь проекта/группы (в зависимости от планируемого охвата технического токена)</p>
+<p><img alt="" src="img/Frame_2087327182.jpg" /></p>
+<p>3. После внесения токена можно увидеть все проекты находящиеся в группе к которой привязан токен. Либо проект на который выписывался токен.</p>
+<p><img alt="" src="img/Frame_2087327183.jpg" /></p>
+<p>4. Далее выбираем способ взаимодействия с SonarQube. В нашем случае это Gitlab CI.</p>
+<p><img alt="" src="img/Frame_2087327184.jpg" /></p>
+<p><img alt="" src="img/Frame_2087327186.jpg" /></p>
+<p><img alt="" src="img/Frame_2087327187.jpg" /></p>
+<p>5. Необходимо внести сгенерированные переменные в Gitlab. Вносить необходимо на уровне того проекта который требуется интегрировать. Следует учесть, что переменная SONAR_PROJECT_KEY берется из настроек properties и соответственно нет необходимости использовать ее внутри файла.</p>
+<p><img alt="" src="img/Frame_2087327188.jpg" /></p>
+<p>6. Вносим в CI файл предложенные параметры</p>
+<p><img alt="" src="img/Frame_2087327189.jpg" /></p>
+<p>7. После завершения интеграции запускаем CI и проверяем результат.</p>
+<p><img alt="" src="img/Frame_2087327190.jpg" /></p>
 
 
 

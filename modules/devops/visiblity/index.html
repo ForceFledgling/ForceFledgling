@@ -90,6 +90,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#grafana" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -2292,6 +2297,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -2692,7 +2699,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ipsec/" class="md-nav__link">
+      <a href="../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2751,6 +2758,8 @@
   
   
   
+    
+  
   
 </nav>
                   </div>
@@ -2773,9 +2782,468 @@
   
 
 
-  <h1>Наблюдаемость</h1>
+<p>Наблюдаемость</p>
+<p>Ранее на курсе мы рассматрели Ansible для конфигурирования элементов инфраструктуры. Конечным результатом использования подобных инструментов мы считали какие-либо развернутые службы, конкретное состояние ВМ и т. д.</p>
+<p>После этого возникает вопрос: «Как обеспечить работу развернутых нами служб в будущем? Как узнать о проблемах на наших серверах и службах?»</p>
+<p>Набор методик для решения таких проблем называют наблюдаемостью и в общем эти подходы предполагают, что компоненты инфраструктуры сообщают в некоторые внешние системы детали своей работы, далее при помощи этих данных мы можем анализировать насколько хорошо работают службы и предпринимать какие-либо действия в противном случае:</p>
+<ul>
+<li>отправлять оповещения разработчиками или инженерам в случае неполадок;</li>
+<li>увеличивать число реплик развернутых служб при повышении нагрузки;</li>
+<li>анализировать взаимодействие сервисов для поиска «бутылочных горлышек».</li>
+</ul>
+<p>Выделяют три большие категории экспортируемых данных:</p>
+<p>Метрики — набор численных показателей, характеризующих работу инфраструктурного элемента в момент времени (например, в 21:00 на сервере использовалось 4 гигабайта оперативной памяти); ключевая характеристика метрик -- их аггрегируемость, имея несколько однотипных показателей, мы легко можем вычислить более общий, высокоуровневый показатель;</p>
+<p>Логи — информация о конкретном событии в системе (например, пользователь Василий Пупкин авторизовался в системе в 16:45);</p>
+<p>Трассировки — информация о том, что именно происходило в службах в рамках конкретного запроса. Например, пользователь отправил запрос с идентификатором X к инвентарному сервису на добавление нового товара на склад, в рамках запроса были вызваны три функции с определенными аргументами.</p>
+<p><img alt="" src="img/Group_2087326524.jpg" /></p>
+<p>Существует множество систем наблюдаемости, сегодня мы рассмотрим одно из самых популярных хранилищ метрик — Prometheus и систему визуализации — Grafana: настроим сбор метрик с PostgreSQL, который развернули на предыдущем занятии и системных метрик с ВМ2, затем визуализируем их в Grafana.</p>
+<p>Prometheus</p>
+<p>Prometheus — это система мониторинга с открытым исходным кодом, разработанная в рамках проекта Google Incubator. Он был создан для сбора и хранения метрик времени исполнения для приложений и сервисов.</p>
+<p>Prometheus использует для этого механизм, называемый «pulling», который означает, что он периодически опрашивает каждый наблюдаемый сервис для получения информации о его метриках. Prometheus может собирать различные типы данных, включая количество запросов, время ответа, использование памяти и многое другое. Собранные данные могут быть визуализированы с помощью Grafana или другой системы визуализации.</p>
+<p>Prometheus также поддерживает функцию оповещения, которая позволяет отправлять уведомления при достижении определенных пороговых значений метрик.</p>
+<p>Prometheus Blackbox Exporter</p>
+<p>Prometheus Blackbox Exporter — это инструмент разработанный для мониторинга и сбора метрик от различных сервисов и приложений. Он обеспечивает простую интеграцию с Prometheus и позволяет собирать данные о доступности, производительности и использовании ресурсов различных сервисов.</p>
+<p>Prometheus Blackbox может собирать метрики с различных источников, включая HTTP (S), DNS, TCP, ICMP, Unix Domain Sockets и многое другое. Он использует различные методы для проверки работоспособности сервисов, такие как проверка статуса HTTP, проверка на доступность IP, пинг и т. д.</p>
+<p>Основные функции Prometheus Blackbox включают:  </p>
+<ol>
+<li>Поддержка широкого спектра протоколов и методов проверки.</li>
+<li>Интеграция с Prometheus для простого и гибкого мониторинга.</li>
+<li>Возможность определения пользовательских метрик и правил для сбора данных.</li>
+<li>Возможность масштабирования для обслуживания больших объемов данных.</li>
+<li>Простота настройки и развертывания.</li>
+<li>Возможность интеграции с другими инструментами мониторинга, такими как Grafana или Loki.</li>
+<li>Поддержка различных операционных систем, включая Linux, Windows и MacOS.</li>
+</ol>
+<p>В целом, Prometheus Blackbox является отличным инструментом для мониторинга различных сервисов и приложений с использованием Prometheus.</p>
+<p>Prometheus Node Exporter</p>
+<p>Prometheus Node Exporter — это инструмент мониторинга, который собирает данные о производительности и состоянии системы из различных источников и отправляет их на сервер Prometheus для анализа. Он работает на уровне операционной системы и собирает информацию о процессоре, памяти, диске, сети, процессах и других системных ресурсах. Prometheus Node Exporter позволяет отслеживать загрузку системы, выявлять узкие места и оптимизировать ресурсы для повышения производительности.</p>
+<p>Prometheus Alertmanager</p>
+<p>Prometheus Alertmanager — это инструмент для управления оповещениями в системе мониторинга Prometheus. Он предназначен для обработки, фильтрации и маршрутизации оповещений, полученных от Prometheus, и отправки их на соответствующие адресат: например, системы уведомлений, почтовые серверы и т. д.</p>
+<p>Alertmanager позволяет настроить различные параметры оповещений, такие как уровни серьезности, интервалы повторений, правила обработки и т. д. Он также предоставляет возможность создания групп оповещений, которые могут быть использованы для группировки похожих оповещений и упрощения управления ими.</p>
+<p>Кроме того, Alertmanager поддерживает интеграцию с другими системами мониторинга, такими как Graphana, Loki и Thanos, что позволяет более эффективно управлять оповещениями и получать дополнительную информацию о состоянии системы.</p>
+<p>Одним из преимуществ Prometheus Alertmanager является его гибкость и масштабируемость. Он может быть настроен для работы с большим количеством оповещений и при этом оставаться эффективным и стабильным. Кроме того, Alertmanager имеет открытый исходный код, что позволяет пользователям настраивать его под свои нужды и интегрировать с другими системами.</p>
+<p>Установка<br />
+Prometheus Server, Blackbox exporter и Alertmanager</p>
+<p>Установим prometheus на свою ВМ с помощью ansible роли <a href="https://git.devops-teta.ru/materials/ansible.git">https://git.devops-teta.ru/materials/ansible.git</a></p>
+<p><strong>prometheus tree</strong></p>
+<div class="highlight"><pre><span></span><code>├── inventory
+│   ├── group_vars
+│   │   └── prometheus.yml
+│   └── hosts.yml
+├── prometheus.yml
+└── roles
+     └── prometheus
+        ├── defaults
+        │   └── main.yml
+        ├── files
+        │   └── etc-prometheus-blackbox-exporter.yml
+        ├── tasks
+        │   ├── alertmanager.yml
+        │   ├── blackbox.yml
+        │   ├── directory_create.yml
+        │   ├── main.yml
+        │   ├── prometheus.yml
+        │   └── requestment.yml
+        └── templates
+            ├── etc-prometheus-additional-alert-rules-yml.j2
+            ├── etc-prometheus-alertmanager-yml.j2
+            ├── etc-prometheus-default-alert-rules-yml.j2
+            ├── etc-prometheus-prometheus-yml.j2
+            └── file_sd_config-template-yml.j2
+</code></pre></div>
+<p>Подготовим Inventory:</p>
+<p><strong>prometheus.yml</strong></p>
+<div class="highlight"><pre><span></span><code>###
+### Настройка сервера prometheus
+###
+prometheus_docker_data_dir: /srv/prometheus-data
+prometheus_alertmanager_data_dir: /srv/alertmanager-data
+prometheus_docker_network: monitoring
+</code></pre></div>
+<p>Рассмотрим ключевые задачи в нашей роле Prometheus:</p>
+<p><strong>roles/prometheus/tasks/main.yml</strong></p>
+<div class="highlight"><pre><span></span><code>###
+### Запустим docker контейнер prometheus
+###
+- name: prometheus | docker prometheus
+  become: true
+  docker_container:
+    ### Формируем команду запуска, где указываем места хранения ключевых конфигурационных файлов
+    command: &gt;
+      --config.file=/etc/prometheus/prometheus.yml
+      --storage.tsdb.path=/prometheus
+      --web.console.libraries=/usr/share/prometheus/console_libraries
+      --web.console.templates=/usr/share/prometheus/consoles
+      {\{ prometheus_additional_command_args }}
+    ### Используем переменную версии для быстрого обновления контейнера из vars
+    image: prom/prometheus:v{\{ prometheus_version }}
+    ### Указываем имя контейнера
+    name: prometheus
+    ### Настраиваем общую docker сеть для доступа между компанентами
+    networks:
+      - name: &quot;{\{ prometheus_docker_network }}&quot;
+    published_ports: &gt;-
+      {\{ (prometheus_port &gt; 0) | ternary([(prometheus_port | string) +
+         &#39;:9090&#39;], []) }}
+    ### Указываем флаг пересоздание контейнера, если изменились конфигурационный файлы
+    recreate: &gt;-
+      {\{ prometheus_configuration.changed or
+         prometheus_alert_rules.changed or
+         prometheus_alert_rules_additional.changed }}
+    ### Выставляем политику перезагрузки в случае неожиданого завершения
+    restart_policy: always
+    state: started
+    user: &quot;{\{ prometheus_docker_user | default(omit) }}&quot;
+    ### Настраиваем монтирование конфигурации
+    volumes:
+      # We could mount /etc/prometheus instead but the Docker image contains
+      # additional (optional) files
+      - /etc/prometheus/rules/:/etc/prometheus/rules/:ro
+      - /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /etc/prometheus/targets/:/etc/prometheus/targets/:ro
+      - &quot;{\{ prometheus_docker_data_dir | default(prometheus_docker_data_volume) }}:/prometheus&quot;
+  register: _prometheus_container
+</code></pre></div>
+<p>Создаем inventory для установки prometheus сервера на VM2:</p>
+<p><strong>Запуск playbook</strong></p>
+<div class="highlight"><pre><span></span><code>ansible-playbook -i inventory/hosts.yml prometheus.yml --diff
+</code></pre></div>
+<p>Postgres Exporter</p>
+<p>Postgres Exporter — это инструмент для мониторинга показателей PostgreSQL, который собирает метрики, такие как количество активных соединений, использование памяти, время выполнения запроса и т. д., и позволяет интегрировать их в Prometheus для дальнейшего анализа. С помощью Postgres Exporter можно отслеживать состояние PostgreSQL, выявлять проблемы и оптимизировать производительность.</p>
+<p>Установим postgres exporter на наш сервер с postgres, с помощью плейбука с ролью postgres <a href="https://git.devops-teta.ru/materials/ansible.git">https://git.devops-teta.ru/materials/ansible.git</a></p>
+<p>Для этого в наш inventory добавим переменную:</p>
+<p><strong>group_vars/postgres.yml</strong></p>
+<div class="highlight"><pre><span></span><code>###
+### Включить установку postgres exporter
+###
+pgsql_enable_prometheus_exporter: true
+</code></pre></div>
+<p><strong>Запустим установку:</strong></p>
+<div class="highlight"><pre><span></span><code>ansible-playbook -i inventory/hosts.yml postgres.yml --diff
+</code></pre></div>
+<p><strong>Строка подключения Postgres Exporter к Postgres:</strong></p>
+<div class="highlight"><pre><span></span><code>DATA_SOURCE_NAME=&#39;postgresql://postgres@localhost:5432/postgres?sslmode=disable&#39;
+</code></pre></div>
+<p><strong>Проверим работу экспортера:</strong></p>
+<div class="highlight"><pre><span></span><code>$ curl http://localhost:9187/metrics
+</code></pre></div>
+<div class="highlight"><pre><span></span><code># HELP go_gc_duration_seconds A summary of the pause duration of garbage collection cycles.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile=&quot;0&quot;} 0
+go_gc_duration_seconds{quantile=&quot;0.25&quot;} 0
+go_gc_duration_seconds{quantile=&quot;0.5&quot;} 0
+go_gc_duration_seconds{quantile=&quot;0.75&quot;} 0
+go_gc_duration_seconds{quantile=&quot;1&quot;} 0
+go_gc_duration_seconds_sum 0
+go_gc_duration_seconds_count 0
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 7
+# HELP go_info Information about the Go environment.
+# TYPE go_info gauge
+go_info{version=&quot;go1.15.8&quot;} 1
+# HELP go_memstats_alloc_bytes Number of bytes allocated and still in use.
+# TYPE go_memstats_alloc_bytes gauge
+go_memstats_alloc_bytes 1.33144e+06
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE go_memstats_alloc_bytes_total counter
+go_memstats_alloc_bytes_total 1.33144e+06
+# HELP go_memstats_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table.
+# TYPE go_memstats_buck_hash_sys_bytes gauge
+go_memstats_buck_hash_sys_bytes 1.444476e+06
+# HELP go_memstats_frees_total Total number of frees.
+# TYPE go_memstats_frees_total counter
+go_memstats_frees_total 472
+# HELP go_memstats_gc_cpu_fraction The fraction of this program&#39;s available CPU time used by the GC since the program started.
+# TYPE go_memstats_gc_cpu_fraction gauge
+go_memstats_gc_cpu_fraction 0
+# HELP go_memstats_gc_sys_bytes Number of bytes used for garbage collection system metadata.
+# TYPE go_memstats_gc_sys_bytes gauge
+go_memstats_gc_sys_bytes 4.07316e+06
+# HELP go_memstats_heap_alloc_bytes Number of heap bytes allocated and still in use.
+# TYPE go_memstats_heap_alloc_bytes gauge
+go_memstats_heap_alloc_bytes 1.33144e+06
+# HELP go_memstats_heap_idle_bytes Number of heap bytes waiting to be used.
+# TYPE go_memstats_heap_idle_bytes gauge
+go_memstats_heap_idle_bytes 6.4569344e+07
+# HELP go_memstats_heap_inuse_bytes Number of heap bytes that are in use.
+# TYPE go_memstats_heap_inuse_bytes gauge
+go_memstats_heap_inuse_bytes 2.21184e+06
+# HELP go_memstats_heap_objects Number of allocated objects.
+# TYPE go_memstats_heap_objects gauge
+go_memstats_heap_objects 5717
+# HELP go_memstats_heap_released_bytes Number of heap bytes released to OS.
+# TYPE go_memstats_heap_released_bytes gauge
+go_memstats_heap_released_bytes 6.4503808e+07
+# HELP go_memstats_heap_sys_bytes Number of heap bytes obtained from system.
+# TYPE go_memstats_heap_sys_bytes gauge
+go_memstats_heap_sys_bytes 6.6781184e+07
+# HELP go_memstats_last_gc_time_seconds Number of seconds since 1970 of last garbage collection.
+# TYPE go_memstats_last_gc_time_seconds gauge
+go_memstats_last_gc_time_seconds 0
+# HELP go_memstats_lookups_total Total number of pointer lookups.
+# TYPE go_memstats_lookups_total counter
+go_memstats_lookups_total 0
+# HELP go_memstats_mallocs_total Total number of mallocs.
+# TYPE go_memstats_mallocs_total counter
+go_memstats_mallocs_total 6189
+# HELP go_memstats_mcache_inuse_bytes Number of bytes in use by mcache structures.
+# TYPE go_memstats_mcache_inuse_bytes gauge
+go_memstats_mcache_inuse_bytes 3472
+# HELP go_memstats_mcache_sys_bytes Number of bytes used for mcache structures obtained from system.
+# TYPE go_memstats_mcache_sys_bytes gauge
+go_memstats_mcache_sys_bytes 16384
+# HELP go_memstats_mspan_inuse_bytes Number of bytes in use by mspan structures.
+# TYPE go_memstats_mspan_inuse_bytes gauge
+go_memstats_mspan_inuse_bytes 27880
+# HELP go_memstats_mspan_sys_bytes Number of bytes used for mspan structures obtained from system.
+# TYPE go_memstats_mspan_sys_bytes gauge
+go_memstats_mspan_sys_bytes 32768
+# HELP go_memstats_next_gc_bytes Number of heap bytes when next garbage collection will take place.
+# TYPE go_memstats_next_gc_bytes gauge
+go_memstats_next_gc_bytes 4.473924e+06
+# HELP go_memstats_other_sys_bytes Number of bytes used for other system allocations.
+# TYPE go_memstats_other_sys_bytes gauge
+go_memstats_other_sys_bytes 414652
+# HELP go_memstats_stack_inuse_bytes Number of bytes in use by the stack allocator.
+# TYPE go_memstats_stack_inuse_bytes gauge
+go_memstats_stack_inuse_bytes 327680
+# HELP go_memstats_stack_sys_bytes Number of bytes obtained from system for stack allocator.
+# TYPE go_memstats_stack_sys_bytes gauge
+go_memstats_stack_sys_bytes 327680
+# HELP go_memstats_sys_bytes Number of bytes obtained from system.
+# TYPE go_memstats_sys_bytes gauge
+go_memstats_sys_bytes 7.3090304e+07
+# HELP go_threads Number of OS threads created.
+# TYPE go_threads gauge
+go_threads 5
+# HELP pg_exporter_last_scrape_duration_seconds Duration of the last scrape of metrics from PostgresSQL.
+# TYPE pg_exporter_last_scrape_duration_seconds gauge
+pg_exporter_last_scrape_duration_seconds 1.01025602
+# HELP pg_exporter_last_scrape_error Whether the last scrape of metrics from PostgreSQL resulted in an error (1 for error, 0 for success).
+# TYPE pg_exporter_last_scrape_error gauge
+pg_exporter_last_scrape_error 1
+# HELP pg_exporter_scrapes_total Total number of times PostgresSQL was scraped for metrics.
+# TYPE pg_exporter_scrapes_total counter
+pg_exporter_scrapes_total 3
+# HELP pg_up Whether the last scrape of metrics from PostgreSQL was able to connect to the server (1 for yes, 0 for no).
+# TYPE pg_up gauge
+pg_up 0
+# HELP postgres_exporter_build_info A metric with a constant &#39;1&#39; value labeled by version, revision, branch, and goversion from which postgres_exporter was built.
+# TYPE postgres_exporter_build_info gauge
+postgres_exporter_build_info{branch=&quot;&quot;,goversion=&quot;go1.15.8&quot;,revision=&quot;&quot;,version=&quot;0.0.1&quot;} 1
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 0.02
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1024
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 9
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 1.0313728e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.69997014327e+09
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 7.30550272e+08
+# HELP process_virtual_memory_max_bytes Maximum amount of virtual memory available in bytes.
+# TYPE process_virtual_memory_max_bytes gauge
+process_virtual_memory_max_bytes -1
+# HELP promhttp_metric_handler_requests_in_flight Current number of scrapes being served.
+# TYPE promhttp_metric_handler_requests_in_flight gauge
+promhttp_metric_handler_requests_in_flight 1
+# HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.
+# TYPE promhttp_metric_handler_requests_total counter
+promhttp_metric_handler_requests_total{code=&quot;200&quot;} 2
+promhttp_metric_handler_requests_total{code=&quot;500&quot;} 0
+promhttp_metric_handler_requests_total{code=&quot;503&quot;} 0
+</code></pre></div>
+<p>Подключаем exporter в Prometheus</p>
+<p>Пример конфигурации prometheus для получения метрик от экспортера по порту 9187.</p>
+<p><strong>/etc/prometheus/prometheus.yml</strong></p>
+<div class="highlight"><pre><span></span><code>scrape_configs:
+  - job_name: postgres
+    scrape_interval: 15s
+    metrics_path: /metrics
+    static_configs:
+    - targets:
+      - &quot;91.185.84.227:9187&quot;
+      labels:
+        instance: postgres-01
+</code></pre></div>
+<p>В нашей роли установки prometheus предусмотрена конфигурация scrape_configs. Для этого необходимо добавить переменные, посмотрим на примере нашего inventory:</p>
+<p><strong>inventory/group_vars/prometheus.yml</strong></p>
+<div class="highlight"><pre><span></span><code>###
+### Настройка источников мониторинга для prometheus exporter
+###
+prometheus_targets:
+  - jobname: postgres
+    groups: [postgres]
+    port: 9187
 
+###
+### Настройка источников мониторинга для blackbox exporter
+###
+prometheus_http_2xx_internal_targets:
+  - git.devops-teta.ru
+  - harbor.devops-teta.ru
+</code></pre></div>
+<p>Запустим еще раз плейбук для конфигурации scrape_configs нашего эксземпляра prometheus.</p>
+<p><strong>Запуск playbook</strong></p>
+<div class="highlight"><pre><span></span><code>ansible-playbook -i inventory/hosts.yml prometheus.yml --diff
+</code></pre></div>
+<h1 id="grafana">Grafana</h1>
+<p>Мы настроили сбор метрик при помощи экспортеров и Prometheus, теперь посмотрим как отобразить эти метрики так, чтобы наглядно видеть состояние своей инфраструктуры.</p>
+<p>Начнем с настройки Grafana: откройте <a href="https://grafana.devops-teta.ru/">grafana.devops-teta.ru</a> и авторизуйтесь при помощи GitLab. Затем в выпадающем меню слева выберите Connections -&gt; Add new connection, в огромном числе доступных источников данных найдите Prometheus.</p>
+<p><img alt="" src="img/1_ajnj.png" /></p>
+<p>В открывшемся окне нажмите на кнопку Add new data source и настройте новое подключение:</p>
+<p><img alt="" src="img/2_ajnjjj.png" /></p>
+<p>В имени источника укажите Prometheus-\&lt;ВАШ ЛОГИН В GitLab&gt;, в строке подключения внутренний адрес вашего Prometheus. На этом закончим с подготовкой и наконец визуализируем наши метрики.</p>
+<p>Довольно часто мы настраиваем мониторинг открытого ПО при помощи готовых сборщиков. Наше занятие — не исключение: для всех установленных нами сборщиков есть готовые наборы визуализаций:<br />
+<a href="https://grafana.com/grafana/dashboards/1860-node-exporter-full/">Node Exporter</a><br />
+<a href="https://grafana.com/grafana/dashboards/9628-postgresql-database/">Postgres Exporter</a><br />
+<a href="https://grafana.com/grafana/dashboards/13659-blackbox-exporter-http-prober/">Blackbox exporter</a></p>
+<p>Такие дэшборды — простой и быстрый способ получить низкоуровневый технический мониторинг своей инфраструктуры. Для мониторинга своих приложений обычно интегрируют сбор метрик внутрь приложения и собирают релевантные бизнес и технические метрики. В случае отсутствия таких интеграций приложения можно мониторить методом «черного ящика»: собирая метрики производительности из среды выполнения: например, при помощи <a href="https://github.com/ncabatoff/process-exporter">Process Exporter</a> для обычных процессов, <a href="https://github.com/google/cadvisor">CAdvisor</a> для Docker-контейнеров, или того же <a href="https://github.com/prometheus/blackbox_exporter">Blackbox exporter</a> для мониторинга доступности сервиса.</p>
+<p>Посмотрим как выглядят дэшборды в Grafana на примере Prometheus Blackbox exporter: перейдите на страницу <a href="https://grafana.devops-teta.ru/dashboards">Dashboards</a> и выберите его из списка доступных <a href="https://grafana.devops-teta.ru/d/xtkCtBkiz/prometheus-blackbox-exporter?orgId=1&amp;refresh=30s">или откройте по прямой ссылке</a>.</p>
+<p><img alt="" src="img/3_.png" /></p>
+<p>Вы увидите множество однотипных строковых полей, кнопок и графиков: Grafana не предоставляет возможности тонко настраивать стили визуализаций и приделывать всякие украшательства, это мониторинговая система, которая ставит на первое место информативность.</p>
+<p>Сверху справа отображаются настройки времени: можно выбрать временной промежуток и частоту обновления дэшборда. Ниже слева отображается строка переменных: в ней можно указать параметры, которые будут подставлены в запросы внутри визуализаций. Эти параметры могут быть статическими (задаваться вручную) или динамическими (получаться как результат запроса в один из источников данных). При разработке собственных дэшбордов вы сможете подставлять значения переменных в любые запросы, отправляемые Grafana в источники данных, и таким образом параметризировать их.</p>
+<p>Скачав визуализации для отдельных компонентов инфраструкруры (или воспользовавшись готовыми дэшбордами в <a href="https://confluence.mts.ru/pages/viewpage.action?pageId=370053898">платформе наблюдаемости</a>) вы получите представление полной картины происходящего в вашей системе, т.к. все системы состоят из комбинации готовых компонент, собственных приложений и различных скриптов/задач склеивающих их вместе. Поэтому чтобы получить понимание о происходящем в системе в целом нужно проработать метрики приложений исходя из бизнес-сценариев и выбрать самые значимые метрики инфраструктуры. Подходы к постоению таких витрин исходят из понимания архитектуры конкретного продукта и выходят за рамки этой практики, поэтому мы не будем здесь останавливаться. Вместо этого познакомимся с языком запросов Prometheus — PromQL и напишем собственные запросы для мониторинга загруженности сервера Prometheus.</p>
+<p>Перейдите во вкладку <a href="https://grafana.devops-teta.ru/explore">Explore</a> и выберите справа опцию Code: это позволит вам писать запросы на языке PromQL, в обход конструктора запросов Grafana. Пока оставьте  Prometheus по умолчанию как источник данных, т.к. в нем хранятся метрики сервера мониторинга.</p>
+<p><img alt="" src="img/4_.png" /></p>
+<p>Для примера напишем запрос, показывающий сколько процессорного времени заняло ожидание ввода-вывода: Prometheus как СУБД часто упирается в задержки записи на диск, т.к. при большом числе наблюдаемых сервисов или частом сборе метрик он записывает десятки или сотни тысяч временных рядов несколько раз в минуту. Предположим, что нужная нам метрика собирается Node Exporter и поищем в Metrics browser метрики, начинающиеся с node_:</p>
+<p><img alt="" src="img/5_.png" /></p>
+<p>И их очень много… <a href="https://github.com/prometheus/node_exporter/blob/master/README.md">README</a> Node Exporter подсказывает, что сам экспортер состоит из множества различных сборщиков (collectors) (это типичное решение для сложных экспортеров) и каждый сборщик отвечает за свое подмножество метрик, за сбор информации о нагрузке процессора отвечает сборщик cpu, который включен по умолчанию. Уточним наш запрос до node_cpu_:</p>
+<p><img alt="" src="img/6_.png" /></p>
+<p>Осталось две метрики, при наведении курсора на каждую в тултипе появится их краткое описание: первая метрика означает время, которое процессор провел в гостевых ВМ, вторая — время, которое процессор провел в каждом из режимов работы. Что такое режимы работы? Быстрый поиск приведет нас к миллиону статей, как написать интересующий нас запрос и к информации об источнике данных этой метрики: системном файле /proc/stat. Приведем выдержку из <a href="https://man7.org/linux/man-pages/man5/procfs.5.html">мануала по файловой системе /proc</a>:</p>
+<p><strong>man 5 proc</strong></p>
+<div class="highlight"><pre><span></span><code>/proc/stat
+  kernel/system statistics.  Varies with architecture.
+  Common entries include:
 
+  cpu 10132153 290696 3084719 46828483 16683 0 25195 0
+  175628 0
+  cpu0 1393280 32966 572056 13343292 6130 0 17875 0 23933 0
+    The amount of time, measured in units of USER_HZ
+    (1/100ths of a second on most architectures, use
+    sysconf(_SC_CLK_TCK) to obtain the right value),
+    that the system (&quot;cpu&quot; line) or the specific CPU
+    (&quot;cpuN&quot; line) spent in various states:
+
+    user   (1) Time spent in user mode.
+
+    nice   (2) Time spent in user mode with low
+      priority (nice).
+
+    system (3) Time spent in system mode.
+
+    idle   (4) Time spent in the idle task.  This value
+      should be USER_HZ times the second entry in
+      the /proc/uptime pseudo-file.
+
+    iowait (since Linux 2.5.41)
+      (5) Time waiting for I/O to complete.  This
+      value is not reliable, for the following
+      reasons:
+
+      •  The CPU will not wait for I/O to
+        complete; iowait is the time that a task
+        is waiting for I/O to complete.  When a
+        CPU goes into idle state for outstanding
+        task I/O, another task will be scheduled
+        on this CPU.
+
+      •  On a multi-core CPU, the task waiting for
+        I/O to complete is not running on any
+        CPU, so the iowait of each CPU is
+        difficult to calculate.
+
+      •  The value in this field may decrease in
+        certain conditions.
+
+    irq (since Linux 2.6.0)
+      (6) Time servicing interrupts.
+
+    softirq (since Linux 2.6.0)
+      (7) Time servicing softirqs.
+
+    steal (since Linux 2.6.11)
+      (8) Stolen time, which is the time spent in
+      other operating systems when running in a
+      virtualized environment
+
+    guest (since Linux 2.6.24)
+      (9) Time spent running a virtual CPU for
+      guest operating systems under the control of
+      the Linux kernel.
+
+    guest_nice (since Linux 2.6.33)
+      (10) Time spent running a niced guest
+      (virtual CPU for guest operating systems
+      under the control of the Linux kernel).
+</code></pre></div>
+<p>Судя по описанию нам подходит режим работы iowait. Также заметим, что эти режимы взаимоисключающие, т. е. если взять разность измерений в два момента времени, отличающихся на секунду, для каждого режима работы, то получится одна секунда.<br />
+Выберите в браузере метрик node_cpu_seconds_total и интересующую нас метку — mode (режим работы). В доступных значениях заметим интересующий наc iowait:</p>
+<p><img alt="" src="img/7_.png" /></p>
+<p>Выберите значение iowait и нажмите кнопку Use query, получим в строке ввода следующий запрос:</p>
+<div class="highlight"><pre><span></span><code>node_cpu_seconds_total{mode=&quot;iowait&quot;}
+</code></pre></div>
+<p>Этот запрос выбрал нам набор метрик с именами node_cpu_seconds_total и имеющими метку mode в значении iowait. В Prometheus каждая метрика состоит из имени и набора метрик, конкретный временной ряд определяется заданным именем метрики и конкретными значениями меток. В нашем случае запрос выбрал 2 ряда, т.к. метрика собирается для каждого ядра по отдельности:</p>
+<p><img alt="" src="img/8_.png" /></p>
+<p>Каждая метрика в свою очередь состоит из последовательности моментов времени и значений метрики в этот момент времени, как мы видим на графике. Обратите внимание на предупреждение Grafana: «Selected metric is a counter». Что это значит?</p>
+<p>Prometheus поддерживает четыре вида метрик:<br />
+Counter, счетчик — возрастающее число, обнуляющееся только при перезапуске службы (например, число запросов со старта сервера);<br />
+Gauge, измерение — численное значение, которое может как убывать, так и возрастать: например, длина очереди обработчика асинхронных запросов;<br />
+Histogram, гистограмма;<br />
+Summary, сводное значение;</p>
+<p>Последние два вида метрик требуют более обширного пояснения и погружения в статистику (см. <a href="https://prometheus.io/docs/practices/histograms/">документацию Prometheus</a> и, например, <a href="https://habr.com/ru/companies/tochka/articles/690814/">эту статью</a>).</p>
+<p>В нашем случае метрика node_cpu_seconds_total{mode="iowait"} показывает сколько секунд процессор ВМ провел в режиме iowait с момента включения до момента измерения. Само по себе это число нам ничего не говорит, но если вычислить скорость изменения этого значения в секунду, то мы получим сколько времени в каждую секунду процессор провел в нужном нам режиме, т. е. процент загрузки процессора задачами типа iowait в момент времени.</p>
+<p>Prometheus поддерживает две функции для вычисления скорости роста, без учета убывающих метрик:<br />
+<a href="https://prometheus.io/docs/prometheus/latest/querying/functions/#rate">rate</a> — усредненная скорость роста за заданный интервал времени (берутся все измерения в интервале и усредняются);<br />
+<a href="https://prometheus.io/docs/prometheus/latest/querying/functions/#irate">irate</a> — мгновенная скорость роста за заданный интервал (в интервале находятся два последних измерения и усредняются).</p>
+<p>Вы легко заметите, что в нашем запросе не указаны никакие интервалы времени, а если мы усредним за интервал запроса Grafana, то мы получим одно значение — усредненную нагрузку за последний час, что не очень полезно для нас. Чтобы использовать функции, работающие над интервалами значений используйте оператор выбора диапазона ([]):</p>
+<div class="highlight"><pre><span></span><code>node_cpu_seconds_total{mode=&quot;iowait&quot;}[5m]
+</code></pre></div>
+<p>Здесь в квадратных скобках указывается из какого диапазона времени брать предыдущие значения, т. е. такой запрос в каждый момент измерения равен последовательности измерений за прошлые пять минут. Непосредственно от таких запросов немного смысла и Grafana намекнет нам на это, отказавшись это отображать.</p>
+<p>Но мы можем вернуться к обычной скалярной метрике (когда каждому измерению соответствует ровно одно число) применив одну из функций, вычисления скорости роста. Здесь мы выберем irate, чтобы лучше видеть пики нагрузки без дополнительных усреднений. Т.к. нас интересуют последние два значения в каждом интервале, то можем уменьшить длину интервала. На нашем сервере настроен интервал сбора 15 секунд, поэтому выберем интервал 45с., чтобы заложить потенциальные задержки сбора метрик.</p>
+<div class="highlight"><pre><span></span><code>irate(node_cpu_seconds_total{mode=&quot;iowait&quot;}[45s])
+</code></pre></div>
+<p>Увидим довольно хаотичную картину с периодическими пиками:</p>
+<p><img alt="" src="img/9_.png" /></p>
+<p>В целом нас не сильно интересует разбивка по ядрам, поэтому соберем метрики в одну. Чтобы это сделать нужно усреднить собранные значения в каждый момент времени: Prometheus поддерживает несколько <a href="https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators">аггрегирующих операций</a>.</p>
+<p>Самые часто использующиеся это:<br />
+sum — сумма;<br />
+avg — среднее;<br />
+count — число метрик;<br />
+min — минимальное значение;<br />
+max — максимальное значение.</p>
+<p>Метрики группируются по совпадающим значениям меток, т. е. чтобы усреднить по cpu, нужно сгруппировать по оставшимся меткам instance, job, mode:</p>
+<div class="highlight"><pre><span></span><code>avg by (instance, job, mode) (irate(node_cpu_seconds_total{mode=&quot;iowait&quot;}[45s]))
+</code></pre></div>
+<p>Или же воспользуемся опцией without, чтобы сгруппировать по всем меткам, кроме указанных:</p>
+<div class="highlight"><pre><span></span><code>avg without (cpu, mode) (irate(node_cpu_seconds_total{mode=&quot;iowait&quot;}[45s]))
+</code></pre></div>
+<p>Здесь мы сгруппировали по cpu и mode, но т.к. из-за фильтра mode имеет только одно значение эта группировка лишь убирает метку mode из получившейся метрики. Заметим, что синтакис аггреграции довольно прост: пишем оператор, затем модификатор by или without, набор метрик в скобках и после аггрегируемую метрику в скобках. Также модификатор by/without и метки можно указать после метрики:</p>
+<div class="highlight"><pre><span></span><code>avg (irate(node_cpu_seconds_total{mode=&quot;iowait&quot;}[45s])) by (instance, job, mode)
+avg (irate(node_cpu_seconds_total{mode=&quot;iowait&quot;}[45s])) without (instance, job, mode)
+</code></pre></div>
+<p>Теперь умножим метрику на 100, чтобы получить значение в процентах:</p>
+<div class="highlight"><pre><span></span><code>100 * avg without (cpu, mode) (irate(node_cpu_seconds_total{mode=&quot;iowait&quot;}[45s]))
+</code></pre></div>
+<p>Также обратите внимание, что мы усредняем после вычисления скорости, мы обязаны аггрегировать после вычисления rate/irate в любом случае, чтобы Prometheus мог корректно обрабатывать перезапуски счетчика (см. <a href="https://prometheus.io/docs/prometheus/latest/querying/functions/#rate">документацию</a>)</p>
+<p>Написанный нами запрос подходит для просмотра графика с частыми пиками, но, например, для оповещений при превышении заданного порога — нет, т.к. имеет резкие короткие пики, что может привести к ложно-положительным срабатываниям условия. В таких случаях метрику можно сгладить, перейдя на rate и увеличив интервал:</p>
+<div class="highlight"><pre><span></span><code>100 * avg without (cpu, mode) (rate(node_cpu_seconds_total{mode=&quot;iowait&quot;}[2m]))
+</code></pre></div>
+<p>Домашнее задание</p>
+<ol>
+<li>Необходимо установить node_exporter на VM1 и VM2.</li>
+<li>Подключить установленные node exporter к своему prometheus.</li>
+<li>Добавить свой prometheus в Grafana <a href="http://grafana.devops-teta.ru/">grafana.devops-teta.ru</a> и создать Dashboard, в котором отображается информация о ваших vm. Загрузка CPU, RAM, свободное место на диске, сетевая активность.</li>
+</ol>
 
 
 

@@ -16,7 +16,7 @@
     <link rel="prev" href="../gitlab_ci/home_work2/">
     
     
-    <link rel="next" href="../ipsec/">
+    <link rel="next" href="../isec/">
     
     
     <link rel="icon" href="../../../assets/images/logo.svg">
@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ipsec/" class="md-nav__link">
+      <a href="../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,487 @@
 
   <h1>Vault</h1>
 
+<p>Hashicorp Vault — это инструмент для управления секретами, который помогает организациям безопасно управлять, хранить и получать доступ к конфиденциальной информации. Он позволяет хранить учетные данные, ключи шифрования, сертификаты и другую секретную информацию в безопасном и надежном месте, доступ к которому можно получить только с разрешения.</p>
+<p>Vault предлагает несколько функций, которые делают его идеальным решением для управления секретной информацией:</p>
+<p>Безопасность: Vault использует передовые методы шифрования и аутентификации для обеспечения безопасности хранимых секретов. Он также поддерживает многофакторную аутентификацию для дополнительного уровня защиты.</p>
+<p>Управление доступом: Vault позволяет администраторам определять политики доступа, которые определяют, кто может получать доступ к секретам и на каких условиях. Это помогает обеспечить контроль над тем, кто имеет доступ к чувствительной информации.</p>
+<p>Централизованное хранение: Vault хранит все секреты в одном месте, что упрощает управление и доступ к ним.</p>
+<p>Автоматизация: Vault может быть интегрирован с другими инструментами Hashicorp, такими как Consul и Nomad, для автоматизации процессов управления секретами.</p>
+<p>Гибкость: Vault может работать в различных окружениях, включая облачные платформы, такие как Amazon Web Services (AWS) и Microsoft Azure, и на локальных серверах.</p>
+<p>Открытый исходный код: Hashicorp Vault распространяется под лицензией Apache 2.0, что позволяет пользователям свободно использовать, изменять и распространять его.</p>
+<p>Масштабируемость: Vault масштабируется для поддержки больших объемов данных и большого числа пользователей.</p>
+<p>В целом, Hashicorp Vault является надежным и безопасным решением для хранения и управления секретами в организации. Он обеспечивает гибкость, масштабируемость и открытый исходный код, что делает его привлекательным для многих предприятий.</p>
+<p>Общая схема Vault:</p>
+<p><img alt="" src="img/Frame_2087327168.jpg" /></p>
+<p>Vault использует различные алгоритмы шифрования для защиты данных, хранящихся в нем. Процедура шифрования включает в себя следующие шаги:<br />
+Генерация ключа шифрования: Vault генерирует случайный ключ шифрования, который будет использоваться для защиты данных.<br />
+Шифрование данных: Vault использует этот ключ для шифрования всех данных, которые будут храниться в системе.<br />
+Хранение ключа шифрования: Ключ шифрования хранится в безопасном месте, доступном только для администраторов Vault.</p>
+<p>Storage Backend</p>
+<p>Это место, где Vault хранит секреты в зашифрованном виде. Это хранилище зашифровано мастер-ключом, этот мастер-ключ зашифрован root-ключом, и он тоже зашифрован другими ключами.</p>
+<p>Само хранилище может представлять собой файл, который расположен на том же хосте, где функционирует Vault или, например, может использоваться удаленная база данных.</p>
+<p>Главное, что надо знать, — что вот это хранилище зашифровано (и ключи шифрования также последовательно зашифрованы). И как раз с этим связаны понятия Seal и Unseal.</p>
+<p>Seal/Unseal</p>
+<p>Seal и Unseal — это запечатывание и распечатывание.</p>
+<p>Sealed state — это запечатанное состояние Vault, при котором он имеет физический доступ к зашифрованным данным, но расшифровать их не способен, так как отсутствует доступ к ключу шифрования.</p>
+<p>При любом рестарте Vault переходит в запечатанное состояние. И чтобы перевести Vault в рабочее (распечатанное) состояние, нужно дать ему Unseal-ключ, который по умолчанию разделяется на части по алгоритму Шамира.<br />
+Чтобы распечатать Vault, необходимо предоставить ему некоторое количество частей данного Unseal-ключа.</p>
+<p>Если мы говорим про большие системы то существует механизм Auto Unseal. Что такое Auto Unseal? Вы поднимаете один транзитный узел с Vault (он так называется, поскольку внутри используется Secret Engine — transit).<br />
+В данном Vault хранится ключ для распечатывания узлов основного кластера.</p>
+<p>В случае рестарта какого-либо узла из основного кластера, где, собственно, хранятся секреты, данный узел обращается к транзитной ноде.<br />
+Там он получает ключ от других ключей, который в итоге ему расшифрует хранилище. Это общепринятый способ.</p>
+<p>Важно выполнять бэкапирование ключа, который распечатывает основные узлы, так как в случае потери транзитной ноды будет потерян ключ для распечатывания, а следовательно, доступ до секретов основного кластера Vault.</p>
+<p>Так как основной кластер Vault авторизуется в транзитной ноде и получает себе ключ для распечатывания с помощью токена, а данный токен имеет свое время жизни, то необходимо его продлевать.</p>
+<p>Для этого токен для получения Unseal-ключа должен быть создан с флагами -orphan и -periodic. Поясним, что это значит. Флаг Periodic нужен для того, чтобы токен продлевался на свой срок жизни при каждом использовании в Vault.<br />
+То есть основной кластер сходил к транзиту, авторизовался по данному токену и получил ключ, тогда срок его жизни сразу обновится.</p>
+<p>Orphan — это понятие связано с тем, что в Vault все токены наследуются, и если вы под какой-то учетной записью выпустили токен, то он будет зависеть от токена той учетной записи, от которой вы его выпустили.</p>
+<p>Если, допустим, токену владельца осталось жить три дня, а вот выпускаемому им токену вы задали время жизни месяц, то он проживет три дня. Orphan означает то, что он сирота, у него нет родительского токена, и он будет жить столько, сколько вы указали при его создании.</p>
+<p>Не делайте взаимно распечатываемые кластеры, потому что запросто получите взаимозапечатываемые кластеры.</p>
+<p>Vault Policy</p>
+<p>Vault Policy — это набор правил и настроек, определяющих, как и какие операции могут выполняться в Hashicorp Vault. Они используются для определения того, какие роли и пользователи могут получить доступ к определенным секретам, ключам, подписывать запросы и выполнять другие действия в хранилище. Политики в Vault помогают контролировать доступ и авторизовать пользователей на основе их ролей и привилегий.</p>
+<p><img alt="" src="img/Frame_2087327169.jpg" /></p>
+<p>Политики могут быть как разрешающими, например ["create", "update", "patch", "read", "delete"]. Так и запрещающими, например ["deny"].</p>
+<p><img alt="" src="img/Frame_2087327170.jpg" /></p>
+<p>Политики имеют очень обширный функционал, позволяют использовать маски и переменные. Подобрее о политиках в Vault можно почитать на сайте в документации: <a href="https://developer.hashicorp.com/vault/docs/concepts/policies">https://developer.hashicorp.com/vault/docs/concepts/policies</a></p>
+<p>Vault Engines</p>
+<p>В Vault существует несколько типов движков (engines), каждый из которых предназначен для хранения и обработки определенного типа данных. Вот некоторые из них:</p>
+<p>Auth Engine — используется для аутентификации пользователей в системе и управления их доступом к ресурсам.<br />
+Audit Engine — предназначен для сбора и анализа информации о действиях пользователей в системе.<br />
+Secrets Engine — служит для хранения и управления секретами, такими как пароли, ключи API и другая конфиденциальная информация.</p>
+<p>Каждый из этих движков имеет свои особенности и преимущества, и выбор конкретного типа зависит от потребностей и требований конкретной организации.</p>
+<p>Secrets Engines:</p>
+<p><img alt="" src="img/Frame_2087327171.jpg" /></p>
+<p>KV<br />
+Движок Key/Value имеет две разные версии: KV_v1 и KV_v2. Они имеют ряд ключевых отличий: например, поддержка версионирования и разные методы доступа через API.<br />
+Мы в своих примерах будем использовать только v2, т.к. v1 считается устаревшей. Тем не менее, поскольку v1 часто встречается в старых установках vault, следует помнить, что доступ к их объектам надо получать по разному.</p>
+<p>Vault UI</p>
+<p>Vault UI (User Interface) — это пользовательский интерфейс для системы управления паролями Vault. Он предоставляет пользователям простой и безопасный способ доступа к своим учетным данным, хранящимся в Vault.</p>
+<p><a href="https://vault.devops-teta.ru/ui/">Наш учебный Vault UI</a><br />
+Аутентификация через ODIC.</p>
+<p>Интерфейс vault очень простой, имеет минимальный функционал для администрирования ключей и данных. Основная работа с vault осуществляется через интеграции, например rest или vault cli.</p>
+<p>Хорошей практикой является создавать отдельные учетные записи для каждого инженера или, например, включить авторизацию через LDAP.</p>
+<p>Оригинальные бинариники vault находятся на <a href="https://developer.hashicorp.com/vault/install?product_intent=vault">официальном сайте vault</a>, но так как доступ с российских адресов ограничен компанией, мы возьмем копии этих бинарников с <a href="https://git.devops-teta.ru/materials/vault">нашего репозитория</a></p>
+<p><strong>Распаковка vault бинарника</strong></p>
+<div class="highlight"><pre><span></span><code>git clone git@git.devops-teta.ru:materials/vault.git &amp;&amp; cd vault
+sudo apt install -y unzip
+unzip vault_1.15.2_linux_amd64.zip
+sudo mv vault /usr/local/bin
+</code></pre></div>
+<p>Vault CLI</p>
+<p>Самый простой метод авторизации запросов в Vault — это token. Токен для своего пользователя можно скопировать в веб-интерфейсе.</p>
+<p><img alt="" src="img/Frame_2087327172.jpg" /></p>
+<p>Если доступа к UI нет то токен можно получить через curl по логину и паролю (basic auth/LDAP):</p>
+<div class="highlight"><pre><span></span><code>curl --request POST https://vault.devops-teta.ru/v1/auth/userpass/login/&lt;username&gt; --data &#39;{&quot;password&quot;: &quot;PASSWORD&quot;}
+</code></pre></div>
+<p>В полученном JSON можно найти токен:</p>
+<div class="highlight"><pre><span></span><code>{&quot;request_id&quot;:&quot;96139453-389b-7581-686b-a1dee32381c6&quot;,&quot;lease_id&quot;:&quot;&quot;,&quot;renewable&quot;:false,&quot;lease_duration&quot;:0,&quot;data&quot;:null,&quot;wrap_info&quot;:null,&quot;warnings&quot;:null,
 
+&quot;auth&quot;:{&quot;client_token&quot;:&quot;s.dsfdsfsdfsdfew543&quot;, &quot;accessor&quot;:&quot;dwwerewrwerew&quot;,&quot;policies&quot;:[&quot;default&quot;,&quot;user&quot;],&quot;token_policies&quot;:[&quot;default&quot;],&quot;identity_policies&quot;:[&quot;user&quot;],&quot;metadata&quot;:{&quot;username&quot;:&quot;user&quot;},&quot;lease_duration&quot;:2764800,&quot;renewable&quot;:true,&quot;entity_id&quot;:&quot;861f20d9-a8f7-dabf-f081-321046ac74bd&quot;,&quot;token_type&quot;:&quot;service&quot;,&quot;orphan&quot;:true}}
+</code></pre></div>
+<p>Для использования vault cli необходимо настроить подключение в vault, а именно экспортировать переменные окружения VAULT_ADDR и VAULT_TOKEN**.** Сделаем это:</p>
+<div class="highlight"><pre><span></span><code>export VAULT_ADDR=https://vault.devops-teta.ru
+export VAULT_TOKEN=ВАШ_ТОКЕН
+</code></pre></div>
+<p>Обратите внимание, токен имеет время жизни. Этот параметр настраивается. В нашем vault он составляет 4 часа для пользователей аутентифицированных через gitlab.</p>
+<p>Попробуем получить некоторые данные из Vault к которым имеем доступ. Также попробуем записать новые данные в Vault.</p>
+<p><strong>get — получение данных</strong></p>
+<div class="highlight"><pre><span></span><code>$ vault kv get test/demo_project/repo1
+======== Secret Path ========
+test/data/demo_project/repo1
+
+======= Metadata =======
+Key                Value
+---                -----
+created_time       2023-11-29T14:32:49.581309614Z
+custom_metadata    &lt;nil&gt;
+deletion_time      n/a
+destroyed          false
+version            2
+
+====== Data ======
+Key         Value
+---         -----
+password    value1
+</code></pre></div>
+<p><strong>get — получение данных</strong></p>
+<div class="highlight"><pre><span></span><code>$ vault kv get -field password test/demo_project/repo1
+value1
+</code></pre></div>
+<p><strong>put — запись в vault</strong></p>
+<div class="highlight"><pre><span></span><code>$ vault kv put -mount=test demo_project/repo2  key1=my-long-passcode
+======== Secret Path ========
+test/data/demo_project/repo2
+
+======= Metadata =======
+Key                Value
+---                -----
+created_time       2023-11-29T16:48:31.818653008Z
+custom_metadata    &lt;nil&gt;
+deletion_time      n/a
+destroyed          false
+version            1
+</code></pre></div>
+<p>Также доступ к данным vault можно получить с помощью rest запроса в API.</p>
+<p><strong>rest</strong></p>
+<div class="highlight"><pre><span></span><code>$ curl -s --header &quot;X-Vault-Token: $VAULT_TOKEN&quot; https://vault.devops-teta.ru/v1/test/data/demo_project/repo1 | jq
+{
+  &quot;request_id&quot;: &quot;168dde12-1b46-821d-7792-2598c39dae6f&quot;,
+  &quot;lease_id&quot;: &quot;&quot;,
+  &quot;renewable&quot;: false,
+  &quot;lease_duration&quot;: 0,
+  &quot;data&quot;: {
+    &quot;data&quot;: {
+      &quot;password&quot;: &quot;value1&quot;
+    },
+    &quot;metadata&quot;: {
+      &quot;created_time&quot;: &quot;2023-11-29T14:32:49.581309614Z&quot;,
+      &quot;custom_metadata&quot;: null,
+      &quot;deletion_time&quot;: &quot;&quot;,
+      &quot;destroyed&quot;: false,
+      &quot;version&quot;: 2
+    }
+  },
+  &quot;wrap_info&quot;: null,
+  &quot;warnings&quot;: null,
+  &quot;auth&quot;: null
+}
+</code></pre></div>
+<p>Wrapping — unwrapping</p>
+<p>Стоит отметить такой метод работы с секретами в Vault как wrapping.</p>
+<p><img alt="" src="img/Frame_2087327173.jpg" /></p>
+<p>Механизм wrapping-unwrapping позволяет хранить в скриптах развертывания не сам секрет, а токен, предоставляющий доступ к нему.</p>
+<p>Это позволяет иметь доступ только к определенным данным, а не ко всему ресурсу плюс накладывает TTL, по истечении которого секрет становится невалидным.</p>
+<p>Также нужно отметить, что в Vault есть такой термин как num_uses, то есть количество использований какого-либо секрета. Для wrapped токенов num_uses равно 1, то есть после однократного использования токен становится невалидным.</p>
+<p>Есть команда rewrap, которая обновляет токен и выпускает новый токен (действует только для валидного токена). Для получения секрета из токена необходимо использовать команду unwrap.</p>
+<p>Для получения wrap token, который будет использоваться при авторизации и запросе secret-id, выполните команду:</p>
+<div class="highlight"><pre><span></span><code>vault write -wrap-ttl=600s -tls-skip-verify -force auth/some/role/my-app-role/secret-id
+</code></pre></div>
+<p>Затем полученный файл необходимо поместить на файловую систему виртуальной машины, где запускается наше приложение. Этот путь должен совпадать с тем, который ожидает приложение.</p>
+<p>Полученный токен может быть использован лишь один раз. После запуска токен будет прочитан и использован для получения secret-id. После получения secret-id приложение может запросить данные из секретного хранилища Vault, пока не истек TTL для secret_id.</p>
+<p>Данный способ хорошо подходит в том случае, когда мы заполняем начальную конфигурацию приложения на этапе запуска.</p>
+<p>Рекомендации гласят, что wrap token должен иметь время жизни равное времени деплоя приложения. В то же время secret-id могут иметь длинное время жизни, но это не рекомендуется разработчиком Vault в силу большого потребления памяти и нагрузке при очистке истекших токенов.</p>
+<p>Лучшая рекомендация гласит, что нужно использовать короткое время жизни и постоянно продлевать его. Тем самым избегать дорогих операций авторизации и выдачи новых токенов.</p>
+<p>Hashicorp Vault в Ansible</p>
+<p>При использовании общих ролей и плейбуков ansible для управления инфраструктурой, очень удобно и безопасно хранить секретную информацию в корпоративном vault.</p>
+<p>За интеграцию ansible c vault отвечает lookup плагин <a href="https://docs.ansible.com/ansible/2.9/plugins/lookup/hashi_vault.html">hashi_vault</a>. Для его работы необходимо установить python библиотеку hvac.</p>
+<div class="highlight"><pre><span></span><code>### В случае с установленым pip
+pip install hvac
+
+### В случае отсутствия pip
+sudo apt-get -y install python3-hvac
+</code></pre></div>
+<p>Напишем простой плейбук для демонстрации работы hashi_vault.</p>
+<div class="highlight"><pre><span></span><code>- hosts: localhost
+  vars_prompt:
+    - name: &quot;vault_token&quot;
+      prompt: &quot;Enter vault token&quot;
+      private: yes 
+  vars:
+    vault_addr: https://vault.devops-teta.ru
+    user_backend_pass: &quot;{\{ lookup(&#39;hashi_vault&#39;, &#39;secret=test/data/demo_postgres:backend token={\{ vault_token }} url={\{ vault_addr }}&#39;) }}&quot;
+  tasks:
+    - name: Return all kv v2 secrets from a path
+      debug:
+        msg: &quot;{\{ user_backend_pass }}&quot;
+</code></pre></div>
+<p>Запустим плейбук и введем наш TOKEN и получим данные из Vault:</p>
+<div class="highlight"><pre><span></span><code>ok: [localhost] =&gt; {
+    &quot;msg&quot;: &quot;mysecurebackendpassword&quot;
+}
+</code></pre></div>
+<p>По данном примеру доработаем наш плейбук postgres для использования vault. Доработка заключается в добавлении в плейбук запроса токена и получение пароля из vault.</p>
+<p>DIFF: <a href="https://git.devops-teta.ru/materials/ansible/-/commit/d3cf17748f1839ea992aad7e1670990c44bfecd8">https://git.devops-teta.ru/materials/ansible/-/commit/d3cf17748f1839ea992aad7e1670990c44bfecd8</a></p>
+<div class="highlight"><pre><span></span><code>### inventory/group_vars/postgres.yml
+---
+    password: &quot;{\{ user_backend_pass|default(&#39;mysecurebackendpassword&#39;) }}&quot;
+
+### postgres.yml
+---
+- hosts: postgres
+  become: true
+  vars_prompt:
+    - name: &quot;vault_token&quot;
+      prompt: &quot;Enter vault token&quot;
+      private: yes
+  vars:
+    vault_addr: https://vault.devops-teta.ru
+    user_backend_pass: &quot;{\{ lookup(&#39;hashi_vault&#39;, &#39;secret=test/data/demo_postgres:backend token={\{ vault_token }} url={\{ vault_addr }}&#39;) }}&quot;
+  roles:
+    - postgres
+</code></pre></div>
+<p>AppRole</p>
+<p>Approle Authentication в Vault позволяет пользователям аутентифицироваться в системе с использованием ролей, а не обычных учетных данных (логин/пароль). Это обеспечивает более гибкую и масштабируемую систему авторизации, поскольку позволяет создавать и управлять большим количеством ролей, а также ограничивать доступ пользователей к определенным ресурсам на основе этих ролей.</p>
+<p>Для интеграции с системами не следует использовать токены от личных учетных записей. В Vault есть несколько способов аутентификации, approle один из них.<br />
+Включим engine AppRole и настроим роль для работы.</p>
+<div class="highlight"><pre><span></span><code>export VAULT_ADDR=https://vault.devops-teta.ru
+export VAULT_TOKEN=hvs.CAESIDXq84mt7ip85M0NZcShG8UM4mztieuYX3pGEmdZUuTjGh4KHGh2cy5zWjlkS0xVZTI3YWpOZExwUkNVWEF2Mlg
+
+### Включим движок approle. (На нашем vault он скорее всего уже включен, и будет ошибка)
+$ vault auth enable approle
+
+### Создадим пример политики для нашей новой роли.
+$ vault policy write demo-gitlab -&lt;&lt;EOF
+# Read-only permission on secrets stored at &#39;test/data/demo_postgres&#39;
+path &quot;test/data/demo_postgres&quot; {
+capabilities = [ &quot;read&quot; ]
+}
+EOF
+
+### Создадим роль и привяжем нашу политику к ней.
+$ vault write auth/approle/role/demo-gitlab token_policies=&quot;demo-gitlab&quot; \
+token_ttl=1h token_max_ttl=4h
+
+### Проверим созданную роль
+$ vault read auth/approle/role/demo-gitlab
+
+### Для использование ролей, необходим ее ID. Получим его этой командой:
+$ vault read auth/approle/role/demo-gitlab/role-id
+Key Value
+--- -----
+role_id 108383ad-95f0-0c8e-b40f-186d383c53e8
+
+### Сгенерируем секрет для доступа к роли.
+$ vault write -force auth/approle/role/demo-gitlab/secret-id
+Key Value
+--- -----
+secret_id 0200c6fc-1f43-377f-575a-c3f2cd0ac886
+secret_id_accessor d3fb2ada-8955-caf3-9fc3-10b6fef69bae
+secret_id_num_uses 0
+secret_id_ttl 0s
+</code></pre></div>
+<p>Используя данные для нашей роли, напишем простой playbook в ansible, который будет использовать approle аутентификацию, вместо токена.</p>
+<div class="highlight"><pre><span></span><code>- hosts: localhost
+  vars_prompt:
+    - name: &quot;secret_id&quot;
+      prompt: &quot;Enter vault secret_id&quot;
+      private: yes 
+  vars:
+    vault_addr: https://vault.devops-teta.ru
+    role_id: 108383ad-95f0-0c8e-b40f-186d383c53e8
+    user_backend_pass: &quot;{\{ lookup(&#39;hashi_vault&#39;, &#39;secret=test/data/demo_postgres:backend auth_method=approle role_id={\{role_id}} secret_id={\{secret_id}} url={\{ vault_addr }}&#39;) }}&quot;
+  tasks:
+    - name: Return all kv v2 secrets from a path
+      debug:
+        msg: &quot;{\{ user_backend_pass }}&quot;
+</code></pre></div>
+<p>JWT</p>
+<p>JWT (JSON Web Token) Authentication в Vault используется для аутентификации пользователей с помощью токенов JWT. Этот тип аутентификации позволяет создавать токены, которые содержат информацию о пользователе, такую как его идентификатор, роли и срок действия токена. Затем эти токены передаются на сервер Vault для проверки подлинности пользователя.</p>
+<p>JWT аутентификация используется для интеграции с gitlab. Настроим такую интеграцию в нашем gitlab и vault.<br />
+Создадим новый проект в gitlab и узнаем его ID:</p>
+<p><img alt="" src="img/Frame_2087327174.jpg" /></p>
+<p>В учебных целях будем использовать <a href="https://git.devops-teta.ru/materials/vault-jwt-demo">проект</a></p>
+<p><strong>JWT</strong></p>
+<div class="highlight"><pre><span></span><code>export VAULT_ADDR=https://vault.devops-teta.ru
+export VAULT_TOKEN=hvs.CAESIDXq84mt7ip85M0NZcShG8UM4mztieuYX3pGEmdZUuTjGh4KHGh2cy5zWjlkS0xVZTI3YWpOZExwUkNVWEF2Mlg
+
+### Включаем engine JWT
+$ vault auth enable jwt
+Success! Enabled jwt auth method at: jwt/
+
+### Добавляем конфигурацию для валидации токенов с нашего gitlab.
+$ vault write auth/jwt/config \
+    jwks_url=&quot;https://git.devops-teta.ru/-/jwks&quot; \
+    bound_issuer=&quot;git.devops-teta.ru&quot;
+
+Success! Data written to: auth/jwt/config
+
+
+### Создадим политику для доступ к секрету
+$ vault policy write demoproject-staging -&lt;&lt;EOF
+# Read-only permission on secrets stored at &#39;test/data/demo_project/repo1&#39;
+path &quot;test/data/demo_project/repo1&quot; {
+  capabilities = [ &quot;read&quot; ]
+}
+EOF
+
+
+### Создадим пример роли, которая будет использоваться для доступа к секретам из ветки main.
+$ vault write auth/jwt/role/vault-jwt-demo-staging - &lt;&lt;EOF
+{
+&quot;role_type&quot;: &quot;jwt&quot;,
+&quot;policies&quot;: [&quot;demoproject-staging&quot;],
+&quot;token_explicit_max_ttl&quot;: 60,
+&quot;user_claim&quot;: &quot;user_email&quot;,
+&quot;bound_claims&quot;: {
+  &quot;project_id&quot;: &quot;302&quot;,
+  &quot;ref&quot;: &quot;main&quot;,
+  &quot;ref_type&quot;: &quot;branch&quot;
+}
+}
+EOF
+
+Success! Data written to: auth/jwt/role/vault-jwt-demo-staging
+</code></pre></div>
+<p>Теперь напишем простой pipeline, демонстрирующий работу JWT аутентификации в vault.<br />
+<a href="https://git.devops-teta.ru/materials/vault-jwt-demo/-/pipelines">https://git.devops-teta.ru/materials/vault-jwt-demo/-/pipelines</a></p>
+<p><strong>.gitlab-ci.yml</strong></p>
+<div class="highlight"><pre><span></span><code>job:
+  image:
+    vault:1.13.3
+  script:
+    - set -eu
+
+    # Проверяем имя ref джобы
+    - echo $CI_COMMIT_REF_NAME
+
+    # и является ли она protected
+    - echo $CI_COMMIT_REF_PROTECTED
+
+    # Адрес Vault может быть передан через переменную в CI
+    - export VAULT_ADDR=https://vault.devops-teta.ru
+
+    # Проходим аутентификацию и получаем токен. Время истечения жизни токена и другие 
+    # его параметры можно задать при конфигурации
+    # JWT Auth - https://www.vaultproject.io/api/auth/jwt#parameters-1
+    - export VAULT_TOKEN=&quot;$(vault write -field=token auth/jwt/login role=vault-jwt-demo-staging jwt=$CI_JOB_JWT)&quot;
+
+    # Теперь используем VAULT_TOKEN для чтения секретов и сохранения их в перемнных окружения
+    - export PASSWORD=&quot;$(vault kv get -field=password test/demo_project/repo1)&quot;
+
+    # Используем секрет
+    - if [[ -z &quot;$PASSWORD&quot; ]]; then exit 1;  else  echo  &#39;Password is &#39;$PASSWORD; fi
+</code></pre></div>
+<p>Проверим ограничение роли, создав любую ветку отличную от main. Результатом работы CI такой ветки будет ошибка 403.</p>
+<p>Vault agent (sidecar)</p>
+<p>Vault Agent — это компонент системы управления секретами Hashicorp Vault, который обеспечивает безопасное хранение и управление секретами на стороне клиента. Он работает на стороне приложения или микросервиса и обеспечивает автоматическую синхронизацию секретов с сервером Hashicorp Vault. Это позволяет разработчикам сосредоточиться на разработке и не беспокоиться о управлении секретами.</p>
+<p>Запустим экземпляр такого контейнера и посмотрим как его конфигурировать.<br />
+Для примера воспользуемся roleid и secretid которые мы сгенерировали на предыдущем шаге. Создадим два файла:</p>
+<p><strong>roleid</strong></p>
+<div class="highlight"><pre><span></span><code>108383ad-95f0-0c8e-b40f-186d383c53e8
+</code></pre></div>
+<p><strong>secretid</strong></p>
+<div class="highlight"><pre><span></span><code>0200c6fc-1f43-377f-575a-c3f2cd0ac886
+</code></pre></div>
+<p>Напомню, что данная роль у нас привязана к политике demo-gitlab:</p>
+<p><strong>demo-gitlab</strong></p>
+<div class="highlight"><pre><span></span><code>path &quot;test/data/demo_postgres&quot; {
+capabilities = [ &quot;read&quot; ]
+}
+</code></pre></div>
+<p>Создадим конфигурационный файл:</p>
+<p><strong>agent.hcl</strong></p>
+<div class="highlight"><pre><span></span><code>vault {
+  address = &quot;https://vault.devops-teta.ru&quot;
+  retry {
+    num_retries = 3
+  }
+}
+
+auto_auth {
+  method {
+    type      = &quot;approle&quot;
+    config = {
+      role_id_file_path = &quot;/config/roleid&quot;
+      secret_id_file_path = &quot;/config/secretid&quot;
+      remove_secret_id_file_after_reading = true
+    }
+  }
+}
+
+api_proxy {
+  use_auto_auth_token = true
+}
+
+listener &quot;tcp&quot; {
+  address = &quot;0.0.0.0:8100&quot;
+  tls_disable = true
+}
+</code></pre></div>
+<p>Все файлы помести в папку config, которую примонтируем в контейнер в путь /config.</p>
+<div class="highlight"><pre><span></span><code>├── config
+│   ├── agent.hcl
+│   ├── roleid
+│   ├── secretid
+</code></pre></div>
+<p>Запустим vault agent:</p>
+<div class="highlight"><pre><span></span><code>docker run --name vault-agent -d -p 127.0.0.1:8100:8100 -v `pwd`/config:/config vault:1.13.3 vault agent -config /config/agent.hcl
+</code></pre></div>
+<p>Агент предоставляет доступ к API vault, в данном случае без дополнительной аутентификации. Поэтому такой агент должен запускаться в доверенном окружении, обычно рядом с приложением в роли sidecar.</p>
+<p>Код на стороне приложения ничего не знает про метод аутентификации в Vault. Не имеет ключевой информации для доступа в Vault. В нашем примере такое приложение — curl.</p>
+<div class="highlight"><pre><span></span><code>curl http://localhost:8100/v1/test/data/demo_postgres | jq
+export pass=$(curl -s http://localhost:8100/v1/test/data/demo_postgres | jq -r &#39;.data.data.backend&#39;)
+echo $pass
+</code></pre></div>
+<p>Еще один вариант работы vault agent — шаблоны. Аналогично шаблонам в ansible, vault agent может сгенерировать требуемые файлы исходя из данных в vault.</p>
+<p>Посмотрим такой пример, создадим шаблон генерирующий строку подключения к Postgres.</p>
+<p><strong>/config/template.ctmpl</strong></p>
+<div class="highlight"><pre><span></span><code>{\{ with secret &quot;test/demo_postgres&quot; -}}
+postgresql://{\{ .Data.data.user }}:{\{ .Data.data.password }}@{\{.Data.data.postgres_host}}:{\{.Data.data.postres_port}}/{\{.Data.data.db}}
+{\{- end }}
+</code></pre></div>
+<p>Поместим шаблон в папку config и добавим в agent. hcl следующие строки:</p>
+<div class="highlight"><pre><span></span><code>template {
+  source      = &quot;/config/template.ctmpl&quot;
+  destination = &quot;/render/render.txt&quot;
+  error_on_missing_key = true
+}
+</code></pre></div>
+<p>Создадим папку render, выдадим ей права на запись.</p>
+<div class="highlight"><pre><span></span><code>mkdir render &amp;&amp; sudo chown 100:100 render
+</code></pre></div>
+<p>Доработаем строку запуска контейнера, примонтировав новую папку, запустим агента и посмотрим результат рендера шаблона.</p>
+<div class="highlight"><pre><span></span><code>docker run --name vault-agent -d -p 127.0.0.1:8100:8100 -v `pwd`/config:/config -v `pwd`/render:/render vault:1.13.3 vault agent -config /config/agent.hcl
+
+$ cat render/render.txt
+postgresql://backend:mysecurebackendpassword@10.0.10.50:5432/backend
+</code></pre></div>
+<p>Итоговый вид файлов и каталогов:</p>
+<div class="highlight"><pre><span></span><code>├── config
+│   ├── agent.hcl
+│   ├── roleid
+│   ├── secretid
+│   └── template.ctmpl
+└── render
+    └── render.txt
+</code></pre></div>
+<p>Итоговая самостоятельная работа</p>
+<p>Дедлайн сдачи: 20 декабря</p>
+<p>Рассмотрим <a href="https://git.devops-teta.ru/materials/final/audit-svc">audit-svc</a> — игрушечный веб-сервис принимающий по HTTP события аудита (техническое описание смотрите в <a href="http://readme.md/">README.md</a> репозитория). Это сервис на Python, использующий пакетный менеджер Poetry (аналогичный counter-backend, с которым мы работали на практиках ранее), но в отличии от counter-backend этому сервису для работы требуется подключение к БД PostgreSQL.</p>
+<p>В рамках итоговой самостоятельной работы вам предстоит написать скрипты развертывания для этого сервиса, настроить хранение секретов и мониторинг.</p>
+<p>Рассмотрим задачи детальнее.<br />
+Начнем с публикации проекта: требуется написать GitLab CI пайплайн упаковывающий сервис в Docker-образ и публикующий его на <em>курсовой Harbor.</em> Как пробросить настройки Harbor в пайплайн остается на ваше усмотрение: вы можете использовать <a href="https://docs.gitlab.com/ee/user/project/integrations/harbor.html">интеграцию с Harbor</a>, задать требуемые переменные вручную в настройках проекта, или же подтягивать их из курсового Vault.</p>
+<p>После того, как вы опубликуете образ, вам предстоит развернуть сервис на ВМ2. Так как здесь мы развертываем один независимый сервис, то выносить развертывание в отдельный репозиторий необязательно. Используйте любую из рассмотренных нами технологий: Docker, Docker Compose, Ansible + коллекция community.docker.</p>
+<p>Развертывание должно запускаться как задача в сборочном пайплайне <em>при создании тега</em> или по коммиту в репозиторий развертывания (<em>задача с коммитом также должна запускаться из тега</em>).</p>
+<p>Рассмотрим состав развертывания:  </p>
+<ul>
+<li>Сервису требуется подготовленная БД в PostgreSQL: саму БД и пользователя в ней создайте при помощи роли, рассмотренной на практике. Подготовку Б Д выполните при помощи скрипта migrate в репозитории сервиса;</li>
+<li>Параметры подключения к БД — это секреты и должны храниться соответствующе. В этой практике мы рассматривали HashiCorp Vault как хранилище секретов: используйте его, чтобы сохранить параметры подключения и отдать их сервису при развертывании.</li>
+</ul>
+<p>Для передачи параметров в сам сервис используйте Vault Agent и его механизм генерации конфигов из шаблонов, который мы также рассматривали в этой практике. Чтобы автоматизировать перезагрузку сервиса при обновлении конфигурационного файла используйте опцию <a href="https://developer.hashicorp.com/vault/docs/agent-and-proxy/agent/template#command">command</a>, которая позволяет выполнить произвольную команду при обновлении сгенерированного файла (сервис перечитывает конфиг при вызове эндпоинта POST /reload).</p>
+<p>Авторизацию Vault Agent в Vault также настройте аналогично этой практике — при помощи AppRole и политик, ограничивающих доступ до конкретного секрета.</p>
+<ul>
+<li>Разверните вместе с сервисом Nginx и организуйте доступ так, чтобы к сервису нельзя было обратиться напрямую из внутренней подсети МТС Cloud или интернета (только через Nginx). Также ограничьте доступ к эндпоинту /reload в конфигурации Nginx так, чтобы при вызове этого эндпоинта через Nginx запрос не пробрасывался в сервис, а вместо этого возвращался HTTP код ответа 404;</li>
+<li>Добавьте к развернутому Nginx официальный экспортер — <a href="https://github.com/nginxinc/nginx-prometheus-exporter">nginx-exporter</a> и настройте Nginx так, чтобы в экспортере была информация об развернутом инстансе (инструция по настройке есть в репозитории <a href="https://github.com/nginxinc/nginx-prometheus-exporter">nginx-exporter</a>).</li>
+</ul>
+<p>В задании не требуется автоматизировать запуск миграций БД при каждом развертывании сервиса, но вы можете сделать это как дополнительное задание.</p>
+<p>После того как вы развернете сервис требуется настроить сбор его метрик в инстанс Prometheus, развернутый ранее. Затем создайте в курсовой Grafana дэшборд, содержащий следующие метрики сервиса:  </p>
+<ul>
+<li>Графики присланных событий в секунду в разбивке по приложениям;</li>
+<li>Графики распределения кодов ответа от сервиса (какой процент от всех ответов составляли ответы с кодом XXX в каждый момент времени);</li>
+<li>Статусный блок, показывающий запущен ли сервис (воспользуйтесь системной метрикой up);</li>
+</ul>
+<p>Чтобы на дэшборде отображались не нули, сгенерируйте события аудита при помощи скрипта generate в репозитории сервиса.</p>
+<ul>
+<li>Затем скачайте дэшборд для мониторинга Nginx при помощи <a href="https://github.com/nginxinc/nginx-prometheus-exporter">nginx-exporter</a> и сохраните его в курсовую Grafana.</li>
+</ul>
+<p>Для проверки предоставьте артефакты:<br />
+Репозиторий <a href="https://git.devops-teta.ru/materials/final/audit-svc">audit-svc</a>, форкнутый в вашу подгруппу.<br />
+Ссылки на запуски пайплайнов сервиса:  </p>
+<ul>
+<li>В ветке по-умолчанию (пайплайн должен содержать сборку проекта и публикацию Docker образа)</li>
+<li>В защищенном теге (пайплайн должен содержать либо задачу развертывания, либо запускать пайплайн развертывания);</li>
+<li>Если пайплайн развертывания вынесен отдельно, то ссылку на его успешный запуск.</li>
+</ul>
+<p>Ссылки на скрипты развертывания в курсовом GitLab, которые демонстрируют:  </p>
+<ul>
+<li>Запуск миграций при каждом развертывании (опционально);</li>
+<li>Настроенную синхронизацию конфига сервиса с Vault при помощи Vault Agent.</li>
+</ul>
+<p>Ссылку на развернутый сервис в подсети МТС Cloud;  </p>
+<ul>
+<li>Запросы к эндпоинту /reload не должны доходить до сервиса и должны возвращать HTTP код ответа 404;</li>
+<li>Ссылку на настроенный дэшборд сервиса.</li>
+</ul>
 
 
 
@@ -2828,7 +3308,7 @@
         
         
           
-          <a href="../ipsec/" class="md-footer__link md-footer__link--next" aria-label="Вперед: ISEC">
+          <a href="../isec/" class="md-footer__link md-footer__link--next" aria-label="Вперед: ISEC">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Вперед

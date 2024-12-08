@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,1204 @@
 
   <h1>Ansible ч.2</h1>
 
+<p>Продолжим изучать конструкции Ansible на примере настройки Nginx. <br />
+На прошлом занятии мы написали простую роль, которая:<br />
+</p>
+<ol>
+<li>устанавливает Nginx;</li>
+<li>копирует статичную конфигурацию из файла;</li>
+<li>валидирует ее;</li>
+<li>запускает systemd службу Nginx.</li>
+</ol>
+<p>Сегодня мы модифицируем эту роль так, чтобы конфигурировать Nginx как L7 балансировщик.</p>
+<p>Конфигурация L7 балансировки</p>
+<p>Добавим возможность настраивать L7 балансировку: добавим в роль переменную с конфигурацией Nginx для HTTP проксирования.  </p>
+<p>Отредактируем defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>nginx__version: &quot;1.18.0&quot;
+nginx__config_src: nginx.conf
+nginx__config_dest: /etc/nginx/nginx.conf
+nginx__http_config:
+  - name: httpbin.org
+    port: 80
+    vhost: httpbin.org
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://httpbin.org
+  - name: google.com
+    port: 80
+    vhost: google.com
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://google.com
+</code></pre></div>
+<p>Теперь мы будем генерировать конфигурации Nginx из переменной nginx__http_config. Каждый элемент списка nginx__http_config — конфигурация виртуального сервера, для которой мы будем создавать отдельный конфиг в /etc/nginx/conf.d.  </p>
+<p>Для этого внесем основную конфигурацию Nginx внутрь роли и уберем переменную nginx__config_src, вместо того чтобы принимать ее от пользователя. Также уберем переменную nginx__config_dest, т.к. Nginx читает конфигурацию из одного места.  </p>
+<p>Получим такой файл defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>nginx__version: &quot;1.18.0&quot;
+nginx__http_config:
+  - name: httpbin.org
+    port: 80
+    vhost: httpbin.org
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://httpbin.org
+  - name: google.com
+    port: 80
+    vhost: google.com
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://google.com
+</code></pre></div>
+<p>Перенесем конфигурацию из плейбука в files/nginx.conf:</p>
+<div class="highlight"><pre><span></span><code>user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
 
+events {
+  worker_connections 768;
+}
+
+http {
+  sendfile on;
+  tcp_nopush on;
+  types_hash_max_size 2048;
+
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
+
+  gzip on;
+
+  include /etc/nginx/conf.d/*.conf;  # &lt;- Заменили статичную конфигурацию на включение
+}
+</code></pre></div>
+<p>И заменим задачи в tasks/main.yml (на время уберем валидацию, чтобы не усложнять задачи):</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+</code></pre></div>
+<p>Если в модуле copy указать имя файла вместо пути, то Ansible будет искать файл в нескольких папках из своей конфигурации (аналогично $PATH), files/ — один из таких путей.</p>
+<p>Теперь добавим задачу, копирующую конфигурацию виртуальных серверов. Создадим отдельный файл конфигурации для каждого сервера. Чтобы запустить несколько однотипных задач Ansible использует директиву loop — цикл, она принимает на вход список и запускает задачу для каждого его элемента:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Copy Virtual Server config
+      ansible.builtin.debug:  # &lt;- Плейсхолдер
+        var: item
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+      notify:
+        - Reload Nginx service
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+</code></pre></div>
+<p>Внутри цикла доступна переменная item, которая хранит значение текущего элемента в цикле. Остается сгенерировать из этой переменной конфигурацию виртуального сервера и скопировать ее на сервер. Для этого в Ansible используется модуль template — он получает на вход файл с шаблоном Jinja2, подставляет в него параметры и копирует на целевой хост:</p>
+<div class="highlight"><pre><span></span><code>- name: Copy Virtual Server config
+  ansible.builtin.template:
+    src: http_vhost.conf.j2
+    dest: &quot;/etc/nginx/conf.d/{\{ item.name \}}.conf&quot;
+    mode: &quot;644&quot;
+    owner: root
+    group: root
+  loop: &quot;{\{ nginx__http_config \}}&quot;
+  notify:
+    - Reload Nginx service
+</code></pre></div>
+<p>Аналогично copy модуль template, если указать в src имя файла вместо пути, то Ansible будет искать файл с шаблоном в папке templates/ роли.</p>
+<p>Шаблонный конфиг</p>
+<p>Создадим шаблон templates/http_vhost.conf.j2 с конфигурацией виртуального сервиса:</p>
+<div class="highlight"><pre><span></span><code>{\{ ansible_managed | comment \}}
+
+server {
+  listen {\{ item.port | default(80) | int \}};
+  server_name {\{ item.vhost \}};
+
+{\% for pattern, options in item.locations.items() \%}
+  location {\{ pattern \}} {
+{\% for opt in options \%}
+    {\{ opt \}};
+{\% endfor \%}
+  }
+{\% endfor \%}
+}
+</code></pre></div>
+<p>Рассмотрим шаблон детальнее: блоки {{ … }} означают подстановку значения переменной, {\% … \%} - блоки управляющих конструкций, в них можно объявлять переменные, условия и циклы.  </p>
+<p>Выражения A | B обозначают <em>Jinja2 фильтры</em>, такая запись эквивалентна вызову функции B (A) и нужна для улучшения читаемости цепочки вызовов и передачи дополнительных параметров.  </p>
+<p>Цепочка item. port | default (80) | int означает:<br />
+</p>
+<ol>
+<li>получить значение переменной item. port;</li>
+<li>если такой переменной не существует, то заменить значение на 80;</li>
+<li>привести значение переменной к целочисленному типу;</li>
+</ol>
+<p>В классической записи вызова функций такая цепочка выглядит так: int (default (80)(item.port)), что обращает порядок операций и усложняет чтение.</p>
+<p>Несмотря на то, что запись A | B эквивалента вызову функции с одним параметром, <em>функции</em> и _фильтры_в Jinja2 — различные сущности. Фильтры, доступные в Ansible смотри в <a href="https://jinja.palletsprojects.com/en/3.0.x/templates/#list-of-builtin-filters">документации Jinja2</a> и <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_filters.html">документации Ansible</a>.</p>
+<p>Фильтр {{ ansible_managed | comment }} — стандартный способ отметить тот факт, что конфиг был сгенерирован автоматически при помощи Ansible, старайтесь всегда использовать его. Это не всегда возможно, т.к. некоторые конфигурационные форматы не поддерживают комментарии.</p>
+<p>Jinja2 написана на Python и поддерживает вызов методов Python на своих объектах: item.locations.items () — пример такого вызова (см. документацию <a href="https://docs.python.org/3/library/stdtypes.html#dict.items">Python</a>).  </p>
+<p>Добавим возможность настраивать виртуальные сервера с TLS:</p>
+<div class="highlight"><pre><span></span><code>{\{ ansible_managed | comment \}}
+
+{\% if item.tls is defined and item.tls.enabled and item.tls.insecure_port \%}
+server {
+  server_name {\{ item.vhost \}};
+  listen {\{ item.tls.insecure_port | default(80) | int \}};
+  return 301 https://$host$request_uri;
+}
+{\% endif \%}
+
+server {
+  server_name {\{ item.vhost \}};
+{\% if item.tls is defined and item.tls.enabled \%}
+  listen {\{ item.port | default(443) | int \}} ssl http2;
+
+  ssl_certificate           {\{ &#39;{}/{}.crt&#39;.format(__ssl_path, item.name) \}};
+  ssl_certificate_key       {\{ &#39;{}/{}.key&#39;.format(__ssl_path, item.name) \}};
+  ssl_session_cache         shared:SSL:1m;
+  ssl_session_timeout       10m;
+  ssl_prefer_server_ciphers on;
+{\% else \%}
+  listen {\{ item.port | default(80) | int \}};
+{\% endif \%}
+
+{\% for pattern, options in item.locations.items() \%}
+  location {\{ pattern \}} {
+{\% for opt in options \%}
+    {\{ opt \}};
+{\% endfor \%}
+  }
+{\% endfor \%}
+}
+</code></pre></div>
+<p>Здесь мы добавили настройки для SSL с использованием условий {\% if PREDICATE \%} STATEMENT {\% endif \%} и вызова метода <a href="https://docs.python.org/3/library/stdtypes.html#str.format">str.format</a> — '{}/{}.crt'.format (__ssl_path, <a href="http://item.name/">item.name</a>).  </p>
+<p>Зададим значение переменной __ssl_path в vars/main.yml:</p>
+<div class="highlight"><pre><span></span><code>__config_temp: &quot;/etc/nginx/nginx.conf.new&quot;
+__ssl_path: /etc/nginx/ssl
+</code></pre></div>
+<p>И изменим формат конфигурации виртуального сервера в defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>nginx__version: &quot;1.18.0&quot;
+nginx__http_config:
+  - name: httpbin.org
+    port: 443
+    vhost: httpbin.org
+    tls:
+      enabled: true
+      insecure_port: 80
+      crt: |-
+        SSL CERTIFICATE
+      key: |-
+        SSL KEY
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://httpbin.org
+  - name: google.com
+    port: 80
+    vhost: google.com
+    tls:
+      enabled: false
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://google.com
+</code></pre></div>
+<p>Валидация</p>
+<p>Мы получили довольно сложную конфигурацию для виртуального сервера. Следует добавить валидацию входных параметров. Мы можем сделать это двумя способами — ручные проверки при помощи <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/assert_module.html">ansible.builtin.assert</a> и валидация при помощи <a href="https://docs.ansible.com/ansible/latest/collections/ansible/utils/validate_module.html">ansible.utils.validate</a>.  </p>
+<p>Напишем ручные проверки:</p>
+<div class="highlight"><pre><span></span><code>- name: Check Virtual Server config
+  ansible.builtin.assert:
+    that:
+      - item.name is string
+      - item.name | length &gt; 0
+      - (item.port | default(80)) is integer
+      # еще миллион проверок на каждый аттрибут...
+</code></pre></div>
+<p>В этом случае ручные проверки довольно громоздки. Заменим их на проверку при помощи <a href="https://json-schema.org/">JsonSchema</a>. Для начала напишем схему в переменной __vhost_schema:</p>
+<div class="highlight"><pre><span></span><code>__config_temp: &quot;/etc/nginx/nginx.conf.new&quot;
+__ssl_path: /etc/nginx/ssl
+__vhost_schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  title: HTTP Virtual Server
+  type: object
+  required: [name, vhost, location]
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    port:
+      $ref: &quot;#/$defs/port&quot;
+    vhost:
+      type: string
+    tls:
+      type: object
+      additionalProperties: false
+      properties:
+        enabled:
+          type: boolean
+      if:
+        properties:
+          enabled:
+            const: true
+      then:
+        required: [crt_path, key_path]
+        properties:
+          insecure_port:
+            $ref: &quot;#/$defs/port&quot;
+          crt:
+            type: string
+          key:
+            type: string
+    location:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
+  $defs:
+    port:
+      type: integer
+      exclusiveMinimum: 0
+      exclusiveMaximum: 65536
+</code></pre></div>
+<p>Теперь напишем задачу валидации:</p>
+<div class="highlight"><pre><span></span><code>- name: Check Virtual Server config
+  ansible.utils.validate:
+    data: &quot;{\{ item \}}&quot;
+    criteria:
+      - &quot;{\{ __vhost_schema \}}&quot;
+    engine: ansible.utils.jsonschema
+</code></pre></div>
+<p>Установите пакет Python jsonschema на Ansible-контроллер pip install --user jsonschema, чтобы модуль ansible.utils.validate заработал.</p>
+<p>Также нам понадобится задача для копирования SSL сертификата и ключа для каждого виртуального сервера:</p>
+<div class="highlight"><pre><span></span><code>- name: Copy SSL Files
+  ansible.builtin.copy:
+    content: &quot;{\{ in_item.content \}}&quot;
+    dest: &quot;{\{ in_item.dest \}}&quot;
+    mode: &quot;0700&quot;
+    owner: root
+    group: root
+  loop:
+    - content: &quot;{\{ item.tls.crt \}}&quot;
+      dest: &quot;{\{ &#39;{}/{}.crt&#39;.format(__ssl_path, item.name) \}}&quot;
+    - content: &quot;{\{ item.tls.key \}}&quot;
+      dest: &quot;{\{ &#39;{}/{}.key&#39;.format(__ssl_path, item.name) \}}&quot;
+  when: item.tls is defined
+  loop_control:
+    loop_var: in_item
+  no_log: true
+  notify:
+    - Reload Nginx service
+</code></pre></div>
+<p>Директива content в copy означает что мы не копируем файл с Ansible-контроллера, а сохраняем содержимое строки content в файл dest на цели.</p>
+<p>Директива no_log: true говорит Ansible скрыть возвращаемое значение модуля из лога. Здесь это нужно, чтобы не печатать в лог ключи шифрования.</p>
+<p>Как интегрировать эти задачи в нашу роль? Если мы заменим задачу копирования шаблона на block, то увидим ошибку, что block не поддерживает циклы. Чтобы реализовать цикл из нескольких задач воспользуемся модулем динамического включения задач include_tasks.  </p>
+<p>Напишем файл с задачами tasks/http_vhost.yml, содержащий задачи для настройки одного виртуального сервера:</p>
+<div class="highlight"><pre><span></span><code>- name: Check Virtual Server config
+  ansible.utils.validate:
+    data: &quot;{\{ item \}}&quot;
+    criteria:
+      - &quot;{\{ __vhost_schema \}}&quot;
+    engine: ansible.utils.jsonschema
+- name: Copy SSL Files
+  ansible.builtin.copy:
+    content: &quot;{\{ item.content \}}&quot;
+    dest: &quot;{\{ item.dest \}}&quot;
+    mode: &quot;0700&quot;
+    owner: root
+    group: root
+  loop:
+    - content: &quot;{\{ item.tls.crt \}}&quot;
+      dest: &quot;{\{ &#39;{}/{}.crt&#39;.format(__ssl_path, item.name) \}}&quot;
+    - content: &quot;{\{ item.tls.key \}}&quot;
+      dest: &quot;{\{ &#39;{}/{}.key&#39;.format(__ssl_path, item.name) \}}&quot;
+  when: item.tls is defined
+  loop_control:
+    loop_var: in_item 
+  no_log: true
+  notify:
+    - Reload Nginx service
+- name: Copy Virtual Server config
+  ansible.builtin.template:
+    src: http_vhost.conf.j2
+    dest: &quot;/etc/nginx/conf.d/{\{ item.name \}}.conf&quot;
+    mode: &quot;644&quot;
+    owner: root
+    group: root
+  notify:
+    - Reload Nginx service
+</code></pre></div>
+<p>И включим ее внутри цикла:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Virtual Servers
+  ansible.builtin.include_tasks:
+    file: http_vhost.yml
+  loop: &quot;{\{ nginx__http_config \}}&quot;
+</code></pre></div>
+<p>Получим такие задачи в tasks/main.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Configure Virtual Servers
+      ansible.builtin.include_tasks:
+        file: http_vhost.yml
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+</code></pre></div>
+<p>Остается вернуть валидацию, но предыдущая схема, где мы копировали новый конфиг с другим именем, валидировали его и затем подменяли старый конфиг, не сработает из-за включений конфигов динамических серверов (т.к. в основном конфиге указана маска *.conf).  </p>
+<p>Заменим эту схему на следующую:<br />
+</p>
+<ol>
+<li>найдем все текущие конфиги и переименуем их (добавим .bak в конец);</li>
+<li>скопируем новые конфиги в стандартные локации;</li>
+<li>если валидация прошла, то удалим старые конфиги, иначе удалим новые конфиги и переименуем старые обратно.</li>
+</ol>
+<p>Напишем задачи из п. 1 в отдельном файле tasks/backup_old_config.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Find Nginx configs
+  ansible.builtin.find:
+    paths:
+      - /etc/nginx
+      - /etc/nginx/conf.d
+      - &quot;{\{ __ssl_path \}}&quot;
+    patterns: &quot;*.conf&quot;
+    recurse: false
+  register: __find_result
+- name: Extract paths
+  ansible.builtin.set_fact:
+    __old_configs: &quot;{\{ __find_result.files | map(attribute=&#39;path&#39;) \}}&quot;
+- name: Backup old configs
+  ansible.builtin.copy:
+    src: &quot;{\{ item \}}&quot;
+    dest: &quot;{\{ item \}}.bak&quot;
+    remote_src: true
+  loop: &quot;{\{ __old_configs \}}&quot;
+- name: Remove old configs
+  ansible.builtin.file:
+    path: &quot;{\{ item \}}&quot;
+    state: absent
+  loop: &quot;{\{ __old_configs \}}&quot;
+</code></pre></div>
+<p>Здесь мы в первый раз столкнулись с модулем set_fact, создающим переменную во время выполнения сценария. Такие переменные называются <em>фактами</em> и кроме создаваемых вручную фактов Ansible определяет набор стандартных — они содержат информацию о целевых системах (версию ОС, сетевые интерфейсы, диски и т. д.) и собираются вначале каждого плея модулем setup.  </p>
+<p>Полный список стандартных фактов смотри в <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html">документации</a>.</p>
+<p>Мы не будем выносить задачи Backup old configs и Remove old configs в отдельный файл и подключать при помощи include_tasks для простоты.</p>
+<p>Подключим получившиеся задачи в tasks/main.yml при помощи модуля статического включения файлов import_tasks:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Backup old config
+      ansible.builtin.import_tasks: backup_old_config.yml
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Configure Virtual Servers
+      ansible.builtin.include_tasks:
+        file: http_vhost.yml
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+</code></pre></div>
+<p>В чем отличие import_tasks и include_tasks? Первый модуль подключает задачи во время <em>чтения сценария</em>, второй во время <em>выполнения</em>. Это разграничивает их возможности и сценарии выполнения.  </p>
+<p>Например import_tasks не может использоваться с циклами и условиями, значение которых неизвестно во время чтения сценария (условие, содержащее переменную роли/инвентаря сработает, а факт или результат выполнения модуля — нет).  </p>
+<p>Для разбиения списка задач следует использовать import_tasks, а для сложных циклов и задач, которые запускаются в зависимости от состояния цели — include_tasks.</p>
+<p>Теперь добавим валидацию конфига (п.2) и блок rescue, в котором удалим новые конфиги и вернем старые на место (п.3):</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Backup old config
+      ansible.builtin.import_tasks: backup_old_config.yml
+    - name: Copy new config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Configure Virtual Servers
+      ansible.builtin.include_tasks:
+        file: http_vhost.yml
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t&quot;
+      changed_when: false
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+  rescue:
+    - name: Restore config
+      ansible.builtin.import_tasks: restore_config.yml
+</code></pre></div>
+<p>Задачи в tasks/restore_config.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Find Nginx configs
+  ansible.builtin.find:
+    paths:
+      - /etc/nginx
+      - /etc/nginx/conf.d
+      - &quot;{\{ __ssl_path \}}&quot;
+    patterns: &quot;*.conf&quot;
+    recurse: false
+  register: __find_result
+- name: Extract paths
+  ansible.builtin.set_fact:
+    __new_configs: &quot;{\{ __find_result.files | map(attribute=&#39;path&#39;) \}}&quot;
+- name: Remove new configs
+  ansible.builtin.file:
+    path: &quot;{\{ item \}}&quot;
+    state: absent
+  loop: &quot;{\{ __new_configs \}}&quot;
+- name: Restore old configs
+  ansible.builtin.copy:
+    src: &quot;{\{ item \}}.bak&quot;
+    dest: &quot;{\{ item \}}&quot;
+    remote_src: true
+  loop: &quot;{\{ __old_configs \}}&quot;
+  notify:
+    - Reload Nginx service
+- name: Remove config backups
+  ansible.builtin.file:
+    path: &quot;{\{ item \}}.bak&quot;
+    state: absent
+  loop: &quot;{\{ __old_configs \}}&quot;
+</code></pre></div>
+<p>По-умолчанию хендлеры не запускаются при ошибке на цели, но это поведение можно переопределить опцией --force-handlers (<a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html#handlers-and-failure">документация</a>), поэтому следует писать notify даже в задачах, обрабатывающих ошибки.</p>
+<p>Добавим базовую проверку работоспособности сервера после запуска. Воспользуемся для этого встроенной в Nginx страницей <a href="https://nginx.org/en/docs/http/ngx_http_stub_status_module.html">stub_status</a>. Вынесем эту страницу в отдельный виртуальный сервер при помощи следующего конфига:</p>
+<div class="highlight"><pre><span></span><code>server {
+  listen 127.0.0.1:8080;
+
+  location = /status {
+    stub_status;
+  }
+}
+</code></pre></div>
+<p>Нам придется отказаться от захардкоженного порта, чтобы избежать конфликтов с пользовательскими виртуальными серверами.<br />
+Вынесем порт со статус-сервером в конфигурацию роли в defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>nginx__version: &quot;1.18.0&quot;
+nginx__status_port: 8080  # &lt;- новый параметр
+nginx__http_config:
+  - name: httpbin.org
+    port: 443
+    vhost: httpbin.org
+    tls:
+      enabled: true
+      insecure_port: 80
+      crt: |-
+        SSL CERTIFICATE
+      key: |-
+        SSL KEY
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://httpbin.org
+  - name: google.com
+    port: 80
+    vhost: google.com
+    tls:
+      enabled: false
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://google.com
+</code></pre></div>
+<p>И перенесем основной конфиг Nginx из files/nginx.conf в templates/nginx.conf.j2:</p>
+<div class="highlight"><pre><span></span><code>user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events {
+  worker_connections 768;
+}
+
+http {
+  sendfile on;
+  tcp_nopush on;
+  types_hash_max_size 2048;
+
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
+
+  gzip on;
+
+  # Новый блок конфигурации
+  server {
+    listen 127.0.0.1:{\{ nginx__status_port \}};
+
+    location = /status {
+      stub_status;
+    }
+  }
+
+  include /etc/nginx/conf.d/*.conf;
+}
+</code></pre></div>
+<p>Заменим модуль задачи Copy new config с copy на template:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Backup old config
+      ansible.builtin.import_tasks: backup_old_config.yml
+    - name: Copy new config
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Configure Virtual Servers
+      ansible.builtin.include_tasks:
+        file: http_vhost.yml
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t&quot;
+      changed_when: false
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+  rescue:
+    - name: Restore config
+      ansible.builtin.import_tasks: restore_config.yml
+</code></pre></div>
+<p>Теперь проверим работает ли Nginx, сделав запрос к http://127.0.0.1:{{ nginx__status_port }}/statusпри помощи модуля <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/uri_module.html">url</a>:</p>
+<div class="highlight"><pre><span></span><code>- name: Check Nginx
+  ansible.builtin.uri:
+    url: &quot;http://127.0.0.1:{\{ nginx__status_port \}}/status&quot;
+</code></pre></div>
+<p>Заметим, что при долгом запуске Nginx такая задача упадет и провалит весь плейбук. Нам нужен аналог цикла do-while, чтобы запрашивать страницу пока она не вернется успешно.  </p>
+<p>Для решения такой задачи в Ansible используется директива набор директив:<br />
+until — условие завершения цикла;<br />
+retries — максимальное число повторов;<br />
+delay — задержка между повторами;  </p>
+<p>Чтобы воспользоваться результатом выполнения модуля в условии until, нужно зарегистрировать результат выполнения задачи при помощи register.  </p>
+<p>Напишем новую версию задачи:</p>
+<div class="highlight"><pre><span></span><code>- name: Check Nginx
+  ansible.builtin.uri:
+    url: &quot;http://127.0.0.1:{\{ nginx__status_port \}}/status&quot;
+  register: __result
+  until: __result.status == 200
+  retries: 6
+  delay: 5
+</code></pre></div>
+<p>Время ожидания задачи равно retries * delay, таким образом мы ждем запуска Nginx 30 секунд.  </p>
+<p>Директива until опциональна, если она не указана, то условие выполнения — успешность задачи. Мы можем воспользоваться этим и указать опцию status_code модуля uri, которая отмечает HTTP статус коды, означающие успешность операции. Здесь мы укажем стандартный код 200 OK:</p>
+<div class="highlight"><pre><span></span><code>- name: Check Nginx
+  ansible.builtin.uri:
+    url: &quot;http://127.0.0.1:{\{ nginx__status_port \}}/status&quot;
+    status_code: [200]
+  retries: 6
+  delay: 5
+</code></pre></div>
+<p>Получим следующий список задач:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Backup old config
+      ansible.builtin.import_tasks: backup_old_config.yml
+    - name: Copy new config
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Configure Virtual Servers
+      ansible.builtin.include_tasks:
+        file: http_vhost.yml
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t&quot;
+      changed_when: false
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+    - name: Flush handlers
+      meta: flush_handlers
+    - name: Check Nginx
+      ansible.builtin.uri:
+        url: &quot;http://127.0.0.1:{\{ nginx__status_port \}}/status&quot;
+        status_code: [200]
+      retries: 6
+      delay: 5
+  rescue:
+    - name: Restore config
+      ansible.builtin.import_tasks: restore_config.yml
+</code></pre></div>
+<p>Заметим, что проверка работоспособности Nginx выполняется только при успешном копировании конфига.  </p>
+<p>Вынесем проверку вне блока обработки ошибок:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx package
+      ansible.builtin.apt:
+        name: &quot;nginx={\{ nginx__version \}}&quot;
+        update_cache: true
+        state: present
+      notify:
+        - Restart Nginx
+    - name: Backup old config
+      ansible.builtin.import_tasks: backup_old_config.yml
+    - name: Copy new config
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Configure Virtual Servers
+      ansible.builtin.include_tasks:
+        file: http_vhost.yml
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t -c &#39;{\{ __config_temp \}}&#39;&quot;
+      changed_when: false
+    - name: Enable Nginx service now
+      ansible.builtin.systemd_service:
+        name: nginx.service
+        enabled: true
+        state: started
+  rescue:
+    - name: Restore config
+      ansible.builtin.import_tasks: restore_config.yml
+- name: : Flush handlers
+  meta: flush_handlers
+- name: Check Nginx
+  ansible.builtin.uri:
+    url: &quot;http://127.0.0.1:{\{ nginx__status_port \}}/status&quot;
+    status_code: [200]
+  retries: 6
+  delay: 5
+</code></pre></div>
+<p>Теперь вынесем блок обработки ошибок в файл tasks/install.yml и уберем из него задачи Install Nginx package и Enable Nginx service now, которые не относятся к копированию конфигурации:</p>
+<div class="highlight"><pre><span></span><code>- name: Install Nginx package
+  ansible.builtin.apt:
+    name: &quot;nginx={\{ nginx__version \}}&quot;
+    update_cache: true
+    state: present
+  notify:
+    - Restart Nginx
+- name: Configure Nginx
+  block:
+    - name: Backup old config
+      ansible.builtin.import_tasks: backup_old_config.yml
+    - name: Copy new config
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: &quot;644&quot;
+      notify:
+        - Reload Nginx service
+    - name: Configure Virtual Servers
+      ansible.builtin.include_tasks:
+        file: http_vhost.yml
+      loop: &quot;{\{ nginx__http_config \}}&quot;
+    - name: Validate new config
+      ansible.builtin.command:
+        cmd: &quot;nginx -t -c &#39;{\{ __config_temp \}}&#39;&quot;
+      changed_when: false
+  rescue:
+    - name: Restore config
+      ansible.builtin.import_tasks: restore_config.yml
+- name: Enable Nginx service now
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    enabled: true
+    state: started
+- name: Flush handlers
+  meta: flush_handlers
+- name: Check Nginx
+  ansible.builtin.uri:
+    url: &quot;http://127.0.0.1:{\{ nginx__status_port \}}/status&quot;
+    status_code: [200]
+  retries: 6
+  delay: 5
+</code></pre></div>
+<p>Получим следующие задачи в tasks/main.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx
+      ansible.builtin.import_tasks: install.yml
+</code></pre></div>
+<p>Установка экспортера Prometheus</p>
+<p>Добавим к установке сервера Nginx <a href="https://github.com/nginxinc/nginx-prometheus-exporter">экспортер</a> Prometheus, для отдачи метрик в формате Prometheus.</p>
+<p>Prometheus — популярная СУБД для хранения временных рядов, написанная для целей мониторинга. Работает по pull модели, вытягивая метрики с заданным периодом из сконфигурированных целей мониторинга.</p>
+<p>Создадим файл tasks/exporter.yml с задачами установки экспортера:</p>
+<div class="highlight"><pre><span></span><code>$ touch tasks/exporter.yml
+</code></pre></div>
+<p>Включим его в tasks/main.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Configure Nginx
+  become: true
+  block:
+    - name: Install Nginx
+      ansible.builtin.import_tasks: install.yml
+    - name: Install exporter
+      ansible.builtin.import_tasks: exporter.yml
+</code></pre></div>
+<p>Теперь посмотрим что требуется сделать для установки экспортера. Он поставляется в виде архивов на странице <a href="https://github.com/nginxinc/nginx-prometheus-exporter/releases/tag/v1.1.0">релизов GitHub</a>. Скачаем релиз для нашей платформы (linux_amd64) и извлечем в отдельную папку:</p>
+<div class="highlight"><pre><span></span><code>$ curl -LO https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+$ mkdir -p exporter
+$ tar -C exporter -xvf ./nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+$ tree ./exporter
+./exporter
+├── completions
+│   ├── nginx-prometheus-exporter.bash
+│   └── nginx-prometheus-exporter.zsh
+├── manpages
+│   └── nginx-prometheus-exporter.1.gz
+├── LICENSE
+├── nginx-prometheus-exporter
+└── README.md
+</code></pre></div>
+<p>Узнаем чем является файл ./exporter/nginx-prometheus-exporter при помощи утилиты file:</p>
+<div class="highlight"><pre><span></span><code>$ file ./exporter/nginx-prometheus-exporter
+./exporter/nginx-prometheus-exporter: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=Y-OzotAw31Jp9_fD_YLK/KoHx2K4NqplzuDWeyd4A/pnjHuK-zUgRS-EQgAFjv/04u9eYGmKLuFQ_DiB65J, stripped
+</code></pre></div>
+<p>Это исполняемый файл программы, написанной на Go. Обратите внимание на слова statically linked, это значит, что программа не зависит от наличия в системе каких-либо библиотек и лишь от ядра ОС. У нас довольно стандартная конфигурация Linux, поэтому с большой долей вероятности программа запустится без проблем.  </p>
+<p>Проверим это, выведя справку:</p>
+<div class="highlight"><pre><span></span><code>$ ./nginx-prometheus-exporter -h
+usage: nginx-prometheus-exporter [&lt;flags&gt;]
+
+...
+</code></pre></div>
+<p><a href="https://go.dev/wiki/MinimumRequirements">Документация Go</a> говорит что для x86_64 Linux систем минимально допустимая версия ядра -- 2.6.32. Мы можем посмотреть текущую версию ядра командой uname -r:<br />
+$ uname -r<br />
+6.6.0</p>
+<p>Получим, что установка экспортера будет состоять из следующих шагов:<br />
+</p>
+<ol>
+<li>cкачать архив с экспортером на Ansible-контроллер;</li>
+<li>распаковать архив на контроллер;</li>
+<li>скопировать исполнямый файл экспортера на цели;</li>
+<li>скопировать systemd службу для запуска экспортера на цели;</li>
+<li>запустить systemd службу экспортера;</li>
+</ol>
+<p>Мы могли бы скачивать экспортер напрямую на цели и упростить пункты 1−3, но в корпоративном контексте, в котором мы чаще всего запускаем Ansible, целевые хосты не имеют доступа в интернет. Также при большом числе целей мы создаем бесполезную нагрузку на сервер, содержащий файл. Мы можем перегрузить сервер-источник или упереться в ограничение на число загрузок с сервера.  </p>
+<p>Как запустить задачу на контроллере вместо целевого хоста? Для таких случаев обычно используют директиву delegate_to, которая заменяет фактический хост выполнения с целевого на хост, указанный как значение этой директивы.  </p>
+<p>Получим следующую задачу загрузки файла:</p>
+<div class="highlight"><pre><span></span><code>- name: Download exporter on controller
+  delegate_to: localhost
+  block:
+    - name: Create download dir
+      ansible.builtin.file:
+        path: /tmp/nginx-exporter
+        mode: &quot;777&quot;
+        state: directory
+    - name: Download exporter
+      ansible.builtin.unarchive:
+        src: &gt;-
+          https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+        dest: /tmp/nginx-exporter
+        remote_src: true
+</code></pre></div>
+<p>Мы воспользовались модулем <a href="https://docs.ansible.com/ansible/latest/collections/ansible/builtin/unarchive_module.html">unarchive</a>, чтобы загрузить и распаковать архив в одной задаче.  </p>
+<p>Заметим, что в нашем инвентаре нет цели localhost. Ansible всегда добавляет цель localhost в плеи специально для случая запуска задач на контроллере. Такая цель называется неявным локалхостом (implicit localhost). Если задать в инвентаре цель с именем localhost, то вместо неявного локалхоста будет использоваться она.  </p>
+<p>Также обратим внимание, что текущая задача не решает проблему множественной загрузки экспортера, теперь мы качаем его много раз с одного хоста. Чтобы исправить это воспользуемся директивой run_once, которая указывает, что задачу нужно выполнить один раз на <em>произвольной</em> цели.</p>
+<div class="highlight"><pre><span></span><code>- name: Download exporter on controller
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: Create download dir
+      ansible.builtin.file:
+        path: /tmp/nginx-exporter
+        mode: &quot;777&quot;
+        state: directory
+    - name: Download exporter
+      ansible.builtin.unarchive:
+        src: &gt;-
+          https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+        dest: /tmp/nginx-exporter
+        remote_src: true
+</code></pre></div>
+<p>Предположим, что в будущем путь к экспортеру в архиве может измениться. Вместо хардкода добавим поиск исполняемого файла в папке-назначении при помощи модуля find:</p>
+<div class="highlight"><pre><span></span><code>- name: Find exporter executable
+  ansible.builtin.find:
+    paths: /tmp/nginx-exporter
+    file_type: file
+    mode: u=x
+    recurse: false
+  register: __result
+- name: Register path to executable
+  ansible.builtin.set_fact:
+    __executable_file: &quot;{\{ __result.files[0].path \}}
+</code></pre></div>
+<p>Получим такой файл tasks/exporter.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Download exporter on controller
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: Create download dir
+      ansible.builtin.file:
+        path: /tmp/nginx-exporter
+        mode: &quot;777&quot;
+        state: directory
+    - name: Download exporter
+      ansible.builtin.unarchive:
+        src: &gt;-
+          https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+        dest: /tmp/nginx-exporter
+        remote_src: true
+    - name: Find exporter executable
+      ansible.builtin.find:
+        paths: /tmp/nginx-exporter
+        file_type: file
+        mode: u=x
+        recurse: false
+      register: __result
+    - name: Register path to executable
+      ansible.builtin.set_fact:
+        __executable_file_local: &quot;{\{ __result.files[0].path \}}&quot;
+</code></pre></div>
+<p>Временно добавим в роль задачу, выводящую значение факта __executable_file и <em>заменим в плейбуке nginx_simple.play.yml цели с vm2 на vm2: vm1, чтобы запустить его на двух ВМ</em>:</p>
+<div class="highlight"><pre><span></span><code>- name: Download exporter on controller
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: Create download dir
+      ansible.builtin.file:
+        path: /tmp/nginx-exporter
+        mode: &quot;777&quot;
+        state: directory
+    - name: Download exporter
+      ansible.builtin.unarchive:
+        src: &gt;-
+          https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+        dest: /tmp/nginx-exporter
+        remote_src: true
+    - name: Find exporter executable
+      ansible.builtin.find:
+        paths: /tmp/nginx-exporter
+        file_type: file
+        mode: u=x
+        recurse: false
+      register: __result
+    - name: Register path to executable
+      ansible.builtin.set_fact:
+        __executable_file_local: &quot;{\{ __result.files[0].path \}}&quot;
+- name: Print __executable_file_local
+  ansible.builtin.debug:
+    var: __executable_file_local
+</code></pre></div>
+<p>Во время запуска увидим ошибку, что факт __executable_file_local объявлен только на цели, <em>c которой были делегированы задачи загрузки экспортера</em>. Это произошло, т.к. в делегированных задачах Ansible использует набор фактов хоста, на котором задача запустилась бы без директивы delegate_to. Чтобы использовать набор фактов хоста-делегата задайте флаг delegate_facts.  </p>
+<p>В нашем же случае эта директива не нужна, т.к. нас в принципе устраивает сохранение __executable_file_localв набор фактов одной из целей, но не устраивает тот факт, что мы не знаем в какую конкретно цель попадет этот факт, т.к. run_once выбирает цель произвольно.  </p>
+<p>В таком случае выберем конкретную цель для запуска при помощи when вместо run_once:</p>
+<div class="highlight"><pre><span></span><code>- name: Download exporter on controller
+  delegate_to: localhost
+  when: inventory_hostname == (ansible_play_hosts_all | sort | first)
+  block:
+    - name: Create download dir
+      ansible.builtin.file:
+        path: /tmp/nginx-exporter
+        mode: &quot;777&quot;
+        state: directory
+    - name: Download exporter
+      ansible.builtin.unarchive:
+        src: &gt;-
+          https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+        dest: /tmp/nginx-exporter
+        remote_src: true
+    - name: Find exporter executable
+      ansible.builtin.find:
+        paths: /tmp/nginx-exporter
+        file_type: file
+        mode: u=x
+        recurse: false
+      register: __result
+    - name: Register path to executable
+      ansible.builtin.set_fact:
+        __executable_file_local: &quot;{\{ __result.files[0].path \}}&quot;
+- name: Print __executable_file_local
+  ansible.builtin.debug:
+    var: __executable_file_local
+</code></pre></div>
+<p>В условии мы воспользовались <em>магическими переменными Ansible</em> — переменными, содержащими метаданные о запуске текущего плея/роли/задачи:  </p>
+<ol>
+<li>inventory_hostname — имя текущей цели в инвентаре;</li>
+<li>ansible_play_hosts_all — список всех целей текущего плея.</li>
+</ol>
+<p>Остальные такие переменные смотри в <a href="https://docs.ansible.com/ansible/latest/reference_appendices/special_variables.html#special-variables">документации</a>.</p>
+<p>Таким образом мы всегда будем делегировать задачу с первого хоста в алфавитном порядке.  </p>
+<p>Теперь скопируем факт __executable_file_local на остальные цели:</p>
+<div class="highlight"><pre><span></span><code>- name: Propagate fact
+  ansible.builtin.set_fact:
+    __executable_file: &quot;{\{ hostvars[ansible_play_hosts_all | sort | first].__executable_file_local \}}&quot;
+</code></pre></div>
+<p>Здесь мы воспользовались магической переменной hostvars — словарем, позволяющим получить факты произвольной цели по ее имени. Вынесем выражение ansible_play_hosts_all | sort | first как приватную переменную __first_host.  </p>
+<p>Получим такой vars/main.yml:</p>
+<div class="highlight"><pre><span></span><code>__config_temp: &quot;/etc/nginx/nginx.conf.new&quot;
+__ssl_path: /etc/nginx/ssl
+__first_host: &quot;{\{ ansible_play_hosts_all | sort | first \}}&quot;
+</code></pre></div>
+<p>И такой tasks/exporter.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Download exporter on controller
+  delegate_to: localhost
+  when: inventory_hostname == __first_host
+  block:
+    - name: Create download dir
+      ansible.builtin.file:
+        path: /tmp/nginx-exporter
+        mode: &quot;777&quot;
+        state: directory
+    - name: Download exporter
+      ansible.builtin.unarchive:
+        src: &gt;-
+          https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+        dest: /tmp/nginx-exporter
+        remote_src: true
+    - name: Find exporter executable
+      ansible.builtin.find:
+        paths: /tmp/nginx-exporter
+        file_type: file
+        mode: u=x
+        recurse: false
+      register: __result
+    - name: Register path to executable
+      ansible.builtin.set_fact:
+        __executable_file_local: &quot;{\{ __result.files[0].path \}}&quot;
+- name: Propagate fact
+  ansible.builtin.set_fact:
+    __executable_file: &quot;{\{ hostvars[__first_host].__executable_file_local \}}&quot;
+</code></pre></div>
+<p>Пункты 3-5 не содержат ничего нового. Напишем их в tasks/exporter.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Download exporter on controller
+  delegate_to: localhost
+  when: inventory_hostname == __first_host
+  block:
+    - name: Create download dir
+      ansible.builtin.file:
+        path: /tmp/nginx-exporter
+        mode: &quot;777&quot;
+        state: directory
+    - name: Download exporter
+      ansible.builtin.unarchive:
+        src: &gt;-
+          https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz
+        dest: /tmp/nginx-exporter
+        remote_src: true
+    - name: Find exporter executable
+      ansible.builtin.find:
+        paths: /tmp/nginx-exporter
+        file_type: file
+        mode: u=x
+        recurse: false
+      register: __result
+    - name: Register path to executable
+      ansible.builtin.set_fact:
+        __executable_file_local: &quot;{\{ __result.files[0].path \}}&quot;
+- name: Propagate fact
+  ansible.builtin.set_fact:
+    __executable_file: &quot;{\{ hostvars[__first_host].__executable_file_local \}}&quot;
+- name: Copy exporter executable
+  ansible.builtin.copy:
+    src: &quot;{\{ __executable_file \}}&quot;
+    dest: /usr/local/sbin/nginx-exporter
+    mode: &quot;755&quot;
+  notify:
+    - Restart Nginx exporter
+- name: Copy nginx-exporter systemd service
+  ansible.builtin.template:
+    src: nginx-exporter.service.j2
+    dest: /etc/systemd/system/nginx-exporter.service
+    mode: &quot;644&quot;
+    owner: root
+    group: root
+  notify:
+    - Daemon reload
+    - Restart Nginx exporter
+- name: Start nginx-exporter systemd service
+  ansible.builtin.systemd_service:
+    name: nginx-exporter.service
+    enabled: true
+    state: started
+</code></pre></div>
+<p>Добавим новые хендлеры в handlers/main.yml:</p>
+<div class="highlight"><pre><span></span><code>- name: Restart Nginx
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: restarted
+  become: true
+- name: Reload Nginx service
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: reloaded
+  become: true
+- name: Restart Nginx exporter
+  ansible.builtin.systemd_service:
+    name: nginx-exporter.service
+    state: restarted
+- name: Daemon reload
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+</code></pre></div>
+<p>Хендлер Daemon reload нужен, чтобы systemd перечитал содержимое cлужбы после обновления файла /etc/systemd/system/nginx-exporter.service.</p>
+<p>До этого мы не писали собственные службы systemd, покажем их содержимое на примере templates/nginx-exporter.service.j2:</p>
+<div class="highlight"><pre><span></span><code># Общая конфигурация для всех юнитов
+[Unit]
+Description=Nginx Prometheus exporter
+Documentation=https://github.com/nginxinc/nginx-prometheus-exporter
+# Запускать этот юнит, если включем запуск Nginx
+Wants=nginx.service
+# Запускать этот юнит после Nginx
+After=nginx.service
+
+# Настройки службы
+[Service]
+# Служба запускает один процесс, живущий все время работы
+Type=simple
+# Команда для запуска службы
+ExecStart=/usr/local/sbin/nginx-exporter \
+  --web.listen-address=:{\{ nginx__exporter_port \}} \
+  --nginx.scrape-uri=http://127.0.0.1:{\{ nginx__status_port \}}/status
+# Перезапускать при выходе с ошибкой
+Restart=on-failure
+# Интервал перезапуска
+RestartSec=15
+
+# Параметры автозапуска
+[Install]
+# Запускать после инициализации системы, одновременно с экраном входа
+WantedBy=multi-user.target
+</code></pre></div>
+<p>Мы не будем подробно рассматривать конфигурацию systemd-служб. Вы можете использовать как примеры службы, входящие в пакеты, например /usr/lib/systemd/system/nginx.service. Также вы найдете множество статей на тему, например <a href="https://linuxhandbook.com/create-systemd-services/">тут</a>, <a href="https://wiki.archlinux.org/title/Systemd#Writing_unit_files">тут</a> или <a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html">тут</a>.</p>
+<p>Вынесем слушающий порт экспортера ({{ nginx__exporter_port }}) в параметры defaults/main.yml:</p>
+<div class="highlight"><pre><span></span><code>nginx__version: &quot;1.18.0&quot;
+nginx__status_port: 8080
+nginx__exporter_port: 9113  # &lt;- новый параметр
+nginx__http_config:
+  - name: httpbin.org
+    port: 443
+    vhost: httpbin.org
+    tls:
+      enabled: true
+      insecure_port: 80
+      crt: |-
+        SSL CERTIFICATE
+      key: |-
+        SSL KEY
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://httpbin.org
+  - name: google.com
+    port: 80
+    vhost: google.com
+    tls:
+      enabled: false
+    locations:
+      &quot;/&quot;:
+        - proxy_pass https://google.com
+</code></pre></div>
 
 
 

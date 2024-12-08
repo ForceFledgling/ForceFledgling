@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,794 @@
 
   <h1>Docker и Compose</h1>
 
+<p>Inspect и прочий дебаг</p>
+<p>Build debug</p>
+<p>Для того что бы достаточно достоверно выяснить в чем проблема при билде контейнера можно использовать расширенный вывод команды build.</p>
+<div class="highlight"><pre><span></span><code>docker build --progress=plain --no-cache .
+</code></pre></div>
+<p>Рассмотрим чуть подробнее. Опция <em>plain</em> показывает вывод контейнера. Опция _no-cache_используется потому что закэшированный контейнер не показывает вывода.  </p>
+<p>Если дебажить надо, а желания постоянно дописывать дополнительные команды нет, то можно экспортировать переменную.</p>
+<div class="highlight"><pre><span></span><code>export BUILDKIT_PROGRESS=plain
+</code></pre></div>
+<p>Docker inspect</p>
+<p>Базовый синтаксис выглядит так:</p>
+<div class="highlight"><pre><span></span><code>docker inspect [OPTIONS] NAME
+</code></pre></div>
+<p>Давайте посмотрим на примере контейнера с Nginx.<br />
+По умолчанию вывод в виде json массива:</p>
+<div class="highlight"><pre><span></span><code>docker inspect &lt;NAME&gt;
+</code></pre></div>
+<p>В json мы можем использовать методы поиска по массиву:</p>
+<div class="highlight"><pre><span></span><code>docker inspect --format=&#39;{\{.Os}}&#39; nginx
+</code></pre></div>
+<p>Inspect может использоваться для получения информации как о образе так и запущенном контейнере.<br />
+Покажет какой порт был опубликован:</p>
+<div class="highlight"><pre><span></span><code>docker inspect --format=&#39;{\{.Config.ExposedPorts}}&#39; nginx
+</code></pre></div>
+<p>Посмотрим какой контейнер у нас сейчас запущен и получим о нем информацию:</p>
+<div class="highlight"><pre><span></span><code>docker ps
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>docker inspect &lt;ID&gt;
+</code></pre></div>
+<p>Посмотреть IP и Hostname контейнера:</p>
+<div class="highlight"><pre><span></span><code>docker inspect --format=&#39;{\{.Config.Hostname}} has the following IP: {\{.NetworkSettings.IPAddress}}&#39;
+</code></pre></div>
+<p>Дополнительные флаги типа -s позволяют узнать объём контейнера:</p>
+<div class="highlight"><pre><span></span><code>docker inspect -s
+</code></pre></div>
+<p>Для более читаемого вывода можно использовать jq:</p>
+<div class="highlight"><pre><span></span><code>docker inspect --format=&#39;{\{json .NetworkSettings.Networks }}&#39; &lt;ID&gt; | jq .
+</code></pre></div>
+<p>Если по каким-то причинам имя запущенного контейнера равнозначно образу, то для однозначного определения того, что просматривать, используется команда type:</p>
+<div class="highlight"><pre><span></span><code>docker inspect --type=image nginx
+</code></pre></div>
+<p>Интеграция контейнеров</p>
+<p>Docker реализует концепцию «тонких» контейнеров — когда один контейнер содержит ровно одну программу и взаимодействие между ними организуется при помощи механизмов межпроцессного взаимодействия Linux, в основном сети и файловой системы.</p>
+<p>Сеть</p>
+<p>Рассмотрим взаимодействие через сеть: Docker по умолчанию выделяет контейнеру адрес в отдельной изолированной сети. Чтобы взаимодействовать с контейнером извне используется механизм публикации портов. Используйте опцию --publish (-p), чтобы пробросить порт в хост-систему:</p>
+<div class="highlight"><pre><span></span><code>$ docker run \
+    --detach \
+    --name test \
+    --publish 8080:80/tcp \
+    nginx:1.20
+</code></pre></div>
+<p>Мы рассмотрели синтаксис этой опции на предыдущей практике.<br />
+Напомним формат:</p>
+<div class="highlight"><pre><span></span><code>[HOST_ADDRESS:]&lt;HOST_PORT&gt;:&lt;CONTAINER_PORT&gt;[/PROTOCOL]
+</code></pre></div>
+<p>Здесь:<br />
+HOST_ADDRESS (опционально, по-умолчанию 0.0.0.0) — IP адрес, к которому привязать порт в сети хоста. Укажите 127.0.0.1, чтобы порт был доступен только локально или 0.0.0.0, чтобы порт слушался на всех адресах, привязанных к хосту;<br />
+HOST_PORT (обязательно) — слушаемый порт в сети хоста;<br />
+CONTAINER_PORT (обязательно) — слушаемый порт в сети контейнера;<br />
+PROTOCOL — (опционально, по-умолчанию tcp) — протокол слушаемого порта, вы можете указать tcp либо udp.<br />
+Чтобы интегрировать несколько контейнеров на одном хосте используйте пользовательские bridge сети. Создадим новую сеть my-net командой docker network create:</p>
+<div class="highlight"><pre><span></span><code>$ docker network create \
+   --driver bridge \
+   my-net
+897f0f84af6251554d98481a5bcdb8169c5d3db9591709a8456f905687bed4b7
+</code></pre></div>
+<p>Просмотрим список существующих сетей:</p>
+<div class="highlight"><pre><span></span><code>$ docker network ls
+NETWORK ID    NAME    DRIVER  SCOPE
+8033a0ba9455  bridge  bridge  local
+773e51a4eeb6  host    host    local
+897f0f84af62  my-net  bridge  local
+850a1793ff17  none    null    local
+</code></pre></div>
+<p>Просмотрим IP адрес сети и другие метаданные.</p>
+<div class="highlight"><pre><span></span><code>$ docker network inspect my-net | jq --indent 2
+[
+  {
+    &quot;Name&quot;: &quot;my-net&quot;,
+    &quot;Id&quot;: &quot;897f0f84af6251554d98481a5bcdb8169c5d3db9591709a8456f905687bed4b7&quot;,
+    &quot;Created&quot;: &quot;1970-00-00T00:00:00.000000000Z&quot;,
+    &quot;Scope&quot;: &quot;local&quot;,
+    &quot;Driver&quot;: &quot;bridge&quot;,
+    &quot;EnableIPv6&quot;: false,
+    &quot;IPAM&quot;: {
+      &quot;Driver&quot;: &quot;default&quot;,
+      &quot;Options&quot;: {},
+      &quot;Config&quot;: [
+        {
+          &quot;Subnet&quot;: &quot;172.18.0.0/16&quot;,
+          &quot;Gateway&quot;: &quot;172.18.0.1&quot;
+        }
+      ]
+    },
+    &quot;Internal&quot;: false,
+    &quot;Attachable&quot;: false,
+    &quot;Ingress&quot;: false,
+    &quot;ConfigFrom&quot;: {
+      &quot;Network&quot;: &quot;&quot;
+    },
+    &quot;ConfigOnly&quot;: false,
+    &quot;Containers&quot;: {},
+    &quot;Options&quot;: {},
+    &quot;Labels&quot;: {}
+  }
+]
+</code></pre></div>
+<p>Чтобы запустить контейнер, подключенный к новой сети выполним команду docker run, указав опцию --network:</p>
+<div class="highlight"><pre><span></span><code>$ docker run \
+    --tty \
+    --interactive \
+    --detach \
+    --network my-net \
+    --name alpine1 \
+    alpine:3.18 \
+    sh
+a69e1c307932f4ea208825e2b0afc559b0210d63766c1c75f6f9b09f05dea8a7
+</code></pre></div>
+<p>Запустим еще два контейнера:</p>
+<div class="highlight"><pre><span></span><code>$ docker run \
+    --tty \
+    --interactive \
+    --detach \
+    --network my-net \
+    --name alpine2 \
+    alpine:3.18 \
+    sh
+856d424e5354b61975b77bd25aa361b6075770c42cdd5050b2c573f2e582c3bd
 
+$ docker run \
+    --tty \
+    --interactive \
+    --detach \
+    --name alpine3 \
+    alpine:3.18 \
+    sh
+d809123381dd9fe3e9cea04c2bf7cb8f13138fe7116725ac618c930204bba5bb
+</code></pre></div>
+<p>Просмотрим информацию о нашей сети еще раз:</p>
+<div class="highlight"><pre><span></span><code>$ docker network inspect my-net | jq --indent 2
+[
+  {
+    &quot;Name&quot;: &quot;my-net&quot;,
+    &quot;Id&quot;: &quot;897f0f84af6251554d98481a5bcdb8169c5d3db9591709a8456f905687bed4b7&quot;,
+    &quot;Created&quot;: &quot;1970-00-00T00:00:00.000000000Z&quot;,
+    &quot;Scope&quot;: &quot;local&quot;,
+    &quot;Driver&quot;: &quot;bridge&quot;,
+    &quot;EnableIPv6&quot;: false,
+    &quot;IPAM&quot;: {
+      &quot;Driver&quot;: &quot;default&quot;,
+      &quot;Options&quot;: {},
+      &quot;Config&quot;: [
+        {
+          &quot;Subnet&quot;: &quot;172.18.0.0/16&quot;,
+          &quot;Gateway&quot;: &quot;172.18.0.1&quot;
+        }
+      ]
+    },
+    &quot;Internal&quot;: false,
+    &quot;Attachable&quot;: false,
+    &quot;Ingress&quot;: false,
+    &quot;ConfigFrom&quot;: {
+      &quot;Network&quot;: &quot;&quot;
+    },
+    &quot;ConfigOnly&quot;: false,
+    &quot;Containers&quot;: {
+      &quot;856d424e5354b61975b77bd25aa361b6075770c42cdd5050b2c573f2e582c3bd&quot;: {
+        &quot;Name&quot;: &quot;alpine2&quot;,
+        &quot;EndpointID&quot;: &quot;a08c120e7277900ba11dee1898bf07fd388b11a845f925768339eb00c2ba3868&quot;,
+        &quot;MacAddress&quot;: &quot;02:42:ac:12:00:03&quot;,
+        &quot;IPv4Address&quot;: &quot;172.18.0.3/16&quot;,
+        &quot;IPv6Address&quot;: &quot;&quot;
+      },
+      &quot;a69e1c307932f4ea208825e2b0afc559b0210d63766c1c75f6f9b09f05dea8a7&quot;: {
+        &quot;Name&quot;: &quot;alpine1&quot;,
+        &quot;EndpointID&quot;: &quot;f47668578a1786403f33fa293ee594bd432809f85a1e4e015169ed1ce0148f81&quot;,
+        &quot;MacAddress&quot;: &quot;02:42:ac:12:00:02&quot;,
+        &quot;IPv4Address&quot;: &quot;172.18.0.2/16&quot;,
+        &quot;IPv6Address&quot;: &quot;&quot;
+      }
+    },
+    &quot;Options&quot;: {},
+    &quot;Labels&quot;: {}
+  }
+]
+</code></pre></div>
+<p>Заметим, что к сети теперь подключены два контейнера. Также просмотрим метаданные сети по умолчанию (bridge):</p>
+<div class="highlight"><pre><span></span><code>$ docker network inspect bridge | jq --indent 2
+[
+  {
+    &quot;Name&quot;: &quot;bridge&quot;,
+    &quot;Id&quot;: &quot;8033a0ba945562834572c9f577ce91189c88a93fa807941af388af6777a21185&quot;,
+    &quot;Created&quot;: &quot;1970-00-00T00:00:00.000000000Z&quot;,
+    &quot;Scope&quot;: &quot;local&quot;,
+    &quot;Driver&quot;: &quot;bridge&quot;,
+    &quot;EnableIPv6&quot;: false,
+    &quot;IPAM&quot;: {
+      &quot;Driver&quot;: &quot;default&quot;,
+      &quot;Options&quot;: null,
+      &quot;Config&quot;: [
+        {
+          &quot;Subnet&quot;: &quot;172.17.0.0/16&quot;,
+          &quot;Gateway&quot;: &quot;172.17.0.1&quot;
+        }
+      ]
+    },
+    &quot;Internal&quot;: false,
+    &quot;Attachable&quot;: false,
+    &quot;Ingress&quot;: false,
+    &quot;ConfigFrom&quot;: {
+      &quot;Network&quot;: &quot;&quot;
+    },
+    &quot;ConfigOnly&quot;: false,
+    &quot;Containers&quot;: {
+      &quot;d809123381dd9fe3e9cea04c2bf7cb8f13138fe7116725ac618c930204bba5bb&quot;: {
+        &quot;Name&quot;: &quot;alpine3&quot;,
+        &quot;EndpointID&quot;: &quot;2c1bc055f99cadde2ddc0b8491b1c87c217a9b69c303aa86e5444153b6143327&quot;,
+        &quot;MacAddress&quot;: &quot;02:42:ac:11:00:02&quot;,
+        &quot;IPv4Address&quot;: &quot;172.17.0.2/16&quot;,
+        &quot;IPv6Address&quot;: &quot;&quot;
+      }
+    },
+    &quot;Options&quot;: {
+      &quot;com.docker.network.bridge.default_bridge&quot;: &quot;true&quot;,
+      &quot;com.docker.network.bridge.enable_icc&quot;: &quot;true&quot;,
+      &quot;com.docker.network.bridge.enable_ip_masquerade&quot;: &quot;true&quot;,
+      &quot;com.docker.network.bridge.host_binding_ipv4&quot;: &quot;0.0.0.0&quot;,
+      &quot;com.docker.network.bridge.name&quot;: &quot;docker0&quot;,
+      &quot;com.docker.network.driver.mtu&quot;: &quot;1500&quot;
+    },
+    &quot;Labels&quot;: {}
+  }
+]
+</code></pre></div>
+<p>Попробуем подключиться к alpine2 и alpine3 из alpine1:</p>
+<div class="highlight"><pre><span></span><code>$ docker attach alpine1
+# ping -c 2 alpine2
+PING alpine2 (172.18.0.3): 56 data bytes
+64 bytes from 172.18.0.3: seq=0 ttl=64 time=0.146 ms
+64 bytes from 172.18.0.3: seq=1 ttl=64 time=0.097 ms
+
+--- alpine2 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+round-trip min/avg/max = 0.097/0.121/0.146 ms
+# ping -c 2 alpine3
+ping: bad address &#39;alpine3&#39;
+# ping -c 2 172.17.0.2
+PING 172.17.0.2 (172.17.0.2): 56 data bytes
+
+--- 172.17.0.2 ping statistics ---
+2 packets transmitted, 0 packets received, 100% packet loss
+</code></pre></div>
+<p>Заметим, что мы можем обратиться к контейнерам, подключенным к одной пользовательской сети, используя их имя. К контейнеру же подключенному к сети по умолчанию нельзя подключиться ни по имени, ни по адресу. Удалим созданную сеть и контейнеры:</p>
+<div class="highlight"><pre><span></span><code>$ docker container rm --force alpine1 alpine2 alpine3
+$ docker network rm my-net
+</code></pre></div>
+<p>Файловая система</p>
+<p>Теперь рассмотрим интеграцию при помощи файловой системы. Docker позволяет монтировать элементы файловой системы хоста внутрь контейнера, чтобы гарантировать их сохранение при пересоздании контейнера. Также Docker поддерживает тома—именованные директории, полностью управляемые Docker. Для сохранения состояния контейнеров рекомендуется использовать тома, для инъекции внутрь контейнера заранее известных файлов (например, конфигов) рекомендуется монтирование.  </p>
+<p>Запустим контейнер с СУБД PostgreSQL, сохранив состояние контейнера при помощи тома state:</p>
+<div class="highlight"><pre><span></span><code>$ docker run --detach \
+ --name postgres \
+ --env PGDATA=/var/lib/postgresql/data/pgdata \
+ --env POSTGRES_PASSWORD=postgres \
+ --volume state:/var/lib/postgresql/data:rw \
+postgres:16.0
+</code></pre></div>
+<p>Здесь опция --volume (-v) объявляет точку монтирования и имеет следующий формат:</p>
+<div class="highlight"><pre><span></span><code>[HOST_DIR:]CONTAINER_DIR[:OPTIONS]
+</code></pre></div>
+<p>HOST_DIR — абсолютный путь (начинается с /) к элементу файловой системы хоста или имя Docker тома. Если том с таким именем не существует, то он будет создан. Если же этот параметр пропущен, то Docker создаст новый том с автосгенерированным именем;  </p>
+<p>CONTAINER_DIR — абсолютный путь к точке монтирования в контейнере. Данные из хост-пути или тома будут доступны по этому пути;  </p>
+<p>OPTIONS — Параметры монтирования. Здесь указана опция rw — том доступен для чтения и записи. Опция ro, например, указывает что том доступен только для чтения, ее часто используют при монтировании конфигов.</p>
+<p>Остальные параметры смотрите в <a href="https://docs.docker.com/engine/reference/commandline/run/#volume">онлайн-документации</a> или man docker-run.</p>
+<p>Также мы воспользовались опцией --env (-e), которая задает переменную окружения, доступную всем процессам в контейнере. Здесь мы указали директорию, содержащую состояние нашего кластера БД (PGDATA) и пароль от суперпользователя кластера (POSTGRES_PASSWORD).</p>
+<p>Если ваши переменные окружения содержат секреты, то не пробрасывайте их при помощи --env и --env-file, т.к. они отображаются в метаданных контейнера. Вместо этого используйте конфигурационные файлы, либо файлы с переменными окружения, которые читаются после запуска контейнера либо самой программой, либо скриптом инициализации.</p>
+<p>Подключимся к запущенной СУБД и создадим таблицу:</p>
+<div class="highlight"><pre><span></span><code>$ docker exec \
+    --tty \
+    --interactive \
+    postgres \
+    psql -U postgres
+postgres=# create table test as select 1;
+SELECT 1
+postgres=# select * from test;
+ ?column?
+----------
+        1
+(1 row)
+postgres=# \q
+</code></pre></div>
+<p>Удалим запущенный контейнер командой docker rm --force postgres, при этот созданный том state не будет удален:</p>
+<div class="highlight"><pre><span></span><code>$ docker volume ls
+DRIVER  VOLUME NAME
+local   state
+</code></pre></div>
+<p>Просмотрим детальную информацию по тому:</p>
+<div class="highlight"><pre><span></span><code>$ docker volume inspect state
+[
+    {
+        &quot;CreatedAt&quot;: &quot;1970-01-01T00:00:00+00:00&quot;,
+        &quot;Driver&quot;: &quot;local&quot;,
+        &quot;Labels&quot;: null,
+        &quot;Mountpoint&quot;: &quot;/var/lib/docker/volumes/state/_data&quot;,
+        &quot;Name&quot;: &quot;state&quot;,
+        &quot;Options&quot;: null,
+        &quot;Scope&quot;: &quot;local&quot;
+    }
+]
+</code></pre></div>
+<p>Снова запустим контейнер указанными выше командами:</p>
+<div class="highlight"><pre><span></span><code>$ docker run \
+    --detach \
+    --name postgres \
+    --env PGDATA=/var/lib/postgresql/data/pgdata \
+    --env POSTGRES_PASSWORD=postgres \
+    --volume state:/var/lib/postgresql/data:rw \
+    postgres:16.0
+...
+$ docker exec \
+    --tty \
+    --interactive \
+    postgres \
+    psql -U postgres
+postgres=# select * from test;
+ ?column?
+----------
+        1
+(1 row)
+postgres=# \q
+</code></pre></div>
+<p>Заметим, что созданная таблица сохранилась. Удалим созданный том и контейнер:</p>
+<div class="highlight"><pre><span></span><code>$ docker container rm postgres
+...
+$ docker volume rm state
+</code></pre></div>
+<p>Мы можем подключить один том к нескольким контейнерам, чтобы синхронизировать состояние между двумя контейнерами. Например, используем именованный канал (named pipe) — специальный файл, позволяющий передавать данные из ровно одного процесса в другой:</p>
+<div class="highlight"><pre><span></span><code>$ docker run \
+    --detach \
+    --name source \
+    --volume state:/data:rw \
+    alpine:3.18 \
+    sh -c &#39;mkfifo /data/pipe || true
+           while true
+           do 
+             wget -O- 2&gt;/dev/null https://httpbin.org/uuid \
+               | grep -oE &quot;[a-z0-9-]{36}&quot; \
+               | tee /data/pipe
+             sleep 10
+           done&#39;
+...
+$ docker run \
+    --detach \
+    --name dest \
+    --volume state:/data:rw \
+    alpine:3.18 \
+    sh -c &#39;while true
+           do
+             cat /data/pipe
+             sleep 10
+           done&#39;
+...
+</code></pre></div>
+<p>Таким образом мы можем получать поток случайных UUID и передавать их для использования в другой процесс:</p>
+<div class="highlight"><pre><span></span><code>$ docker logs --follow dest
+ba5f070d-7712-418b-9f02-bdac160fa812
+cd74a971-706e-4992-bb8e-03ba8c616740
+...
+</code></pre></div>
+<p>Удалим созданные контейнеры и том:</p>
+<div class="highlight"><pre><span></span><code>$ docker rm --force source dest
+...
+$ docker volume rm state
+...
+</code></pre></div>
+<p>Такой подход можно использовать для синхронизации конфигурации контейнера с внешним источником. Например, можно использовать утилиту <a href="https://github.com/kubernetes/git-sync">git-sync</a>.  </p>
+<p>Вместо томов можно монтировать пути файловой системы хоста, в примере с PostgreSQL мы можем заменить на абслютный путь к папке с данными:</p>
+<div class="highlight"><pre><span></span><code>$ mkdir -p data
+
+$ docker run \
+    --detach \
+    --name postgres \
+    --env PGDATA=/var/lib/postgresql/data/pgdata \
+    --env POSTGRES_PASSWORD=postgres \
+    --volume &quot;$(realpath data):/var/lib/postgresql/data:rw&quot; \
+    postgres:16.0
+...
+</code></pre></div>
+<p>Мы используем утилиту realpath, чтобы привести путь data к абсолютному.<br />
+Чаще монтирование файлов хост-системы используется для подкладывания конфигов и различных скриптов. Вынесем скрипты в примере про обмен данными между контейнерами:</p>
+<div class="highlight"><pre><span></span><code>$ cat &lt;&lt;&#39;EOT&#39; &gt;source.sh
+#!/bin/sh
+set -eu
+
+mkfifo /data/pipe || true
+
+while true
+do
+    wget -O- 2&gt;/dev/null \
+        https://httpbin.org/uuid \
+      | grep -oE &#39;[a-z0-9-]{36}&#39; \
+      | tee /data/pipe
+    sleep 10
+done
+EOT
+$ cat &lt;&lt;&#39;EOT&#39; &gt;dest.sh
+#!/bin/sh
+set -eu
+
+while true
+do
+    cat /data/pipe
+    sleep 10
+done
+EOT
+$ docker run \
+    --detach \
+    --name source \
+    --volume state:/data:rw \
+    --volume &quot;$(realpath source.sh):/source.sh:ro&quot; \
+    alpine:3.18 \
+    sh /source.sh
+...
+$ docker run \
+    --detach \
+    --name dest \
+    --volume state:/data:rw \
+    --volume &quot;$(realpath dest.sh):/dest.sh:ro&quot; \
+    alpine:3.18 \
+    sh /dest.sh
+...
+</code></pre></div>
+<p>Если погрузиться чуть ниже</p>
+<p>Если задуматься, как на самом деле работают внутренние компоненты, обеспечивающие работу интерфейса Docker, то можно осознать, что за этим простым интерфейсом скрывается множество продвинутых технологий, поэтому чуть поближе рассмотрим одну из них — объединённую файловую систему.  </p>
+<p>Что такое объединённая файловая система?  </p>
+<p>Каскадно-объединённое монтирование — это тип файловой системы, в которой создается иллюзия объединения содержимого нескольких каталогов в один без изменения исходных (физических) источников.  </p>
+<p>Такой подход может оказаться полезным, если имеются связанные наборы файлов, хранящиеся в разных местах или на разных носителях, но отображать их надо как единое и совокупное целое.  </p>
+<p>Однако технологию объединённого монтирования (или объединённой файловой системы), по сути, нельзя считать отдельным типом файловой системы. Это, скорее, особая концепция с множеством реализаций.  </p>
+<p>Мы не будем рассматривать все существующие реализации, а поговорим про OverlayFS.  </p>
+<p>OverlayFS — была включена в ядро Linux Kernel, начиная с версии 3.18 (26 октября 2014 года). Данная файловая система используется по умолчанию драйвером overlay2 Docker. Можно проверить, запустив команду:</p>
+<div class="highlight"><pre><span></span><code>docker system info | grep Storage
+</code></pre></div>
+<p>Почему Overlay?<br />
+Многие образы, используемые для запуска контейнеров, занимают довольно большой объём. Было бы разорительно выделять столько места всякий раз, когда потребуется из этих образов создать контейнер.  </p>
+<p>При использовании объединённой файловой системы Docker создаёт поверх образа тонкий слой, а остальная часть образа может быть распределена между всеми контейнерами.  </p>
+<p>Мы также получаем дополнительное преимущество за счёт сокращения времени запуска, так как отпадает необходимость в копировании файлов образа и данных.  </p>
+<p>Объединённая файловая система также обеспечивает изоляцию, поскольку контейнеры имеют доступ к общим слоям образа только для чтения.<br />
+Если контейнерам когда-нибудь понадобится внести изменения в любой файл, доступный только для чтения, они используют стратегию копирования при записи copy-on-write, позволяющую копировать содержимое на верхний слой, доступный для записи, где такое содержимое может быть безопасно изменено.  </p>
+<p>CoW — это способ оптимизации, при котором, если две вызывающих программы обращаются к одному и тому же ресурсу, можно дать им указатель на один и тот же ресурс, не копируя его.  </p>
+<p>Копирование необходимо только тогда, когда одна из вызывающих программ пытается осуществить запись собственной «копии» — отсюда в названии способа появилось слово «копия», то есть копирование осуществляется при (первой попытке) записи.  </p>
+<p>Рассмотрим многоуровневую архитектуру Docker. Песочница контейнера состоит из нескольких ветвей образа, или, как мы их называем, слоёв. Такими слоями являются часть объединённого представления, доступная только для чтения (lowerdir), и слой контейнера — тонкая верхняя часть, доступная для записи (upperdir).  </p>
+<p>Не считая терминологических различий, речь фактически идёт об одном и том же — слои образа, извлекаемые из реестра, представляют собой lowerdir, и, если запускается контейнер, upperdir прикрепляется поверх слоев образа, обеспечивая рабочую область, доступную для записи в контейнер.  </p>
+<p>Чтобы показать, как Docker использует файловую систему OverlayFS, попробуем посмотреть процесс монтирования Docker контейнеров и слоев образа.  </p>
+<p>Итак, у нас на системе присутствует контейнер, который мы можем рассмотреть подробнее.<br />
+Далее нужно проверить его слои. Проверить слои образа можно, либо запустив проверку образа в Docker и изучив поля GraphDriver, либо перейдя в каталог /var/lib/docker/overlay2, в котором хранятся все слои образа.  </p>
+<p>Выполним обе эти операции и посмотрим, что получится:</p>
+<div class="highlight"><pre><span></span><code>docker inspect nginx | jq .[0].GraphDriver.Data
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>cd /var/lib/docker/overlay2
+ls -l
+tree &lt;ID&gt;
+</code></pre></div>
+<p>Если внимательно посмотреть на полученные результаты, можно увидеть следующую информацию:  </p>
+<p>LowerDir — это каталог, в котором слои образа, доступные только для чтения, разделены двоеточиями.<br />
+MergedDir — объединённое представление всех слоев образа и контейнера.<br />
+UpperDir — слой для чтения и записи, на котором записываются изменения.<br />
+WorkDir — рабочий каталог, используемый Linux OverlayFS для подготовки объединённого представления.<br />
+Сделаем ещё один шаг — запустим контейнер и изучим его слои:</p>
+<div class="highlight"><pre><span></span><code>docker run -d --name overlay nginx
+
+docker inspect overlay | jq .[0].GraphDriver.Data
+
+tree -l 3 &lt;&quot;UpperDir&quot;&gt;
+</code></pre></div>
+<p>Из представленных выше выходных данных следует, что те же каталоги, которые были перечислены в выводе команды docker inspect nginx ранее как MergedDir, UpperDirи WorkDir, теперь являются частью LowerDir контейнера.  </p>
+<p>В нашем случае LowerDir составляется из всех слоев образа nginx, размещённых друг на друге. Поверх них размещается слой в UpperDir, доступный для записи, содержащий каталоги /etc, /run и /var.  </p>
+<p>Также, раз уж мы выше упомянули MergedDir, можно видеть всю доступную для контейнера файловую систему, в том числе всё содержимое каталогов UpperDir и LowerDir.  </p>
+<p>Именно к этому сводится действие файловой системы OverlayFS в Docker — на множестве уложенных друг на друга слоев может использоваться одна команда монтирования.</p>
+<p>Docker Compose</p>
+<p>Docker-compose — это надстройка над докером, приложение написанное на Python, которое позволяет запускать множество контейнеров одновременно и маршрутизировать потоки данных между ними. Оно предназначено для решения задач, связанных с развёртыванием проектов.  </p>
+<p>Для чего нужен Compose? Если для функционирования проекта используется несколько сервисов, то Docker Compose может вам пригодиться. Например, в ситуации, когда создают веб-сайт, которому для выполнения аутентификации пользователей, нужно подключиться к базе данных.  </p>
+<p>Подобный проект может состоять из двух сервисов — того, что обеспечивает работу сайта, и того, который отвечает за поддержку базы данных. Технология Docker Compose позволяет с помощью одной команды запускать множество сервисов.  </p>
+<p>Разница между Docker и Docker Compose:<br />
+</p>
+<ul>
+<li>Docker применяется для управления отдельными контейнерами (сервисами), из которых состоит приложение.</li>
+<li>Docker Compose используется для одновременного управления несколькими контейнерами, входящими в состав приложения. Этот инструмент предлагает те же возможности, что и Docker, но позволяет работать с более сложными приложениями.</li>
+</ul>
+<p>Итак, давайте попробуем собрать наш Docker Compose проект.</p>
+<p>Пример: Kafka</p>
+<p>Если говорить про Kafka просто то это распределенный горизонтально масштабируемый отказоустойчивый журнал коммитов.  </p>
+<p>Журнал коммитов, также именуемый как «журнал опережающей записи», «журнал транзакций», — это долговременная упорядоченная структура данных, причем, данные в такую структуру можно только добавлять.  </p>
+<p>Записи из этого журнала нельзя ни изменять, ни удалять. Информация считывается слева направо; таким образом гарантируется правильный порядок элементов.  </p>
+<p>KRaft это замена Zookeeper на механизм использующий протокол консенсуса на основе кворума (Raft). Который использует саму Kafka для хранения метаданных.  </p>
+<p>Запустим для примера Kafka и веб-интерфейс для нее при помощи docker-compose. Мы развернем Kafka в режиме KRaft для простоты, для начала сгенерируем случайный ID кластера при помощи docker run:</p>
+<div class="highlight"><pre><span></span><code>docker run \
+    --rm \
+    confluentinc/cp-kafka:7.5.0 \
+    kafka-storage random-uuid
+</code></pre></div>
+<p>Скопируйте полученный ID, мы вставим его позже в docker-compose файл.<br />
+Теперь создадим docker-compose.yml</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    environment:
+      # вставьте сгенерированный ID сюда
+      CLUSTER_ID:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: kafka
+</code></pre></div>
+<p>Рассмотрим полученный файл.  </p>
+<p>Здесь объявлена директива version, которая задает версию docker-compose файла и секция services, которая определяет запускаемые контейнеры. Мы объявляем один контейнер kafka, который запускается из образа, заданного директивой image. Эта директива отмечает готовый образ. Если же мы хотим собрать свой образ, то image можно заменить на секцию build, которая настраивает сборку, ее мы рассмотрим позднее. Мы настраиваем контейнер при помощи переменных окружения, задавая их в секции environment.  </p>
+<p>В переменных окружения можно заметить упоминания имени сервиса, будто это имя хоста, это так потому что docker-compose по умолчанию создает общую сеть для всех сервисов и задает им внутренние доменные имена, равные именам сервисов. Это имя можно переопределить директивой hostname.  </p>
+<p>Запустим контейнер:</p>
+<div class="highlight"><pre><span></span><code>docker-compose up
+</code></pre></div>
+<p>Эта команда запустит контейнеры на переднем плане и будет выводить логи всех контейнеров в консоль. Подождем пару минут, пока кафка не запустится, затем закроем контейнеры нажав CTRL+C.  </p>
+<p>Удалим все созданные ресурсы:</p>
+<div class="highlight"><pre><span></span><code>docker-compose down
+</code></pre></div>
+<p>Эта команда удалит все созданные контейнеры и сети, мы будем удалять ресурсы после любого изменения, чтобы старые ресурсы и конфигурации не конфликтовали с новыми.  </p>
+<p>Доработаем нашу конфигурацию.  </p>
+<p>Переменные окружения можно вынести в отдельный файл и указать путь к нему в секции env_file. Создадим файл kafka.env:</p>
+<p><strong>kafka.env</strong></p>
+<div class="highlight"><pre><span></span><code>CLUSTER_ID=
+KAFKA_NODE_ID=1
+KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+KAFKA_PROCESS_ROLES=broker,controller
+KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:29093
+KAFKA_LISTENERS=PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+KAFKA_JMX_PORT=9999
+KAFKA_JMX_HOSTNAME=kafka
+</code></pre></div>
+<p>И заменим environment на env_file:</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    env_file:
+      - kafka.env
+</code></pre></div>
+<p>Как мы узнали ранее, данные, хранящиеся в контейнере, не сохраняются при удалении контейнера. Мы можем монтировать директории из хост-системы или использовать тома Docker. Подключим том kafka:</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+volumes:
+  kafka:
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    env_file:
+      - kafka.env
+    volumes:
+      - kafka:/var/lib/kafka/data:rw
+</code></pre></div>
+<p>Синтаксис директив volume совпадает с опцией -v (--volume) команды docker run. Аналогично в Docker Compose пробросить порты из сети, созданной в Compose, в хост сеть директивой ports:</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+volumes:
+  kafka:
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    env_file:
+      - kafka.env
+    ports:
+      - 127.0.0.1:9092:29092/tcp
+    volumes:
+      - kafka:/var/lib/kafka/data:rw
+</code></pre></div>
+<p>Синтаксис опять совпадает с опцией -p (--publish).  </p>
+<p>Добавим второй сервис, WEB интерфейс для Kafka:</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+volumes:
+  kafka:
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    env_file:
+      - kafka.env
+    ports:
+      - 127.0.0.1:9092:29092/tcp
+    volumes:
+      - kafka:/var/lib/kafka/data:rw
+  kafka_ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9999
+      KAFKA_CLUSTERS_0_METRICS_TYPE: JMX
+    ports:
+      - 127.0.0.1:8080:8080/tcp
+    depends_on:
+      - kafka
+</code></pre></div>
+<p>Compose позволяет добавлять зависимости между контейнерами при помощи depends_on. По умолчанию зависимые контейнеры запускаются после старта процесса, т. е. в случае Kafka можно заметить, что Kafka UI запускается раньше инициализации Kafka и какое-то время падает.  </p>
+<p>depends_on имеет расширенную форму, которая позволяет указать событие при котором запускается зависимый контейнер, например service_healthy:</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+volumes:
+  kafka:
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    env_file:
+      - kafka.env
+    ports:
+      - 127.0.0.1:9092:29092/tcp
+    volumes:
+      - kafka:/var/lib/kafka/data:rw
+  kafka_ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9999
+      KAFKA_CLUSTERS_0_METRICS_TYPE: JMX
+    ports:
+      - 127.0.0.1:8080:8080/tcp
+    depends_on:
+      kafka:
+        condition: service_healthy
+</code></pre></div>
+<p>Такая конфигурация не имеет смысла, т.к. сейчас в контейнере Kafka не задан HEALTHCHECK, исправим это: создадим скрипт, проверяющий запущена ли Kafka:</p>
+<p><strong>kafka-healthcheck.sh</strong></p>
+<div class="highlight"><pre><span></span><code>#!/bin/sh
+
+exec /usr/bin/kafka-broker-api-versions \
+       --bootstrap-server localhost:9092 \
+       2&gt;/dev/null
+</code></pre></div>
+<p>И Dockerfile:</p>
+<p><strong>kafka.dockerfile</strong></p>
+<div class="highlight"><pre><span></span><code>FROM confluentinc/cp-kafka:7.5.0
+
+USER root
+COPY ./kafka-healthcheck.sh /usr/local/bin/
+RUN \
+    chmod 0755 /usr/local/bin/kafka-healthcheck.sh
+
+USER appuser
+HEALTHCHECK \
+    --interval=30s \
+    --timeout=30s \
+    --start-period=5s \
+    --retries=3 \
+  CMD [ &quot;/usr/local/bin/kafka-healthcheck.sh&quot; ]
+</code></pre></div>
+<p>Обновим docker-compose.yml:</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+volumes:
+  kafka:
+services:
+  kafka:
+    build:
+      context: .
+      dockerfile: kafka.dockerfile
+    env_file:
+      - kafka.env
+    ports:
+      - 127.0.0.1:9092:29092/tcp
+    volumes:
+      - kafka:/var/lib/kafka/data:rw
+  kafka_ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9999
+      KAFKA_CLUSTERS_0_METRICS_TYPE: JMX
+    ports:
+      - 127.0.0.1:8080:8080/tcp
+    depends_on:
+      kafka:
+        condition: service_healthy
+</code></pre></div>
+<p>Мы заменили директиву image на build, чтобы собрать свой образ для контейнера kafka. Аналогично секции services.* секция services.*.build повторяет аргументы docker build. Запустим контейнеры:</p>
+<div class="highlight"><pre><span></span><code>docker-compose up --detach --build
+</code></pre></div>
+<p>Эта команда запустит контейнеры в фоновом режиме и пересоберет образа, даже если они уже существуют. Просмотрим логи сервисов:</p>
+<div class="highlight"><pre><span></span><code>docker-compose logs --follow
+</code></pre></div>
+<p>Мы можем посмотреть логи конкретного контейнера:</p>
+<div class="highlight"><pre><span></span><code>docker-compose logs --follow kafka
+</code></pre></div>
+<p>Добавим последний контейнер с консольным клиентом Kafka, kcat:</p>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre><span></span><code>version: &quot;3&quot;
+volumes:
+  kafka:
+services:
+  kafka:
+    build:
+      context: .
+      dockerfile: kafka.dockerfile
+    env_file:
+      - kafka.env
+    ports:
+      - 127.0.0.1:9092:29092/tcp
+    volumes:
+      - kafka:/var/lib/kafka/data:rw
+  kafka_ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_METRICS_PORT: 9999
+      KAFKA_CLUSTERS_0_METRICS_TYPE: JMX
+    ports:
+      - 127.0.0.1:8080:8080/tcp
+    depends_on:
+      kafka:
+        condition: service_healthy
+  kcat:
+    image: edenhill/kcat:1.7.1
+    entrypoint: [&quot;sh&quot;, &quot;-c&quot;, &quot;while true; do sleep 1d; done&quot;]
+    depends_on:
+      kafka:
+        condition: service_healthy
+</code></pre></div>
+<p>В ENTRYPOINT образа edenhill/kcat:1.7.1 прописана утилита kcat, поэтому этот контейнер нельзя запустить как сервис. Мы обойдем это ограничение переопределив ENTRYPOINT директивой entrypoint в docker-compose.yml.  </p>
+<p>Откроем терминал в контейнере kcat:</p>
+<div class="highlight"><pre><span></span><code>docker-compose exec kcat sh
+</code></pre></div>
+<p>Аналогично мы можем выполнить команду в любом сервисе. Для примера просмотрим метаданные брокеров:</p>
+<div class="highlight"><pre><span></span><code>kcat -b kafka:29092 -L
+</code></pre></div>
+<p>Закончим на том, что напомним, что детальную информацию можно посмотреть в документации.<br />
+<a href="https://docs.docker.com/compose/compose-file/compose-file-v3/">Спецификация docker-compose.yml</a></p>
+<p>Домашнее задание</p>
+<p>docker-compose:</p>
+<p>Напишите docker-compose.yml который запускает наш сервис counter.  </p>
+<p>Docker-composer должен запустить:<br />
+</p>
+<ul>
+<li><a href="https://git.devops-teta.ru/materials/counter-frontend">counter-frontend</a></li>
+<li><a href="https://git.devops-teta.ru/materials/counter-backend">counter-backend</a></li>
+<li>nginx</li>
+</ul>
+<p>nginx:</p>
+<ul>
+<li>Обращения к root локейшену должны попадать в контейнер counter-frontend.</li>
+<li>Обращение к /api backend должны проксироваться в контейнер counter-backend.</li>
+<li>Здесь мы воспользуемся результатом генерации нашего SSL сертификата. Контейнер с nginx должен принимать подключение из интернета, по https.</li>
+</ul>
+<p>Проверка</p>
+<p>Для успешного выполнения задания вам необходимо:  </p>
+<ol>
+<li>Создать репозиторий в git.devops-teta.ru</li>
+<li>Загрузить в репозиторий dockerfile для counter-frontend, counter-backend, nginx, если использовалась сборка.</li>
+<li>Загрузить в репозиторий docker-compose.yml</li>
+<li>Опубликовать http порт, с работающим приложением counter. Передать ссылку на проверку.</li>
+</ol>
+<p>Внимание:<br />
+Порт приложения backend и frontend не должны быть публично доступны. Все запросы должны обрабатываться только через nginx.</p>
+<p>Пример<br />
+Пример работающего приложения Counter: <a href="http://practice-4.devops-teta.ru/">http://practice-4.devops-teta.ru</a></p>
+<p>Пример конфигурации nginx:</p>
+<div class="highlight"><pre><span></span><code>server {
+    listen       80;
+    server_name  _;
+
+    location / {
+        proxy_pass      http://frontend:8080;
+    }
+    location /api {
+        proxy_pass      http://backend:8080;
+    }
+}
+</code></pre></div>
 
 
 

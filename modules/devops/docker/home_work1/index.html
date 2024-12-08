@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,64 @@
 
   <h1>Домашнее задание №5</h1>
 
-
+<p><strong>Домашнее задание №5</strong></p>
+<p>Соберите Docker образ для проекта <a href="https://git.devops-teta.ru/materials/counter-backend">counter-backend</a>. В качестве базового образа используйте <a href="https://hub.docker.com/_/python">python:3.11.6-slim-bookworm</a>. Для сборки используйте следующие команды:  </p>
+<p><strong>Установка зависимостей для сборки пакета:</strong><br />
+$ python -m pip install \<br />
+  --no-color \<br />
+  --no-cache-dir \<br />
+  --disable-pip-version-check \<br />
+  --no-python-version-warning \<br />
+  --no-warn-script-location \<br />
+  --break-system-packages \<br />
+  --progress-bar off \<br />
+  poetry setuptools wheel  </p>
+<p><strong>Загрузка всех зависимостей в папку dist/vendor:</strong><br />
+$ mkdir -p dist<br />
+$ poetry export \<br />
+  --without-hashes \<br />
+  --format constraints.txt \<br />
+  --output dist/constraints.txt<br />
+$ poetry run \<br />
+  python -m pip wheel \<br />
+   --isolated \<br />
+   --requirement dist/constraints.txt \<br />
+   --wheel-dir dist/vendor  </p>
+<p><strong>Пакетирование проекта в папку dist:</strong><br />
+$ poetry build --format wheel  </p>
+<p><strong>Установка всех зависимостей:</strong><br />
+$ packages=$(\<br />
+  find 'dist' 'dist/vendor' \<br />
+    -maxdepth 1 \<br />
+    -iname '*.whl' \<br />
+    -exec realpath {} \; \<br />
+    -print0 \<br />
+   | xargs --null)<br />
+$ python -m pip install \<br />
+  --isolated \<br />
+  --no-index \<br />
+  --no-color \<br />
+  --no-cache-dir \<br />
+  --disable-pip-version-check \<br />
+  --no-python-version-warning \<br />
+  --no-warn-script-location \<br />
+  --no-deps \<br />
+  --break-system-packages \<br />
+  --progress-bar off \<br />
+  ${packages}<br />
+Эти команды находят все пакеты Python собранные предыдущими командами и затем устанавливают их.  </p>
+<p><strong>Запуск модуля:</strong><br />
+$ python -m counter_backend  </p>
+<p><strong>Напишите три варианта Dockerfile:</strong><br />
+</p>
+<ul>
+<li>Без использования многоступенчатой сборки и запуском процесса из-под суперпользователя</li>
+<li>С использованием многоступенчатой сборки ()</li>
+<li>С использованием многоступенчатой сборки и понижением привилегий:</li>
+<li>Загрузите пакеты первым и вторым набором команд, скопируйте в финальный слой и установите в нем;</li>
+<li>Воспользуйтесь приведенным выше скриптом для создания пользователя</li>
+</ul>
+<p>Загрузите написанные Dockerfile в курсовой GitLab, в отдельный репозиторий. Если вы не пользовались ранее Git, то просмотрите краткую справку, приведенную в лонгриде.</p>
 
 
 

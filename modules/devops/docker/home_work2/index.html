@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,47 @@
 
   <h1>Домашнее задание №6</h1>
 
-
+<p><strong>Домашнее задание №6</strong></p>
+<p><strong>docker-compose:</strong><br />
+Напишите docker-compose.yml который запускает наш сервис counter.<br />
+Docker-composer должен запустить:<br />
+</p>
+<ul>
+<li><a href="https://git.devops-teta.ru/materials/counter-frontend">counter-frontend</a></li>
+<li><a href="https://git.devops-teta.ru/materials/counter-backend">counter-backend</a></li>
+<li>nginx</li>
+</ul>
+<p><strong>nginx:</strong><br />
+</p>
+<ul>
+<li>Обращения к root локейшену должны попадать в контейнер counter-frontend.</li>
+<li>Обращение к /api backend должны проксироваться в контейнер counter-backend.</li>
+<li>Здесь мы воспользуемся результатом генерации нашего SSL сертификата. Контейнер с nginx должен принимать подключение из интернета, по https.</li>
+</ul>
+<p><strong>Проверка</strong><br />
+Для успешного выполнения задания вам необходимо:<br />
+</p>
+<ol>
+<li>Создать репозиторий в git.devops-teta.ru</li>
+<li>Загрузить в репозиторий dockerfile для counter-frontend, counter-backend, nginx, если использовалась сборка.</li>
+<li>Загрузить в репозиторий docker-compose.yml</li>
+<li>Опубликовать http порт, с работающим приложением counter. Передать ссылку на проверку.</li>
+</ol>
+<p><strong>Внимание:</strong><br />
+Порт приложения backend и frontend не должны быть публично доступны. Все запросы должны обрабатываться только через nginx.  </p>
+<p><strong>Пример</strong><br />
+Пример работающего приложения Counter: <a href="http://practice-4.devops-teta.ru/">http://practice-4.devops-teta.ru</a>  </p>
+<p>Пример конфигурации nginx:<br />
+server {<br />
+  listen   80;<br />
+  server_name _;  </p>
+<p>location / {<br />
+    proxy_pass   http://frontend:8080;<br />
+  }<br />
+  location /api {<br />
+    proxy_pass   http://backend:8080;<br />
+  }<br />
+}</p>
 
 
 

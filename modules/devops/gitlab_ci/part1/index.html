@@ -2692,7 +2692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ipsec/" class="md-nav__link">
+      <a href="../../isec/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2775,7 +2775,843 @@
 
   <h1>GitLab CI Harbor</h1>
 
+<p>Harbor</p>
+<p>Harbor — это открытый реестр с управлением контейнерами с открытым исходным кодом, предназначенный для предприятий. Он построен на основе Docker Registry и добавляет дополнительные функции, такие как поддержка Helm Charts, сборка с использованием BuildKit, а также поддержка нескольких репозиториев.  </p>
+<p>Harbor также предоставляет дополнительные функции, такие как аудит, учетные записи пользователей, ролевое управление доступом и автоматическое обновление доменов. Он может быть развернут на Kubernetes или на выделенных серверах и может быть настроен для работы в кластере высокой доступности.  </p>
+<p>Harbor может быть интегрирован с инструментами CI/CD, такими как Jenkins, GitLab CI/CD и TeamCity, для автоматической сборки и развертывания приложений на основе изменений кода. Он также может быть интегрирован с системами управления уязвимостями, такими как WhiteSource и Snyk, для обеспечения безопасности приложений. Кроме того, Harbor поддерживает различные форматы образов, такие как Docker, Open Container Initiative (OCI) и Flatcar Container Linux (FCL).</p>
+<p>Создание проекта в Harbor</p>
+<p>Создадим проект в harbor и robot account для аутентификации.</p>
+<p><img alt="" src="../img/harbor_create_projec.gif" /></p>
+<p>Разрешим этого роботу работать только с Registry и запретим удалять образы. Копируем токен и сохраняем, его будем использовать позже в Gitlab.  </p>
+<p>Теперь нам надо сформировать переменные окружение, которые мы будем использовать в нашем будущем CI. Запишем полученные от harbor данные в таком виде. Их мы будем использовать дальше, в наших CI скриптах.</p>
+<p><strong>harbor.yml</strong></p>
+<div class="highlight"><pre><span></span><code>variables:
+  HARBOR_HOST: harbor.teta-mts.ru
+  HARBOR_PROJECT: demo
+  HARBOR_USER: robot_demo+gitlab
+  HARBOR_PASSWORD: $__HARBOR_PASSWORD
+</code></pre></div>
+<p>GItLab</p>
+<p>Gitlab — это популярная система контроля версий, изначально написанная на ruby, однако многие части позже переписаны на GoLang, которая предназначена для разработчиков программного обеспечения. Она имеет множество возможностей, которые делают ее привлекательной для использования в различных проектах.  </p>
+<p>Одной из главных возможностей Gitlab является возможность управления репозиториями. Вы можете создавать новые репозитории, добавлять в них файлы и работать с ними. Также Gitlab позволяет работать с ветками кода, что позволяет разработчикам работать над разными задачами одновременно, не мешая друг другу.  </p>
+<p>Еще одной важной возможностью Gitlab является поддержка различных протоколов, таких как SSH, HTTPS и GIT.  </p>
+<p>Gitlab также имеет встроенный CI/CD (Continuous Integration/Continuous Delivery) инструмент, который позволяет автоматизировать процесс сборки, тестирования и развертывания приложений. Это значительно ускоряет процесс разработки и делает его более эффективным.  </p>
+<p>Кроме того, Gitlab имеет встроенный сервис управления задачами, который позволяет командам обмениваться информацией о задачах и контролировать их выполнение.</p>
+<p>Версии GitLab</p>
+<p>GitLab Community Edition (CE) является бесплатной версией GitLab с открытым исходным кодом. Она предназначена для небольших команд и индивидуальных разработчиков и предлагает базовые функции для контроля версий, такие как создание репозиториев, ветки кода, слияния и разрешения конфликтов.  </p>
+<p>Premium/Ultimate версия GitLab, также известная как GitLab Enterprise Edition (EE), предлагает расширенные функции и возможности, которые могут быть полезны для более крупных и сложных команд. Некоторые из этих функций включают в себя:<br />
+</p>
+<ul>
+<li>Улучшенная масштабируемость и производительность;</li>
+<li>Управление доступом на основе ролей (Role-Based Access Control, RBAC);</li>
+<li>Интеграция со сторонними системами, такими как Jira и Trello</li>
+<li>Шифрование репозиториев с помощью OpenPGP;</li>
+<li>Поддержка нескольких сред выполнения, таких как Docker и Kubernetes;</li>
+<li>Мониторинг и аудит действий пользователей;</li>
+<li>Расширенные возможности CI/CD;</li>
+<li>Интеграция с системами управления уязвимостями, такими как WhiteSource;</li>
+<li>Многое другое.</li>
+</ul>
+<p>Важно отметить, что Premium версия также предлагает поддержку от команды GitLab и доступ к обновлениям безопасности и новым функциям, которые могут не быть доступны в Community Edition.</p>
+<p><img alt="" src="../img/Rectangle_240652009.png" /></p>
+<p>Интерфейс</p>
+<p>GitLab имеет простой и интуитивно понятный интерфейс, который позволяет пользователям легко находить нужную информацию и выполнять необходимые действия. Основной экран GitLab содержит список проектов, к которым у пользователя есть доступ, а также информацию о последних действиях в этих проектах.  </p>
+<p>Для каждого проекта отображается его название, владелец, описание, количество звезд и количество коммитов. При нажатии на проект открывается страница с подробной информацией о проекте, его репозиториях, merge request, issues и wiki. На странице репозитория можно просмотреть историю коммитов, скачать код или создать новый merge request или issue.  </p>
+<p>На странице merge request можно просмотреть все открытые и закрытые merge request по проекту, а также создать новый merge request из ветки в репозитории или из внешнего репозитория другой системы контроля версий.  </p>
+<p>На странице issues можно создавать, редактировать и закрывать задачи, а также назначать их конкретным разработчикам или группам. Wiki-страница позволяет создавать и редактировать документацию по проекту, которую могут просматривать все участники проекта.  </p>
+<p>В целом, интерфейс GitLab удобен для использования и позволяет быстро находить нужную информацию, управлять проектами и репозиториями, а также взаимодействовать с другими участниками команды.</p>
+<p><img alt="" src="../img/Rectangle_240652010.png" /></p>
+<p>Репозитории</p>
+<p>Репозитории организованы в группы, вложенность групп может быть любая, а уникальность имен групп и репозиториев должна обеспечиваться только в рамках каждой группы. Таким образом, в рамках одного GitLab может существовать множество репозиториев с одним названием.<br />
+Например repo1, но находиться они должны в разных группах.  </p>
+<p>Например, наличие repo1:</p>
+<p>Корректно<br />
+/group1/subgroup1/repo1<br />
+/group2/subgroup1/repo1<br />
+/group3/subgroup2/repo1</p>
+<p>Каждый репозиторий имеет свои настройки. Однако принимает настройки всех вышестоящих над ним групп. Не обязательно настраивать каждый репозиторий отдельно, можно управлять настройками в рамках групп.</p>
+<p>Группы видимости, доступа</p>
+<p>В GitLab существуют следующие типы репозиториев:<br />
+Публичные репозитории — доступны для всех пользователей GitLab и могут быть клонированы любым пользователем.<br />
+Приватные репозитории — создаются для определенной команды или проекта и доступны только для авторизованных пользователей.<br />
+Внутренние репозитории (Internal Repositories) — используются для хранения кода внутри компании и доступны только сотрудникам компании.<br />
+Внешние репозитории (External Repositories) — позволяют работать с репозиториями сторонних систем контроля версий, таких как GitHub, Bitbucket и других.</p>
+<p>Список доступа к репозиторию</p>
+<p><img alt="" src="../img/Rectangle_240652011.png" /></p>
+<p>Роли доступа</p>
+<p>В GitLab есть несколько ролей доступа, которые определяют, какие действия пользователь может выполнять в проекте. Некоторые из них включают:  </p>
+<p>Owner — владелец проекта имеет полный доступ ко всем аспектам проекта, включая репозитории, merge requests, issues, wiki и настройки проекта.  </p>
+<p>Maintainer — сопровождающий имеет доступ к репозиториям и может создавать merge requests, но не может изменять настройки проекта или удалять репозитории.  </p>
+<p>Developer — разработчик имеет доступ только к репозиториям, в которых он участвует, и может создавать и отправлять изменения в коде.  </p>
+<p>Reporter (репортер) — это роль в GitLab, которая позволяет пользователю создавать и обновлять задачи (issues) в проекте. Репортеры могут описывать проблемы, добавлять ссылки на код и описывать предлагаемые решения. Они также могут комментировать на задачах и голосовать за них.  </p>
+<p>Guest — гость имеет доступ только к просмотру информации о проекте и может оставлять комментарии на issues и merge requests.</p>
+<p><img alt="" src="../img/image_456.png" /></p>
+<p>Подробно о правах ролей в документации:<br />
+<a href="https://docs.gitlab.com/ee/user/permissions.html">https://docs.gitlab.com/ee/user/permissions.html</a></p>
+<p>Protected branch and tags</p>
+<p>Protected branch — это функция в GitLab, которая позволяет защитить определенные ветки в репозитории от случайных или нежелательных изменений. Она может быть полезна для веток, содержащих стабильную версию кода, или для веток с экспериментальным кодом, который не должен быть случайно объединен в основную ветку.  </p>
+<p>Protected branches позволяют определить правила, которые должны быть выполнены перед тем, как можно будет выполнить слияние в защищенную ветку. Эти правила могут включать требования к прохождению автоматических тестов, наличие определенного количества голосов за слияние или даже необходимость утверждения слияния от определенного члена команды.  </p>
+<p>Аналогичные настройки можно применять и к тэгам. Это помогает обеспечить качество кода и согласованность процесса разработки, а также предотвращает случайные изменения в важных частях кодовой базы.</p>
+<p><img alt="" src="../img/image_1892295201.png" /></p>
+<p>Интеграции</p>
+<p>GitLab имеет множество интеграций с другими системами, включая:  </p>
+<p>Jira для управления задачами и назначения их разработчикам;<br />
+Trello для организации работы в командах;<br />
+Jenkins для автоматического выполнения тестов и сборки проектов;<br />
+Slack для обмена сообщениями и уведомлениями о событиях в GitLab;<br />
+GitHub для совместной работы с репозиториями и обмена кодом между проектами;<br />
+Docker для управления контейнерами и их образами;<br />
+Kubernetes для управления кластерами и развертывания приложений в облаке.  </p>
+<p>Полный список можно посмотреть в GitLab или документации:<br />
+<a href="https://archives.docs.gitlab.com/15.11/ee/user/project/integrations/index.html">https://archives.docs.gitlab.com/15.11/ee/user/project/integrations/index.html</a></p>
+<p>web-hooks</p>
+<p>GitLab поддерживает несколько типов веб-хуков, которые позволяют автоматически выполнять определенные действия при изменении репозитория или других событиях в системе.  </p>
+<p>Некоторые из них включают:<br />
+Push Hook — срабатывает при каждом push-обновлении репозитория;<br />
+Merge Request Hook — срабатывает при создании, изменении или удалении merge request;<br />
+Issue Hook — срабатывает при создании, обновлении или закрытии issue;<br />
+Pipeline Hook — срабатывает после успешного завершения pipeline;<br />
+Tag Push Hook — срабатывает при добавлении новой тега в репозиторий.</p>
+<p><img alt="" src="../img/image_1892295202.png" /></p>
+<p>Токены доступа</p>
+<p>Токен доступа в GitLab используется для аутентификации при выполнении Git-запросов. Он позволяет заменить ваш пароль и обеспечить более безопасный способ подключения к репозиторию. Уровень доступа к токену определяет, какие операции можно выполнять с проектом, например, только чтение или чтение/запись. В GitLab существует несколько типов токенов доступа:  </p>
+<p>Personal access tokens (PAT) — персональный токен доступа, который может использоваться для доступа к GitLab API. Он может быть создан пользователем в своем профиле и имеет ограниченный срок действия.  </p>
+<p>Deploy tokens — токены развертывания, которые используются для аутентификации при выполнении задач развертывания. Они создаются проектом и имеют ограниченный срок действия и область видимости.  </p>
+<p>Job tokens — токены заданий, используемые для аутентификации в GitLab CI/CD. Они создаются заданиями и имеют ограниченный срок действия, область видимости и могут быть использованы только один раз.  </p>
+<p>System OAuth tokens — системные токены OAuth, которые используются для авторизации приложений на основе OAuth. Они создаются администратором GitLab и имеют неограниченный срок действия.</p>
+<p>Merge Request</p>
+<p>Merge request — это механизм в GitLab, который позволяет разработчикам предлагать изменения в основном репозитории на рассмотрение. Когда разработчик хочет внести изменения в существующий репозиторий, он создает новую ветку с изменениями, затем отправляет запрос на слияние (merge request) в основную ветку репозитория.  </p>
+<p>MR — основной функционал Gitlab. Имеет продвинутые настройки и гибкие настройки.  </p>
+<p>MR позволяет автоматизировать вливание нового кода в ветки, с помощью автоматизированных проверок через pipeline. А так же валидировать код устанавливая различные ограничения на вливание веток, например список лиц Reviewers — кто валидирует вносимые доработки.  </p>
+<p>Другие разработчики могут просмотреть предложенные изменения, обсудить их и принять или отклонить слияние. Если слияние принято, оно автоматически выполняется, и изменения добавляются в основную ветку репозитория. Если слияние отклонено, разработчик может внести изменения в свою ветку и отправить новый merge request.</p>
+<p><img alt="" src="../img/image_1892295203.png" /></p>
+<p>GitLab API</p>
+<p>GitLab API — это набор методов и протоколов, которые позволяют разработчикам и другим пользователям взаимодействовать с GitLab через программы и скрипты. Он предоставляет RESTful интерфейс для выполнения различных операций, таких как создание проектов, управление репозиториями, создание и обновление задач, просмотр статистики и многое другое.  </p>
+<p>API может быть использовано для автоматизации рутинных задач, интеграции GitLab с другими системами и приложениями, а также для создания пользовательских инструментов и расширений, которые улучшают работу с GitLab. GitLab API предоставляет следующие возможности:  </p>
+<p>Создание и управление проектами<br />
+Управление репозиториями<br />
+Создание, обновление и закрытие задач (issues)<br />
+Управление пулл-реквестами (pull requests)<br />
+Просмотр статистики проекта<br />
+Интеграция с другими системами через Webhooks<br />
+Аутентификация пользователей<br />
+Управление правами доступа пользователей к проектам и репозиториям<br />
+Получение информации о ходе выполнения Pipeline-ов<br />
+Работа с метками (tags)<br />
+и многое другое… <a href="https://docs.gitlab.com/ee/api/api_resources.html">https://docs.gitlab.com/ee/api/api_resources.html</a></p>
+<p>GitLab CI</p>
+<p>Рассмотрим интегрированный в GitLab инструмент для разработки CI/CD пайплайнов — GitLab CI. Верхнеуровнего GitLab CI состоит из следующих компонентов:<br />
+<strong>проект</strong> — код, над которым выполняются различные действия (сборка, статический анализ, запуск тестов, развертывание и т. д.), для конфигурирования пайплайнов в проекте (или группе проектов) можно задавать переменные CI/CD;<br />
+<strong>раннер</strong> — сервер, запускающий задачи CI/CD; он регулярно опрашивает сервер GitLab;<br />
+<strong>пайплайн</strong> — набор запускаемых задач CI/CD, каждая задача запускается независимо (иногда на разных раннерах).  </p>
+<p>GitLab СI пайплайн представляет собой YAML файл, задающий задачи и их зависимости. В задаче содержится информация, когда запускать задачу (правила), где ее запускать (теги раннера) и что в ней делать (скрипты). Действия в задаче описываются shell скриптом.</p>
+<p>Локальная отладка пайплайнов</p>
+<p>Для начала рассмотрим инструменты для локальной валидации и запуска пайплайнов. Мы, очевидно, можем загружать все изменения в GitLab и проверять пайплайны, запуская их, но это довольно долго.</p>
+<p>GitLab CLI (glab)</p>
+<p>В GitLab есть встроенный инструмент для синтаксической проверки. gitlab-ci.yml: ci lint. Его можно запускать из консольной утилиты glab.  </p>
+<p>Для начала создадим персональный токен доступа:<br />
+</p>
+<ol>
+<li>Перейдите по <a href="https://git.devops-teta.ru/-/profile/personal_access_tokens">ссылке</a>;</li>
+<li>Введите в поле ввода Token name произвольное имя, например glab или gitlab-cli;</li>
+<li>Очистите Expiration date, нажав на крест;</li>
+<li>Выберите права: api;</li>
+<li>Нажмите на кнопку Create personal access token;</li>
+<li>Скопируйте сгенерированный токен из появившегося поля Your new personal access token;</li>
+<li>Сохраните токен в файл token. txt на ВМ1.</li>
+</ol>
+<p>Теперь загрузим и настроим эту утилиту:</p>
+<div class="highlight"><pre><span></span><code>$ filename=$(curl -LOsw &#39;%{filename_effective}&#39; https://gitlab.com/gitlab-org/cli/-/releases/v1.34.0/downloads/glab_1.34.0_Linux_x86_64.deb)
+$ sudo apt install --yes $(realpath -- &quot;$filename&quot;)
+$ glab auth login --stdin --hostname git.devops-teta.ru &lt;token.txt
+</code></pre></div>
+<p>Запуск проверки синтаксиса с помощью glab:</p>
+<div class="highlight"><pre><span></span><code>$ glab ci lint .gitlab-ci.yml
 
+ Validating...
+✓ CI/CD YAML is valid!
+</code></pre></div>
+<p>GitLab CI Local</p>
+<p>Также существует сторонняя утилита <a href="https://github.com/firecow/gitlab-ci-local">gitlab-ci-local</a>, которая позволяет валидировать пайплайны, запускать их целиком и задавать произвольные переменные. При помощи этой утилиты можно почти полностью тестировать пайплайны, но она реимплементирует GitLab CI, поэтому не стоит полностью полагаться на ее поведение.  </p>
+<p>Эта утилита написана на NodeJS, установим NodeJS 18 из <a href="https://github.com/nodesource/distributions">Nodesource</a> (в репозиториях Ubuntu находится версия 12, слишком старая для этого пакета):</p>
+<div class="highlight"><pre><span></span><code>$ sudo apt-get install --yes curl gnupg ca-certificates
+$ sudo mkdir -p /etc/apt/keyrings
+$ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+$ echo &quot;deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main&quot; | sudo tee /etc/apt/sources.list.d/nodesource.list
+$ sudo apt-get update
+$ sudo apt install nodejs -y
+</code></pre></div>
+<p>Запускать gitlab-ci-local будем командой:</p>
+<div class="highlight"><pre><span></span><code>$ npx --user --package gitlab-ci-local@4.44.0 -- gitlab-ci-local
+</code></pre></div>
+<p>Добавим алиас для этой команды в ~/.bashrc (или ~/.bash_profile), чтобы упростить запуск:</p>
+<div class="highlight"><pre><span></span><code>$ echo &quot;alias gitlab-ci-local=&#39;npx --user --package gitlab-ci-local@4.44.0 -- gitlab-ci-local&#39;&quot; &gt;&gt; ~/.bashrc
+</code></pre></div>
+<p>Использовать эти инструменты будем далее.</p>
+<p>Первый пайплайн</p>
+<p>Вернемся к проекту <a href="https://git.devops-teta.ru/materials/counter-frontend">counter-frontend</a> и напишем для него сборочный пайплайн, который будет:<br />
+</p>
+<ul>
+<li>компилировать проект;</li>
+<li>проверять исходный код при помощи eslint;</li>
+<li>публиковать Docker-образ в Harbor.</li>
+</ul>
+<p>Fork проекта и .gitlab-ci.yml</p>
+<p>Для начала форкнем проект:  </p>
+<ol>
+<li>Перейдите в проект <a href="https://git.devops-teta.ru/materials/counter-frontend">counter-frontend</a>;</li>
+<li>Нажмите на кнопку Fork сверху справа;</li>
+<li>В качестве целевой выберите группу из п. 1.</li>
+</ol>
+<p>После этого склонируйте проект и создайте в его корне файл. gitlab-ci.yml:</p>
+<div class="highlight"><pre><span></span><code>$ git clone git@git.devops-teta.ru:${YOUR_SUBGROUP}/counter-frontend.git
+$ cd counter-frontend
+$ touch .gitlab-ci.yml
+</code></pre></div>
+<p>Пайплайны GitLab CI состоят из задач (<em>jobs</em>), разделенных на стадии (<em>stages</em>). По-умолчанию задачи выполняются в соответствии с их стадиями, в одной стадии задачи выполняются параллельно.<br />
+Напишем скелет нашего пайплайна:</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - build
+  - publish
+
+# @NoArtifactsToSource
+Lint:
+  stage: .pre
+
+# @NoArtifactsToSource
+Build Package:
+  stage: build
+
+# @NoArtifactsToSource
+Publish Package:
+  stage: publish
+</code></pre></div>
+<p># @NoArtifactsToSource — аннотация gitlab-ci-local, пока мы ее проигнорируем</p>
+<p>stages</p>
+<p>Стадии задаются директивой <a href="https://docs.gitlab.com/ee/ci/yaml/#stage">stages</a>, если она не указана, то пайплайн будет содержать следующие стадии: build, test, deploy. Также пайплайн всегда содержит две служебные стадии .pre и .post, задачи в .pre выполняются перед всеми остальными, .post — после.  </p>
+<p>Для более точного упорядочивания задач используют директиву <a href="https://docs.gitlab.com/ee/ci/yaml/#needs">needs</a>, которая явно указывает зависимые задачи:</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - build
+  - publish
+
+# @NoArtifactsToSource
+Lint:
+  stage: .pre
+  needs: []
+
+# @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs: []
+
+# @NoArtifactsToSource
+Publish Package:
+  stage: publish
+  needs:
+    - Build Package
+</code></pre></div>
+<p>При указании needs задачи игнорируют свои стадии и запускаются после родительских. Далее мы будем указывать зависимости задач явно.<br />
+Теперь укажем, что именно выполняется в задаче.  </p>
+<p>Для этого воспользуемся директивами <a href="https://docs.gitlab.com/ee/ci/yaml/#image">image</a> и <a href="https://docs.gitlab.com/ee/ci/yaml/#script">script</a>. Первая указывает в каком Docker-образе запускается задача, вторая — shell-скрипт, выполняющийся в задаче.</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - build
+  - publish
+
+# @NoArtifactsToSource
+Lint:
+  stage: .pre
+  needs: []
+  image:
+    name: registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm
+    entrypoint: [&quot;&quot;]
+  script:
+    - echo 1
+
+# @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs: []
+  image:
+    name: registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm
+    entrypoint: [&quot;&quot;]
+  script:
+    - echo 2
+
+# @NoArtifactsToSource
+Publish Package:
+  stage: publish
+  needs:
+    - Build Package
+  image:
+    name: registry.devops-teta.ru/materials/ci/images/kaniko:1.9.1    
+    entrypoint: [&quot;&quot;]
+  script:
+    - echo 3
+</code></pre></div>
+<p>variables</p>
+<p>Параметры пайплайна задаются при помощи переменных, директивой <a href="https://docs.gitlab.com/ee/ci/yaml/#variables">variables</a> в пайплайне или в настройках проекта/группы. Эти переменные пробрасываются в скрипты как переменные окружения, также большинство директив пайплайна поддерживают подстановку переменных с синтаксисом, аналогичным Shell.<br />
+Вынесем имена образов в переменные:</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - build
+  - publish
+variables:
+  NODEJS_IMAGE: registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm
+  KANIKO_IMAGE: registry.devops-teta.ru/materials/ci/images/kaniko:1.9.1  
+
+# @NoArtifactsToSource
+Lint:
+  stage: .pre
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  script:
+    - echo 1
+
+# @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  script:
+    - echo 2
+
+# @NoArtifactsToSource
+Publish Package:
+  stage: publish
+  needs:
+    - job: Build Package
+      artifacts: true
+  image:
+    name: $KANIKO_IMAGE
+    entrypoint: [&quot;&quot;]
+  script:
+    - echo 3
+</code></pre></div>
+<p>Build Package</p>
+<p>Начнем наполнять пайплайн, сначала напишем скрипт сборки в Build Package:</p>
+<div class="highlight"><pre><span></span><code>variables:
+  NODEJS_IMAGE: registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm
+
+# @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  script:
+    - npm clean-install
+    - npm run build
+    - mv .next/standalone dist
+    - mv public dist/public
+    - mv .next/static dist/.next/static
+</code></pre></div>
+<p>Запустим Build Package при помощи gitlab-ci-local:</p>
+<div class="highlight"><pre><span></span><code>$ gitlab-ci-local &#39;Build Package&#39;
+Using fallback git user.name
+Using fallback git user.email
+parsing and downloads finished in 82 ms
+Build Package   starting registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm (build)
+Build Package   copied to docker volumes in 5 s
+Build Package   $ npm clean-install
+Build Package   &gt;
+Build Package   &gt; added 282 packages, and audited 283 packages in 25s
+Build Package   &gt;
+Build Package   &gt; 107 packages are looking for funding
+Build Package   &gt;   run `npm fund` for details
+Build Package   &gt;
+Build Package   &gt; 3 vulnerabilities (1 low, 2 moderate)
+Build Package   &gt;
+Build Package   &gt; To address all issues, run:
+Build Package   &gt;   npm audit fix --force
+Build Package   &gt;
+Build Package   &gt; Run `npm audit` for details.
+Build Package   $ npm run build
+Build Package   &gt;
+Build Package   &gt; &gt; counter@0.1.0 build
+Build Package   &gt; &gt; next build
+Build Package   &gt;
+Build Package   &gt; ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Build Package   &gt; Attention: Next.js now collects completely anonymous telemetry regarding usage.
+Build Package   &gt; This information is used to shape Next.js&#39; roadmap and prioritize features.
+Build Package   &gt; You can learn more, including how to opt-out if you&#39;d not like to participate in this anonymous program, by visiting the following URL:
+Build Package   &gt; https://nextjs.org/telemetry
+Build Package   &gt;
+Build Package   &gt;    Creating an optimized production build ...
+Build Package   &gt;  ✓ Compiled successfully
+Build Package   &gt;    Linting and checking validity of types ...
+Build Package   &gt;    Collecting page data ...
+Build Package   &gt;    Generating static pages (0/4) ...
+   Generating static pages (1/4)
+   Generating static pages (2/4)
+   Generating static pages (3/4)
+ ✓ Generating static pages (4/4)
+Build Package   &gt;    Finalizing page optimization ...
+Build Package   &gt;
+Build Package   &gt; Route (app)                              Size     First Load JS
+Build Package   &gt; ┌ ○ /                                    897 B          80.1 kB
+Build Package   &gt; └ ○ /_not-found                          878 B          80.1 kB
+Build Package   &gt; + First Load JS shared by all            79.2 kB
+Build Package   &gt;   ├ chunks/864-65fc85184976041b.js       26.6 kB
+Build Package   &gt;   ├ chunks/fd9d1056-cda7bdae809f14dd.js  50.8 kB
+Build Package   &gt;   ├ chunks/main-app-0cd0fef21f043671.js  221 B
+Build Package   &gt;   └ chunks/webpack-bf1a64d1eafd2816.js   1.61 kB
+Build Package   &gt;
+Build Package   &gt;
+Build Package   &gt; ○  (Static)  automatically rendered as static HTML (uses no initial props)
+Build Package   &gt;
+Build Package   $ mv .next/standalone dist
+Build Package   $ mv public dist/public
+Build Package   $ mv .next/static dist/.next/static
+</code></pre></div>
+<p>Обратим внимание на предупреждения сборщика NextJS: ему не нравится отсутствие кеша сборки, также нас предупреждают о сборе телеметрии. Выключим сбор телеметрии и добавим кеширование.<br />
+Телеметрия выключается переменной окружения NEXT_TELEMETRY_DISABLED:</p>
+<div class="highlight"><pre><span></span><code>Build Package:
+  stage: build
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    NEXT_TELEMETRY_DISABLED: &quot;1&quot;
+  script:
+    - npm clean-install
+    - npm run build
+    - mv .next/standalone dist
+    - mv public dist/public
+    - mv .next/static dist/.next/static
+</code></pre></div>
+<p>Переменные можно задавать на уровне пайплайна и конкретных задач. Используйте глобальные переменные, чтобы указывать переменные использующиеся в нескольких задачах или параметры пайплайна, которые могут быть переопределены пользователями в параметрах группы/проекта или при ручном запуске пайплайна/задачи. Переменные задач следует использовать для непереопределяемых констант.</p>
+<p>cache</p>
+<p>Перейдем к кешированию. GitLab CI поддерживает кеширование файлов для ускорения сборок. В отличие от артефактов кеш хранится в раннере и необязателен для успешного запуска задачи. В Build Package мы можем закешировать кеш пакетного менеджера npm, установленные пакеты в папке node_modules и сборочный кеш NextJS в .next/cache:</p>
+<div class="highlight"><pre><span></span><code># @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    NEXT_TELEMETRY_DISABLED: &quot;1&quot;
+    NPM_CONFIG_CACHE: $CI_PROJECT_DIR/.cache/npm
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+      unprotect: true
+    - key: npm-next-cache
+      paths:
+        - .next/cache
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+    - npm run build
+    - mv .next/standalone dist
+    - mv public dist/public
+    - mv .next/static dist/.next/static
+</code></pre></div>
+<p>Параметры кеширования задаются директивой <a href="https://docs.gitlab.com/ee/ci/yaml/#cache">cache</a>. Ключом кеширования является либо строка, либо хеш файлов. Здесь мы используем lock-файл как ключ кеширования установленных модулей, чтобы инвалидировать кеш при любом изменении зависимостей.  </p>
+<p>По умолчанию GitLab CI отделяет кеш для запущенных в защищенных ветках задач, опция unprotect: true отключает это поведение. Таким образом мы ускорим сборки в защищенных ветках, но пользователи смогут переопределить пайплайн в незащищенной ветке и переписать значение кеша.</p>
+<p>artifacts</p>
+<p>Собранный проект нужно передать в задачу Publish Package, чтобы упаковать его в Docker-образ. Для передачи информации между задачами используются артефакты:</p>
+<div class="highlight"><pre><span></span><code># @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    NEXT_TELEMETRY_DISABLED: &quot;1&quot;
+    NPM_CONFIG_CACHE: $CI_PROJECT_DIR/.cache/npm
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+      unprotect: true
+    - key: npm-next-cache
+      paths:
+        - .next/cache
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+    - npm run build
+    - mv .next/standalone dist
+    - mv public dist/public
+    - mv .next/static dist/.next/static
+  artifacts:
+    expire_in: 1h
+    paths:
+      - dist
+</code></pre></div>
+<p>Директива <a href="https://docs.gitlab.com/ee/ci/yaml/#artifacts">artifacts</a> задает параметры экспорта артефактов из задачи. Время жизни артефактов задается параметром <a href="https://docs.gitlab.com/ee/ci/yaml/#artifactsexpire_in">expire_in</a>, здесь мы указали один час. Артефакты задач из последнего запущенного пайплайна не подчиняются этому правилу, они хранятся постоянно, если такое поведение не выключено в настройках проекта.</p>
+<p>Lint</p>
+<p>Напишем скрипт для задачи Lint:</p>
+<div class="highlight"><pre><span></span><code># @NoArtifactsToSource
+Lint:
+  stage: .pre
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    ESLINT_CODE_QUALITY_REPORT: eslint.codequality.json
+    NEXT_TELEMETRY_DISABLED: &quot;1&quot;
+    NPM_CONFIG_CACHE: $CI_PROJECT_DIR/.cache/npm
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+    - npm run lint -- --format gitlab ## В ситуациях, когда npm-скрипт запускается из другого npm-скрипта, перед передачей флага CLI также необходимо добавить два тире.
+  artifacts:
+    paths:
+      - $ESLINT_CODE_QUALITY_REPORT
+    reports:
+      codequality: $ESLINT_CODE_QUALITY_REPORT
+</code></pre></div>
+<p>Артефакты также используются для генерации различных отчетов. Здесь мы сканируем проект статическим анализатором eslint и экспортируем его вывод в формате, поддерживаемом GitLab. Другие поддерживаемые отчеты смотрите в <a href="https://docs.gitlab.com/ee/ci/yaml/artifacts_reports.html">документации</a>.<br />
+Запустим задачу Lint:</p>
+<div class="highlight"><pre><span></span><code>$ gitlab-ci-local Lint
+parsing and downloads finished in 71 ms
+Lint            starting registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm (.pre)
+Lint            copied to docker volumes in 5 s
+Lint            imported cache &#39;npm-packages&#39; in 5 s
+Lint            $ if [ ! -e node_modules ] ; then npm clean-install ; fi
+Lint            &gt;
+Lint            &gt; added 282 packages, and audited 283 packages in 13s
+Lint            &gt;
+Lint            &gt; 107 packages are looking for funding
+Lint            &gt;   run `npm fund` for details
+Lint            &gt;
+Lint            &gt; 3 vulnerabilities (1 low, 2 moderate)
+Lint            &gt;
+Lint            &gt; To address all issues, run:
+Lint            &gt;   npm audit fix --force
+Lint            &gt;
+Lint            &gt; Run `npm audit` for details.
+Lint            $ npm run lint -- --format gitlab
+Lint            &gt;
+Lint            &gt; &gt; counter@0.1.0 lint
+Lint            &gt; &gt; next lint --format GitLab
+Lint            &gt;
+Lint            &gt; ✔ No ESLint warnings or errors
+Lint            finished in 5 s
+Lint            exported cache .cache &#39;npm-packages&#39; in 5 s
+Lint            exported cache node_modules &#39;md-d21182c067aca226931e07dfadf5d468a9ab9e7d&#39; in 5 s
+Lint            exported artifacts in 5 s
+</code></pre></div>
+<p>Publish Package</p>
+<p>Docker DIND</p>
+<p>Docker DIND (Docker in Docker) — это техника, которая позволяет запускать контейнеры Docker внутри других контейнеров Docker. Это полезно в ситуациях, когда требуется изоляция или когда основное приложение должно работать внутри контейнера для обеспечения безопасности или стандартизации окружения.  </p>
+<p>Docker DIND работает, запуская Docker-демона (обычно dockerd) внутри уже работающего контейнера Docker. Это позволяет использовать Docker-команды внутри контейнера, не влияя на хост-систему. Основной Docker-демон (на хост-системе) управляет контейнерами, которые запускаются внутри других контейнеров. Это обеспечивает изоляцию контейнеров и гарантирует, что они не будут иметь доступ к ресурсам хост-системы.  </p>
+<p>В результате Docker DIND обеспечивает повышенную безопасность и изоляцию, позволяя разработчикам и системным администраторам запускать Docker-контейнеры внутри контейнеров для тестирования или разработки.</p>
+<p>Kaniko</p>
+<p>Kaniko — это инструмент для создания Docker-образов из Git-репозиториев. Он работает путем извлечения исходного кода из Git, компиляции его в целевой системе и создания Docker-образа из скомпилированных файлов.  </p>
+<p>Для сборки образа воспользуемся <a href="https://github.com/GoogleContainerTools/kaniko">kaniko</a>. Она поддерживает не все директивы Dockerfile, но позволяет собирать контейнеры в кластерах Kubernetes и Docker контейнерах без дополнительных настроек.<br />
+Детали по сборке при помощи kaniko смотрите в <a href="https://docs.gitlab.com/ee/ci/docker/using_kaniko.html">документации</a>.  </p>
+<p>Напишем скрипт Publish Package:</p>
+<div class="highlight"><pre><span></span><code>Publish Package:
+  stage: publish
+  needs:
+    - job: Build Package
+      artifacts: true
+  interruptible: false
+  image:
+    name: $KANIKO_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    HARBOR_HOST: harbor.devops-teta.ru
+    HARBOR_PROJECT: demo
+    HARBOR_USER: robot_demo+gitlab
+    HARBOR_PASSWORD: $__HARBOR_PASSWORD
+  script:
+    - b64_auth=$(printf &#39;%s:%s&#39; &quot;$HARBOR_USER&quot; &quot;$HARBOR_PASSWORD&quot; | base64 | tr -d &#39;\n&#39;)
+    - &gt;-
+      printf &#39;{&quot;auths&quot;: {&quot;%s&quot;: {&quot;auth&quot;: &quot;%s&quot;}}}&#39; &quot;$HARBOR_HOST&quot; &quot;$b64_auth&quot;
+      &gt;/kaniko/.docker/config.json
+    - &gt;-
+      /kaniko/executor
+      --cache
+      --use-new-run
+      --skip-unused-stages
+      --context &quot;$CI_PROJECT_DIR&quot;
+      --dockerfile &quot;$CI_PROJECT_DIR/Dockerfile&quot;
+      --destination &quot;$HARBOR_HOST/$HARBOR_PROJECT/$CI_PROJECT_NAME:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}&quot;
+      --cache-repo &quot;$HARBOR_HOST/$HARBOR_PROJECT/$CI_PROJECT_NAME/cache&quot;
+</code></pre></div>
+<p>Здесь мы используем переменные которые получили, когда создавали проект в harbor:<br />
+HARBOR_HOST — адрес реестра контейнеров;<br />
+HARBOR_USER — имя пользователя для авторизации в реестре;<br />
+HARBOR_PASSWORD — пароль для авторизации в реестре;<br />
+HARBOR_PROJECT — имя загружаемого образа;  </p>
+<p>В качестве тега воспользуемся комбинацией имени ветки (CI_COMMIT_REF_NAME) и первых восьми символов хеша коммита (CI_COMMIT_SHORT_SHA).  </p>
+<p>Обе эти переменные предопределны и доступны всем задачам, также доступно множество других предопределенных переменных, полный список смотрите в <a href="https://docs.gitlab.com/ee/ci/variables/predefined_variables.html">документации</a>.  </p>
+<p>Также обратим внимание на директиву interruptible: false — она значит, что задача не будет отменена, если запустится новый такой же пайплайн. Используйте этот параметр для задач, создающих побочные эффекты во внешних системах, особенно в задачах, выполняющих развертывания.<br />
+Получим следующий пайплайн:</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - build
+  - publish
+variables:
+  NODEJS_IMAGE: registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm
+  KANIKO_IMAGE: registry.devops-teta.ru/materials/ci/images/kaniko:1.9.1
+
+# @NoArtifactsToSource
+Lint:
+  stage: .pre
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    ESLINT_CODE_QUALITY_REPORT: eslint.codequality.json
+    NEXT_TELEMETRY_DISABLED: &quot;1&quot;
+    NPM_CONFIG_CACHE: $CI_PROJECT_DIR/.cache/npm
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+    - npm run lint -- --format gitlab
+  artifacts:
+    paths:
+      - $ESLINT_CODE_QUALITY_REPORT
+    reports:
+      codequality: $ESLINT_CODE_QUALITY_REPORT
+
+# @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs: []
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    NEXT_TELEMETRY_DISABLED: &quot;1&quot;
+    NPM_CONFIG_CACHE: $CI_PROJECT_DIR/.cache/npm
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+      unprotect: true
+    - key: npm-next-cache
+      paths:
+        - .next/cache
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+    - npm run build
+    - mv .next/standalone dist
+    - mv public dist/public
+    - mv .next/static dist/.next/static
+  artifacts:
+    expire_in: 1h
+    paths:
+      - dist
+
+Publish Package:
+  stage: publish
+  needs:
+    - job: Build Package
+      artifacts: true
+  interruptible: false
+  image:
+    name: $KANIKO_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    HARBOR_HOST: harbor.devops-teta.ru
+    HARBOR_PROJECT: demo
+    HARBOR_USER: robot_demo+gitlab
+    HARBOR_PASSWORD: $__HARBOR_PASSWORD
+  script:
+    - b64_auth=$(printf &#39;%s:%s&#39; &quot;$HARBOR_USER&quot; &quot;$HARBOR_PASSWORD&quot; | base64 | tr -d &#39;\n&#39;)
+    - &gt;-
+      printf &#39;{&quot;auths&quot;: {&quot;%s&quot;: {&quot;auth&quot;: &quot;%s&quot;}}}&#39; &quot;$HARBOR_HOST&quot; &quot;$b64_auth&quot;
+      &gt;/kaniko/.docker/config.json
+    - &gt;-
+      /kaniko/executor
+      --cache
+      --use-new-run
+      --skip-unused-stages
+      --context &quot;$CI_PROJECT_DIR&quot;
+      --dockerfile &quot;$CI_PROJECT_DIR/Dockerfile&quot;
+      --destination &quot;$HARBOR_HOST/$HARBOR_PROJECT/$CI_PROJECT_NAME:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}&quot;
+      --cache-repo &quot;$HARBOR_HOST/$HARBOR_PROJECT/$CI_PROJECT_NAME/cache&quot;
+</code></pre></div>
+<p>Update Cache</p>
+<p>Вынесем повторяющиеся переменные на уровень пайплайна и добавим задачу Update Cache, которая будет инициализировать кеш npm. Ключи кеширования общие на проект, поэтому мы сможем переиспользовать кеш в нескольких задачах. При этом следует скопировать код инициализации кеша во все задачи, которые его используют, т.к. ошибка при получении кеша не приводит к падению задачи.</p>
+<div class="highlight"><pre><span></span><code>stages:
+  - build
+  - publish
+variables:
+  NODEJS_IMAGE: registry.devops-teta.ru/materials/ci/images/nodejs:18.18.2-bookworm
+  KANIKO_IMAGE: registry.devops-teta.ru/materials/ci/images/kaniko:1.9.1
+  NEXT_TELEMETRY_DISABLED: &quot;1&quot;
+  NPM_CONFIG_CACHE: $CI_PROJECT_DIR/.cache/npm
+
+Update Cache:
+  stage: .pre
+  needs: []
+  allow_failure: true
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+      unprotect: true
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+
+# @NoArtifactsToSource
+Lint:
+  stage: .pre
+  needs:
+    - job: Update Cache
+      artifacts: false
+  allow_failure: true
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    ESLINT_CODE_QUALITY_REPORT: eslint.codequality.json
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+      policy: pull
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+      unprotect: true
+      policy: pull
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+    - npm run lint -- --format gitlab
+  artifacts:
+    paths:
+      - $ESLINT_CODE_QUALITY_REPORT
+    reports:
+      codequality: $ESLINT_CODE_QUALITY_REPORT
+
+# @NoArtifactsToSource
+Build Package:
+  stage: build
+  needs:
+    - job: Update Cache
+      artifacts: false
+  image:
+    name: $NODEJS_IMAGE
+    entrypoint: [&quot;&quot;]
+  cache:
+    - key: npm-packages
+      paths:
+        - .cache
+      unprotect: true
+      policy: pull
+    - key:
+        prefix: npm-node-modules
+        files:
+          - package-lock.json
+      paths:
+        - node_modules
+      unprotect: true
+      policy: pull
+    - key: npm-next-cache
+      paths:
+        - .next/cache
+  script:
+    - if [ ! -e node_modules ] ; then npm clean-install ; fi
+    - npm run build
+    - mv .next/standalone dist
+    - mv public dist/public
+    - mv .next/static dist/.next/static
+  artifacts:
+    expire_in: 1h
+    paths:
+      - dist
+
+Publish Package:
+  stage: publish
+  needs:
+    - job: Build Package
+      artifacts: true
+  interruptible: false
+  image:
+    name: $KANIKO_IMAGE
+    entrypoint: [&quot;&quot;]
+  variables:
+    HARBOR_HOST: harbor.devops-teta.ru
+    HARBOR_PROJECT: demo
+    HARBOR_USER: robot_demo+gitlab
+    HARBOR_PASSWORD: $__HARBOR_PASSWORD
+  script:
+    - b64_auth=$(printf &#39;%s:%s&#39; &quot;$HARBOR_USER&quot; &quot;$HARBOR_PASSWORD&quot; | base64 | tr -d &#39;\n&#39;)
+    - &gt;-
+      printf &#39;{&quot;auths&quot;: {&quot;%s&quot;: {&quot;auth&quot;: &quot;%s&quot;}}}&#39; &quot;$HARBOR_HOST&quot; &quot;$b64_auth&quot;
+      &gt;/kaniko/.docker/config.json
+    - &gt;-
+      /kaniko/executor
+      --cache
+      --use-new-run
+      --skip-unused-stages
+      --context &quot;$CI_PROJECT_DIR&quot;
+      --dockerfile &quot;$CI_PROJECT_DIR/Dockerfile&quot;
+      --destination &quot;$HARBOR_HOST/$HARBOR_PROJECT/$CI_PROJECT_NAME:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}&quot;
+      --cache-repo &quot;$HARBOR_HOST/$HARBOR_PROJECT/$CI_PROJECT_NAME/cache&quot;
+</code></pre></div>
+<p>Добавим к задачам Update Cache и Lint параметр allow_failure: true, который указывает, что падение этой задачи не должно приводить к падению пайплайна. Также добавим параметр policy: pull к кешам в задачах Lint и Build Package, которая укажет, что после выполнения этих задач не следует обновлять кеш.<br />
+Мы получили свой первый пайплайн собирающий наше приложение и загружающий финальный докер образ в Harbor.</p>
+<p><img alt="" src="../img/Rectangle_240652005.png" /></p>
+<p>Так же имея образ в харбор, можно видеть работу еще одного модуля Harbor — Trivy<strong>.</strong></p>
+<p><img alt="" src="../img/Rectangle_240652007.png" /></p>
 
 
 
