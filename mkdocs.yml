@@ -143,4 +143,34 @@ nav:
       - Отладка на уровне интерпретатора: modules/python/debug/interpreter.md
 
   - DevOps:
-    - Обзор: modules/devops/index.md
+    - Вводный модуль: modules/devops/index.md
+    - Linux:
+      - Подключение к ВМ: modules/devops/linux/connect.md
+      - Основы Shell: modules/devops/linux/shell.md
+      - Домашнее задание №1: modules/devops/linux/home_work.md
+    - Инструменты командной строки Linux:
+      - Инструменты командной строки Linux: modules/devops/linux_tools/index.md
+      - Домашнее задание №2: modules/devops/linux_tools/home_work.md
+    - Ansible:
+      - Ansibe ч.1: modules/devops/ansible/part1.md
+      - Домашнее задание №3: modules/devops/ansible/home_work.md
+      - Ansible ч.2: modules/devops/ansible/part2.md
+      - Ansible ч.3: modules/devops/ansible/part3.md
+    - Наблюдаемость:
+      - Наблюдаемость: modules/devops/visiblity/index.md
+      - Домашнее задание №4: modules/devops/visiblity/home_work.md
+    - Docker:
+      - Docker: modules/devops/docker/index.md
+      - Домашнее задание №5: modules/devops/docker/home_work1.md
+      - Docker и Compose: modules/devops/docker/compose.md
+      - Домашнее задание №6: modules/devops/docker/home_work2.md
+    - GitLab CI:
+      - GitLab CI Harbor: modules/devops/gitlab_ci/part1.md
+      - GitLab CI ч.2: modules/devops/gitlab_ci/part2.md
+      - Домашнее задание №7: modules/devops/gitlab_ci/home_work1.md
+      - GitLab CI ч.3: modules/devops/gitlab_ci/part3.md
+      - Домашнее задание №8: modules/devops/gitlab_ci/home_work2.md
+    - Vault:
+      - Vault: modules/devops/vault/index.md
+    - ISEC: modules/devops/ipsec/index.md
+    - Итоговая самостоятельная работа: modules/devops/finish_work/index.md

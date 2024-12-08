@@ -66,8 +66,8 @@ hide:
     
     **Лучшие практики:**
 
-    - Использовать [SWOT-анализ](/modules/dev/other/analizes/#1-swot-) или всесторонний анализ рисков;
-    - Построить диаграммы процессов ([DFD](/modules/dev/other/diagrams/#1-dfd-data-flow-diagram), [Use Case Diagram](/modules/dev/other/diagrams/#2-use-case-diagram));
+    - Использовать [SWOT-анализ](../other/analizes.md#1-swot-) или всесторонний анализ рисков;
+    - Построить диаграммы процессов ([DFD](../other/diagrams.md#1-dfd-data-flow-diagram), [Use Case Diagram](../other/diagrams.md#2-use-case-diagram));
     - Убедиться, что все требования понятны и реализуемы.
     
     **Выходные данные:**
