@@ -172,5 +172,5 @@ nav:
       - Домашнее задание №8: modules/devops/gitlab_ci/home_work2.md
     - Vault:
       - Vault: modules/devops/vault/index.md
-    - ISEC: modules/devops/ipsec/index.md
+    - ISEC: modules/devops/isec/index.md
     - Итоговая самостоятельная работа: modules/devops/finish_work/index.md
