@@ -1,0 +1,3418 @@
+
+<!doctype html>
+<html lang="ru" class="no-js">
+  <head>
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    
+    
+    <meta name="author" content="Vladimir Penzin">
+    
+    
+    <link rel="canonical" href="https://github.com/ForceFledgling/ForceFledgling/modules/devops/linux/shell/">
+    
+    
+    <link rel="prev" href="../connect/">
+    
+    
+    <link rel="next" href="../home_work/">
+    
+    
+    <link rel="icon" href="../../../../assets/images/logo.svg">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.2.5">
+
+    <!-- Social meta -->
+    <meta property="og:title" content="NotiLog">
+    <meta property="og:type" content="website">
+
+    
+
+    <meta property="og:image" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/linux/shell/assets/images/preview.jpg">
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta property="og:url" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/linux/shell/">
+    <meta property="og:type" content="website">
+
+    
+      
+        <title>Основы Shell - Личные заметки</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../../assets/styles/extra.css">
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../../../.." title="Личные заметки" class="md-header__button md-logo" aria-label="Личные заметки" data-md-component="logo">
+      
+  <img src="../../../../assets/images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Личные заметки
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Основы Shell
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256l137.3-137.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Поиск">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Поделиться" aria-label="Поделиться" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Инициализация поиска
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ForceFledgling/ForceFledgling" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    github
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../.." class="md-tabs__link">
+          
+  
+  Главная
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../dev/" class="md-tabs__link">
+          
+  
+  Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../git/" class="md-tabs__link">
+          
+  
+  Git
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../python/" class="md-tabs__link">
+          
+  
+  Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  DevOps
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Личные заметки" class="md-nav__button md-logo" aria-label="Личные заметки" data-md-component="logo">
+      
+  <img src="../../../../assets/images/logo.svg" alt="logo">
+
+    </a>
+    Личные заметки
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ForceFledgling/ForceFledgling" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    github
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Главная
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Главная
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Главная
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../courses/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Каталог курсов
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Каталог заметок
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Dev
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Dev
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Жизненный цикл разработки ПО
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Жизненный цикл разработки ПО
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/apps/sdlc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SDLС (этапы, практики, методологии)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/apps/req/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Работа с требованиями (типы требований, DoD, DoR, декомпозиция и оценка)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/apps/cicd/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CI/CD (Continuous Integration и Continuous Delivery)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/apps/releases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Releases (типы, отличия)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/apps/agile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Управлению разработкой (Agile, Scrum, aтрибуты, Канбан)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/structures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Структуры данных и алгоритмы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/softdesign/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Software Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/arch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Архитектура
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/sysdesign/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/websec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web безопасность
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/qos/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обеспечение качества
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/performance/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Оптимизация и производительность
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/front/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Frontend Development
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/db/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Базы данных
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/softskills/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Soft Skills
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_14" id="__nav_2_14_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Прочее
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_14">
+            <span class="md-nav__icon md-icon"></span>
+            Прочее
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/other/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/other/diagrams/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Диаграммы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../dev/other/analizes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Анализы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Git
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Git
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../git/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Python
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Python
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Основы Python
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Основы Python
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/base/types-and-structures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Типы и структуры данных
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/base/iterators-generators/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Итераторы, генераторы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/base/context/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Менеджер контекста
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/base/exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Исключения
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    ООП в Python
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            ООП в Python
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Фреймворки и библиотеки
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            Фреймворки и библиотеки
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/libs/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Типы и различия
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/libs/web/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/libs/orm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ORM
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/libs/math/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Math
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/parallelizm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Многопоточность и асинхронность
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Логирование, мониторинг
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/db/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Базы данных
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_8" id="__nav_4_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Тестирование и контроль качества кода
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_8">
+            <span class="md-nav__icon md-icon"></span>
+            Тестирование и контроль качества кода
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/tests/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Пирамида тестирования и умение писать тесты
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/tests/linters/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pylint, Pytest, PEP-8, PEP-257
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Отладка и профилирование
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            Отладка и профилирование
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/debug/cython/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cython
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/debug/numba/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Numba
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/debug/points/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Условные точки останова
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/debug/trace/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Трассировка
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/debug/async/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Отладка многопоточного и асинхронного кода
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/debug/interpreter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Отладка на уровне интерпретатора
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    DevOps
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            DevOps
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Вводный модуль
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Linux
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            Linux
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../connect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Подключение к ВМ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Основы Shell
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №1
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Инструменты командной строки Linux
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            Инструменты командной строки Linux
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux_tools/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Инструменты командной строки Linux
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../linux_tools/home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Ansible
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            Ansible
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ansible/part1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ansibe ч.1
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ansible/home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ansible/part2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ansible ч.2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ansible/part3/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ansible ч.3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Наблюдаемость
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_5">
+            <span class="md-nav__icon md-icon"></span>
+            Наблюдаемость
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visiblity/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Наблюдаемость
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visiblity/home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №4
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_6" id="__nav_5_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Docker
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_6">
+            <span class="md-nav__icon md-icon"></span>
+            Docker
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Docker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/home_work1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №5
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/compose/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Docker и Compose
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/home_work2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №6
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    GitLab CI
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_7">
+            <span class="md-nav__icon md-icon"></span>
+            GitLab CI
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gitlab_ci/part1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab CI Harbor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gitlab_ci/part2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab CI ч.2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gitlab_ci/home_work1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №7
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gitlab_ci/part3/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab CI ч.3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gitlab_ci/home_work2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №8
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Vault
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_8">
+            <span class="md-nav__icon md-icon"></span>
+            Vault
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vault
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ipsec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ISEC
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../finish_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Итоговая самостоятельная работа
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/ForceFledgling/ForceFledgling/blob/main/docs/modules/devops/linux/shell.md" title="Редактировать страницу" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="_1">Настройка ВМ</h1>
+<p>Установим основные пакеты, для этого сначала обновим локальную базу данных пакетного менеджера <strong>apt</strong>:</p>
+<div class="highlight"><pre><span></span><code>sudo apt update
+</code></pre></div>
+<p>Мы запустили <code>apt update</code> при помощи программы <code>sudo</code>, она позволяет выполнять команды как суперпользователь: пользователь с максимальными привилегиями в ОС.</p>
+<h1 id="_2">О повышении привилегий</h1>
+<p>В Linux есть три типа пользователей — суперпользователь (<strong>root</strong>), системные и стандартные. Различие между стандартными и системными пользователями больше организационное, дистрибутивы Linux резервируют диапазоны UID для служб и конкретные ID для некоторых сервисов, например, <a href="https://www.debian.org/doc/debian-policy/ch-opersys.html#uid-and-gid-classes">Debian</a>.  </p>
+<p>Суперпользователь имеет больше привилегий: он может редактировать системные файлы, запускать сервера на защищенных портах, трассировать системные вызовы других процессов и т. д. Поэтому для настройки наших ВМ мы часто будем использовать <strong>sudo</strong> с различными аргументами.</p>
+<h2 id="sudo">sudo</h2>
+<p>sudo — программа для повышения привилегий, которая используется во всех современных дистрибутивах Linux. Поддерживает гибкую настройку: указание пользователей и групп, которым доступно повышение привилегий, ограничение запускаемых команд и т. д.  </p>
+<p>Часто используемые аргументы:<br />
+<code>sudo -- COMMAND</code> — запустить одну команду как суперпользователь;<br />
+<code>sudo -u USER -- COMMAND</code> — запустить одну команду как пользователь USER;<br />
+<code>sudo -i</code> — запустить терминал как суперпользователь, выполнив скрипты инициализации, которые выполняются при обычном входе пользователя в систему.  </p>
+<p>Другие опции sudo, как и множества других системных утилит, можно посмотреть командой man sudo. Также существует утилита su, которая аналогично выполнять команды как суперпользователь или другой пользователь, но мы не будем пользоваться su, так как:<br />
+</p>
+<ol>
+<li>su требует пароль от root, а не от пользователя запускающего команду; довольно часто пользователю root не задают пароль или деактивируют его, что не позволяет использовать su;</li>
+<li>sudo поддерживает более тонкую настройку;</li>
+<li>sudo логирует выполненные команды, что упрощает отладку.</li>
+</ol>
+<p>Для настройки sudo используйте команду visudo: она открывает конфиг sudo в редакторе и валидирует его при закрытии. Это важно, т.к. при некорректном конфиге sudo вы не сможете повысить свои привилегии чтобы исправить конфиг. Вы можете изменить редактор, используемый visudo указав переменную EDITOR:</p>
+<div class="highlight"><pre><span></span><code>sudo EDITOR=nano visudo
+</code></pre></div>
+<h1 id="_3">Установка утилит</h1>
+<p>Установим систему контейнеризации Docker:</p>
+<div class="highlight"><pre><span></span><code>sudo apt install docker.io docker-compose
+</code></pre></div>
+<p>Добавим своего пользователя в группу docker, чтобы использовать docker без sudo:</p>
+<div class="highlight"><pre><span></span><code>sudo gpasswd -a $USER docker
+</code></pre></div>
+<p>Так не рекомендуется делать на промышленных серверах, т.к. любой пользователь в группе docker может изменить системные файлы и получить права суперпользователя, мы сделали это здесь для простоты.  </p>
+<p>Также включим docker при старте системы:</p>
+<div class="highlight"><pre><span></span><code>sudo systemctl enable --now docker.service
+</code></pre></div>
+<p>systemctl — это утилита для управления службами — программами запускаемыми при старте системы без участия пользователя. Например так запущен сервер SSH, при помощи которого мы подключены к ВМ. Мы не будем останавливаться на systemd и systemctl подробно, т.к. docker сам умеет запускать контейнеры при старте системы. Вышеуказанная команда включает запуск службы при старте системы и запускает ее прямо сейчас.  </p>
+<p>Установим Ansible:</p>
+<div class="highlight"><pre><span></span><code>sudo apt-add-repository --update ppa:ansible/ansible
+sudo apt install ansible
+</code></pre></div>
+<p>Первой командой мы добавили приватный репозиторий (PPA) ansible.  </p>
+<p>Установим остальные утилиты:</p>
+<div class="highlight"><pre><span></span><code>sudo apt install git curl jq
+</code></pre></div>
+<h2 id="systemd">systemd</h2>
+<p>Приведем небольшую справку по командам systemd  </p>
+<p>systemctl status SERVICE — просмотреть статус службы;<br />
+systemctl start SERVICE — запустить службу;<br />
+systemctl enable --now SERVICE — включить и запустить службу;<br />
+systemctl list-units — вывести список всех служб;<br />
+systemctl list-units --failed — вывести список упавших служб;<br />
+journalctl -b0 — вывести системные логи с момента включения системы;<br />
+journalctl -eu SERVICE — вывести логи конкретного сервиса, перейдя в конец логов;<br />
+journalctl -feu SERVICE — отслеживать логи сервиса;  </p>
+<p>Аналогично полную справку по командам можно посмотреть командами man systemctl и man jounrnalctl.</p>
+<h1 id="ide">Настройка локальной IDE</h1>
+<p>На следующих занятиях мы будем писать довольно много кода, поэтому сразу настроим локальную IDE. Мы предлагаем настроить VSCode с расширением Remote - SSH, чтобы работать из VSCode сразу на ВМ.  </p>
+<p>На Windows/MacOS установите VSCode с <a href="https://code.visualstudio.com/">официального сайта</a>.<br />
+На Windows используйте системный инсталлятор, если у вас есть права администратора.<br />
+На Linux используйте свой пакетный менеджер или Flatpak, или Snap.  </p>
+<p>На Windows установите OpenSSH клиент командой в терминале PowerShell:</p>
+<div class="highlight"><pre><span></span><code>Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+</code></pre></div>
+<h2 id="_4">Расширения</h2>
+<p>Откройте меню расширений (CTRL+SHIFT+X) и установите следующие расширения. Указанные в скобках идентификаторы расширений можно скопировать в строку поиска:<br />
+</p>
+<ol>
+<li>Remote - SSH (ms-vscode-remote.remote-ssh)</li>
+<li>Docker (ms-azuretools.vscode-docker)</li>
+<li>Ansible (redhat.ansible)</li>
+<li>YAML (redhat.vscode-yaml)</li>
+</ol>
+<p>Затем откройте панель команд (F1, CTRL+SHIFT+P или COMMAND+SHIFT+P на MacOS), найдите в ней Remote - SSH: Open SSH Configuration File…:</p>
+<p>В открывшемся конфиге введите параметры хоста:</p>
+<div class="highlight"><pre><span></span><code>Host teta-devops-1
+  HostName VM1_PUBLIC_ADDRESS
+  User student
+  IdentityFile /path/to/student.pem
+
+Host teta-devops-2
+  HostName VM2_PRIVATE_ADDRESS
+  User student
+  IdentityFile /path/to/student.pem
+  ProxyJump student@teta-devops-1
+</code></pre></div>
+<p>Вместо VM1_PUBLIC_ADDRESS укажите присланный вам публичный IP первой виртуальной машины, также вы можете указать настройки подключения ко второй ВМ, указав в качестве адреса ее приватный адрес и задав директиву ProxyJump, чтобы подключение происходило через первую ВМ.  </p>
+<p>Затем откройте панель команд, найдите Remote-SSH: Connect to Host…<br />
+В выпадающем меню выберите первый хост.</p>
+<h1 id="shell">Shell</h1>
+<p>В дальнейшем мы часто будем использовать Shell чтобы писать Dockerfile и скрипты в пайплайнах GitLab CI, поэтому дадим краткую вводную. Более подробную информацию можно найти здесь:<br />
+<a href="https://www.gnu.org/software/bash/manual/html_node/index.html">Справочник по Bash</a>;<br />
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html">Справочник по POSIX Shell</a>;<br />
+<a href="https://shellhaters.org/">Справочник по стадартным утилитам Shell</a>.  </p>
+<p>Мы не будем рассматривать расширения Bash и Zsh, т.к. из-за распространения Docker-образов на базе Alpine Linux, вы часто будете встречаться с оболочкой Ash, которая не поддерживает большинство расширений.</p>
+<h1 id="_5">Команды</h1>
+<p>Shell воспринимает на вход строки, состоящие из слов, разделенных пробелами, в такой строке первое слово — это команда (исполняемый файл или встроенная в Shell команда), остальные слова передаются этой команде как аргументы, в виде последовательности слов.  </p>
+<p>Введите в терминал на своей ВМ следующую команду:</p>
+<div class="highlight"><pre><span></span><code>echo Hello World
+</code></pre></div>
+<p>echo — встроенная команда, которая выводит переданные ей аргументы, разделяя их пробелом. Теперь вставьте несколько пробелов между Hello и World:</p>
+<div class="highlight"><pre><span></span><code>echo Hello     World
+</code></pre></div>
+<p>Вы заметите, что вывод не изменился, т.к. Shell распознала команду как последовательность echo, Hello, World и передала в echo аргументы Hello и World. Все наши пробелы были отброшены при чтении команды.<br />
+Чтобы писать в аргументах зарезервированные Shell символы используют кавычки и экранирование:</p>
+<div class="highlight"><pre><span></span><code>echo Hello\ \ World
+</code></pre></div>
+<p>Указав перед пробелом символ \ мы экранировали пробел — указали Shell, что этот пробел нужно воспринимать как пробел, а не как разделитель аргументов. Аналогичный результат можно получить при помощи одинарных ' и двойных " кавычек:</p>
+<div class="highlight"><pre><span></span><code>echo &#39;Hello  World&#39;
+echo &quot;Hello  World&quot;
+</code></pre></div>
+<p>В отличие от, например, Python кавычки не взаимозаменяемы. В строках, заключенных в двойные кавычки можно использовать переменные и подстановку команд. Сравните вывод:</p>
+<div class="highlight"><pre><span></span><code>echo &quot;${HOME}&quot;
+echo &#39;${HOME}&#39;
+</code></pre></div>
+<p>Таким образом можно экранировать в том числе символ переноса строки, чтобы писать многострочные команды:</p>
+<div class="highlight"><pre><span></span><code>echo Hello\ \
+World
+</code></pre></div>
+<h1 id="_6">Переменные</h1>
+<p>Shell, как и большинство языков программирования поддерживает переменные. Чтобы создать переменную с именем MYVARнапишите следующее:</p>
+<div class="highlight"><pre><span></span><code>MYVAR=value
+</code></pre></div>
+<p>Обратите внимание на отсутствие пробелов, если написать пробелы около =, то Shell воспримет MYVAR как команду и попытается ее выполнить. В значениях переменных аналогично можно использовать кавычки и экранирование:</p>
+<div class="highlight"><pre><span></span><code>MYVAR=&quot;value a&quot;
+MYVAR=&#39;value b&#39;
+MYVAR=value\ c
+</code></pre></div>
+<p>Чтобы воспользоваться значением переменной воспользуемся оператором подстановки $:</p>
+<div class="highlight"><pre><span></span><code>MY_MESSAGE=&#39;Hello World&#39;
+echo $MY_MESSAGE
+echo ${MY_MESSAGE}
+echo &quot;$MY_MESSAGE&quot;
+echo &quot;${MY_MESSAGE}&quot;
+</code></pre></div>
+<p>Отличие синтаксиса $VAR от ${VAR} в том, что мы можем написать символ, который мог входить в имя переменной, сразу же после подстановки:</p>
+<div class="highlight"><pre><span></span><code>MY_MESSAGE=&#39;Hello World&#39;
+echo &quot;${MY_MESSAGE}X&quot;
+echo $MY_MESSAGEX
+</code></pre></div>
+<p>Обратите внимание, что вторая команда echo не привела к ошибке — по умолчанию в Shell подстановка значения несуществующей переменной возвращает пустую строку.  </p>
+<p>В Shell все переменные имеют строковый тип, для выполнения числовых операций или для работы с последовательностями некоторые команды интерпретируют свои аргументы как числа или последовательности, возвращая ошибку если это невозможно.  </p>
+<p>Например программа expr может вычислять арифметические выражения:</p>
+<div class="highlight"><pre><span></span><code>expr 1 + 2
+expr ( 1 + 2 ) &#39;*&#39; 3
+</code></pre></div>
+<p>Если передать в качестве одного из аргументов строку, Shell не вернет ошибку, вместо этого ошибку вернет expr:</p>
+<div class="highlight"><pre><span></span><code>VAR=sss
+expr $VAR + 2
+</code></pre></div>
+<p>readonly NAME=VALUE запрещает повторные присваивания к переменной NAME</p>
+<h1 id="_7">Переменные окружения</h1>
+<p>Разработчикам знаком концепт переменных окружения, это строковые переменные, передаваемые ОС при старте процесса.  </p>
+<p>Чтобы сделать обычную переменную Shell переменной окружения используйте команду export:</p>
+<div class="highlight"><pre><span></span><code>VAR_1=value_1
+VAR_2=value_2
+export VAR_1 VAR_2
+</code></pre></div>
+<p>или</p>
+<div class="highlight"><pre><span></span><code>export VAR_1=value_1 VAR_2=value_2
+</code></pre></div>
+<p>Переменные окружения передаются всем программам, запускаемым в оболочке, удостоверимся, что переменные заданы при помощи env:</p>
+<div class="highlight"><pre><span></span><code>env | grep --extended-regexp &#39;^(VAR_1|VAR_2)=&#39; -
+</code></pre></div>
+<p>Также переменную окружения можно задать для конкретной команды:</p>
+<div class="highlight"><pre><span></span><code>X=Y sh -c &#39;echo $X&#39;
+</code></pre></div>
+<p>Аналогично, можем воспользоваться программой env:</p>
+<div class="highlight"><pre><span></span><code>env X=Y sh -c &#39;echo $X&#39;
+</code></pre></div>
+<p>При помощи env --ignore-environment (env -i) можно запустить команду в чистом окружении:</p>
+<div class="highlight"><pre><span></span><code>env --ignore-environment X=Y
+</code></pre></div>
+<h1 id="_8">Подстановка ~</h1>
+<p>Если аргумент начинается с ~, то ~ заменяется на абсолютный путь к домашней директории текущего пользователя:</p>
+<div class="highlight"><pre><span></span><code>echo ~/.ssh
+echo 1~
+echo &quot;~/.ssh&quot;
+</code></pre></div>
+<h1 id="_9">Подстановочные шаблоны</h1>
+<p>Внимательный глаз заметит, что в предыдущем разделе мы закавычили символ *. Мы сделали это т.к. * — символ, входящий в подстановочные шаблоны Shell.  </p>
+<p>Подстановочный шаблон — это аргумент Shell, который при чтении команды заменяется на последовательность путей файловой системы по определенным правилам. Строка является шаблоном, если содержит символ *, ? или [.  </p>
+<p>Чаще всего используются *, ?:<br />
+* — соответствует любой, в том числе пустой, строке;<br />
+? — соответствует одному символу;<br />
+Другие шаблоны см. в man 7 glob.  </p>
+<p>Например:</p>
+<div class="highlight"><pre><span></span><code>echo ~/*.txt
+</code></pre></div>
+<p>Выведет имена всех нескрытых текстовых файлов в домашней директории.</p>
+<div class="highlight"><pre><span></span><code>echo ?
+</code></pre></div>
+<p>Выведет имена всех нескрытых файлов или папок, состоящих из одного символа.</p>
+<h1 id="_10">Потоки ввода—вывода</h1>
+<p>Все программы имеют три стандартных потока ввода-вывода, предоставляемых ОС:<br />
+stdin (0) — стандартный поток ввода;<br />
+stdout (1) — стандартный поток вывода;<br />
+stderr (2) — стандартный поток ошибок;  </p>
+<p>Программы могут использовать эти потоки чтобы общаться с другими программами и получать ввод от пользователя. В повседневной разработке мы не используем эти потоки активно, т.к. часто наши программы общаются по сети или через файлы, получают ввод из событий клавиатуры/мыши/сенсорных экранов, но в Shell эти потоки — основное средство коммуникации между командами.  </p>
+<p>Большинство консольных утилит работают так: читают данные из stdin, обрабатывают в соответствие с аргументами, выводят в stdout, сообщения о возникающих ошибках выводят в stderr.  </p>
+<p>Мы можем перенаправить все стандартные потоки, т. е. подменить откуда команда получает свой ввод или вывод. Например для поиска подстроки ERROR в файле service.log при помощи grep можно написать следующее:</p>
+<div class="highlight"><pre><span></span><code>grep --fixed-strings ERROR &lt;service.log
+</code></pre></div>
+<p>Здесь \&lt; — оператор перенаправления ввода. Вышеуказанная команда говорит использовать как stdin файл service.log вместо терминала.  </p>
+<p>Чтобы потом сохранить найденные строки в файл search.log напишем следующее:</p>
+<div class="highlight"><pre><span></span><code>grep --fixed-strings ERROR &lt;service.log &gt;search.log
+</code></pre></div>
+<p>\&lt; — оператор перенаправления вывода. Он говорит использовать как stdout файл search.log вместо терминала. При этом файл будет создан, если не существует. Если же такой файл существует, то команда не запустится и вернет ошибку. Используйте &gt;| чтобы перезаписать файл. Чтобы не перетирать файл следует использовать &gt;&gt; — этот оператор запишет вывод в конец файла, если файл существует.  </p>
+<p>По умолчанию операторы перенаправления вывода используют stdout, чтобы перенаправить другой поток, например stderr, укажите его номер перед оператором:</p>
+<div class="highlight"><pre><span></span><code>grep --fixed-strings ERROR &lt;service.log 2&gt;&gt;errors.log
+</code></pre></div>
+<p>Также можно явно указать, что весь вывод должен направляться в один поток:<br />
+stdout: 2&gt;&amp;1<br />
+stderr: 1&gt;&amp;2<br />
+Чтобы заглушить вывод команды можно воспользоваться специальным файлом /dev/null:</p>
+<div class="highlight"><pre><span></span><code>grep --fixed-strings ERROR &lt;service.log &amp;&gt;/dev/null
+</code></pre></div>
+<h1 id="_11">Результат выполнения команд</h1>
+<p>Все программы после выхода передают в родительский процесс целое число — код выхода. 0 означает успех, остальные коды отведены под различные виды ошибок. Значение ненулевых кодов зависит от конкретной программы.  </p>
+<p>В Shell этот код выхода последней команды сохраняется в специальную переменную $?:</p>
+<div class="highlight"><pre><span></span><code>echo Hello World
+echo $?
+</code></pre></div>
+<p>Код выполнения команды можно инвертировать при помощи !:</p>
+<div class="highlight"><pre><span></span><code>! false
+echo $?
+</code></pre></div>
+<p>false — встроенная команда, которая всегда возвращает 1</p>
+<h1 id="_12">Группировка команд</h1>
+<p>Как несложно догадаться, чтобы запустить несколько команд в одном скрипте, достаточно написать их на разных строках:</p>
+<div class="highlight"><pre><span></span><code>echo 1
+echo 2
+</code></pre></div>
+<p>Вместо перевода строки можно использовать символ ;</p>
+<div class="highlight"><pre><span></span><code>echo 1 ; echo 2
+</code></pre></div>
+<p>Оба этих варианта запустят указанные команды последовательно. Shell поддерживает два оператора группировки команд:</p>
+<div class="highlight"><pre><span></span><code>{ echo 1 ; echo 2 ; }
+</code></pre></div>
+<p>запускает команды в текущем окружении оболочки, все присвоенные переменные и настройки оболочки сохранятся вне группы;</p>
+<div class="highlight"><pre><span></span><code>( echo 1 ; echo 2 )
+</code></pre></div>
+<p>запускает команды в отдельной <em>под-оболочке</em>, переменные и настройки не сохранятся.<br />
+Например, мы можем перенаправить вывод обеих команд в файл:</p>
+<div class="highlight"><pre><span></span><code>{ echo 1 ; echo 2 ; } &gt;log.txt
+</code></pre></div>
+<p>Или включить режим трассировки (вывода выполняемых команд) для отдельной команды:</p>
+<div class="highlight"><pre><span></span><code>(set -x ; grep --fixed-strings ERROR &lt;server.log | wc --lines)
+</code></pre></div>
+<p>Если мы воспользуемся { set -x; … }, то этот режим останется включенным после выхода из группы.  </p>
+<p>Также в Shell заданы условные операторы группировки &amp;&amp; (логическое И) и || (логическое ИЛИ):<br />
+command1 &amp;&amp; command2 — вторая команда запустится, если первая завершится успешно;<br />
+command1 || command2 — вторая команда запустится, если первая завершится с ошибкой;<br />
+Этими операторами можно симулировать условия, не стоит так делать, т.к. это существенно ухудшает читаемость.</p>
+<h1 id="_13">Цепочки команд</h1>
+<p>Для сложной обработки данных в Shell часто применяют несколько команд последовательно к одному вводу, например чтобы посчитать число строк с ошибками в логе:</p>
+<div class="highlight"><pre><span></span><code>grep --fixed-strings ERROR &lt;service.log &gt;result_1
+wc --lines &lt;result_1
+</code></pre></div>
+<p>Такую громоздкую запись можно заменить на:</p>
+<div class="highlight"><pre><span></span><code>grep --fixed-strings ERROR &lt;service.log | wc --lines
+</code></pre></div>
+<p>Здесь | — оператор сцепления команд, он перенаправляет stdout левой в stdin правой.  </p>
+<p>Код выхода цепочки — это код выхода последней команды в цепочке. Этот код также можно инвертировать при помощи !.<br />
+Каждая команда в цепочке выполняется в отдельной <em>под-оболочке</em>, присвоенные переменные и настройки не сохранятся.</p>
+<h1 id="_14">Подстановки</h1>
+<p>Подстановка переменных  </p>
+<p>Рассмотрим расширенный синтаксис подстановки переменных:<br />
+${parameter:-word} — подстановка с значением по умолчанию. Если parameter не задан или пуст, то подставляется word;  </p>
+<p>${parameter:+word} — подстановка с альтернативным значением. Если parameter не задан или пуст, то подставляется пустая строка, иначе подставляется word.  </p>
+<p>Остальные подстановки см. в <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_06_02">документации</a>.  </p>
+<p>Подстановка команд  </p>
+<p>Аналогично значениям переменных мы можем подставлять stdout команд при помощи $():</p>
+<div class="highlight"><pre><span></span><code>echo $(echo 1)
+X=$(echo 2)
+</code></pre></div>
+<p>Подставляемые команды запускаются в <em>под-оболочке</em>, аналогично группе ().  </p>
+<p>Арифметическая подстановка<br />
+Выражения внутри $(()) воспринимаются как целочисленные арифметические выражения:</p>
+<div class="highlight"><pre><span></span><code>echo $(( 1 + 3 ))
+</code></pre></div>
+<h1 id="_15">Асинхронные команды</h1>
+<p>Shell поддерживает запуск команд в фоне при помощи оператора &amp;:</p>
+<div class="highlight"><pre><span></span><code>command &amp;
+</code></pre></div>
+<p>ID процесса (PID) последней фоновой команды сохраняется в специальную переменную $!, мы можем запомнить значение этой переменной, чтобы дождаться результата выполнения команды:</p>
+<div class="highlight"><pre><span></span><code>command &amp;
+command_pid=$!
+# do something...
+wait $command_pid
+</code></pre></div>
+<p>При вызове wait без аргументов команда дожидается выполнения всех асинхронно запущенных команд.</p>
+<h1 id="_16">Условия</h1>
+<p>if-then-else-fi</p>
+<div class="highlight"><pre><span></span><code>if command1
+then
+    command2
+elif command3
+then
+    command4
+else
+    command5
+fi
+</code></pre></div>
+<p>Если command1 завершается успешно, то выполняется command2 и т. д.  </p>
+<p>Для проверки простых условий используется встроенная команда [ (test):</p>
+<div class="highlight"><pre><span></span><code>VERBOSE=1
+
+grep --quiet --fixed-strings ERROR &lt;server.log
+if [ $VERBOSE -eq 1 ] &amp;&amp; [ $? -eq 0 ]
+then
+    echo &#39;found errors in server.log&#39;
+fi
+</code></pre></div>
+<p>или</p>
+<div class="highlight"><pre><span></span><code>VERBOSE=1
+
+if [ $VERBOSE -eq 1 ] &amp;&amp; grep --quiet --fixed-strings ERROR &lt;server.log
+then
+    echo &#39;found errors in server.log&#39;
+</code></pre></div>
+<p>Аргументы команды [ см. в man test.</p>
+<p>case</p>
+<p>В Shell есть оператор множественного выбора case (аналог switch-case или match):</p>
+<div class="highlight"><pre><span></span><code>case word in
+    pattern1)
+        command1
+        ;;
+    pattern2)
+        command2
+        ;;
+    pattern3)
+        command3
+esac
+</code></pre></div>
+<p>Здесь word — это строка, чаше всего результат подстановки. Синтаксис шаблонов совпадает с <a href="http://mts-teta.team/members/courses/course274778694235/linux-i-shell-388256221905#%D0%BF%D0%BE%D0%B4%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BE%D1%87%D0%BD%D1%8B%D0%B5-%D1%88%D0%B0%D0%B1%D0%BB%D0%BE%D0%BD%D1%8B">подстановочными шаблонами</a>.<br />
+Пример:</p>
+<div class="highlight"><pre><span></span><code>case $BASE-$VARIANT in
+    *-pypy)
+        SUFFIX=pypy-$DEBIAN_VERSION
+        ;;
+    debian-python)
+        SUFFIX=$DEBIAN_VERSION
+        ;;
+    alpine-python)
+        SUFFIX=alpine
+        ;;
+    *)
+        echo &#39;unknown variant&#39;
+        exit 1
+esac
+
+export SUFFIX
+</code></pre></div>
+<h1 id="_17">Циклы</h1>
+<p>for</p>
+<div class="highlight"><pre><span></span><code>for name in word1 word2 word3
+do
+    command
+done
+</code></pre></div>
+<p>word должно раскрываться в последовательность строк. Каждый элемент присваивается переменной name, затем выполняются команды в блоке do … done.  </p>
+<p>Пример:</p>
+<div class="highlight"><pre><span></span><code>for i in 1 2 3 4 5
+do
+    echo &quot;i = $i&quot;
+done
+
+for i in &quot;1 2 3 4 5&quot;
+do
+    echo &quot;i = $i&quot;
+done
+
+list=$(printf &#39;1\n2\n3\n4\n5&#39;)
+for i in $listte
+do
+    echo &quot;i = $i&quot;
+done
+</code></pre></div>
+<p>while</p>
+<div class="highlight"><pre><span></span><code>while command1
+do
+    command2
+done
+</code></pre></div>
+<p>Операторы раннего выхода  </p>
+<p>Shell поддерживает операторы раннего выхода из цикла break и continue:<br />
+break — завершает цикл<br />
+continue — переходит к следующей итерации  </p>
+<p>Пример:</p>
+<div class="highlight"><pre><span></span><code>for i in ~/*.txt
+do
+    size=$(stat -c %s &quot;$i&quot;)
+    if [ &quot;$size&quot; -ne &quot;10000&quot; ]; then
+        continue
+    fi
+done
+</code></pre></div>
+<h1 id="_18">Функции</h1>
+<p>Shell поддерживает группировку кода в функции:</p>
+<div class="highlight"><pre><span></span><code>function_name() {
+
+}
+</code></pre></div>
+<p>Аргументы функции передаются при помощи специальных переменных:<br />
+$@ — аргументы в виде списка;<br />
+$* — аргументы в виде строки;<br />
+$# — число аргументов;<br />
+$n — один аргумент (n &gt;= 1);  </p>
+<p>Также для работы с аргументами используют оператор shift, который сдвигает все аргументы на один влево, поглощая первый аргумент.  </p>
+<p>Внутри функций также доступна команда return EXIT_CODE, которая завершает функцию с указанным кодом выхода. Если код не указан, то он равен нулю.  </p>
+<p>Пример:</p>
+<div class="highlight"><pre><span></span><code>join_by() {
+    if [ &quot;$#&quot; -eq 0 ]; then
+        return
+    fi
+
+    delimiter=&quot;$1&quot;
+    shift
+
+    while [ &quot;$#&quot; -gt 1 ]; do
+        printf &#39;%s%b&#39; &quot;$1&quot; &quot;$delimiter&quot;
+        shift
+    done
+    printf &#39;%s&#39; &quot;$1&quot;
+}
+</code></pre></div>
+<h1 id="_19">Инструменты</h1>
+<p>При написании скриптов следует использовать следующие инструменты:<br />
+shellcheck — статический анализатор Shell скриптов;<br />
+shfmt — форматировщик скриптов;  </p>
+<p>VSCode  </p>
+<p>Для VSCode следует использовать следующие плагины:<br />
+shell-format (foxundermoon.shell-format)<br />
+ShellCheck (timonwong.shellcheck)</p>
+<h1 id="_20">Скрипты</h1>
+<p>Мы будем начинать все скрипты так:</p>
+<div class="highlight"><pre><span></span><code>#!/bin/sh
+# shellcheck shell=sh
+set -eu
+</code></pre></div>
+<ol>
+<li>
+<h1 id="binsh">!/bin/sh — директива, указывающая команду, которой следует запускать исполняемый файл;</h1>
+</li>
+<li># shellcheck shell=sh — директива ShellCheck, указывающая диалект Shell использующийся при проверке;</li>
+<li>set -eu — устанавливаем опции Shell</li>
+<li>-e — включает мгновенный выход при неуспешном завершении любой команды;</li>
+<li>-u — подстановка незаданных переменных приводит к ошибке;</li>
+<li>Другие опции Shell смотри в man set;</li>
+<li>При отладке следует использовать set -x, эта опция включает трассировку команд.</li>
+</ol>
+<h1 id="_21">Примеры</h1>
+<p>Считаем размер всех текстовых файлов в домашней директории:</p>
+<div class="highlight"><pre><span></span><code>#!/bin/sh
+# shellcheck shell=sh
+set -eu
+
+total_size() {
+    total=0
+
+    while read -r p; do
+        size=$(stat -c %s &quot;$p&quot;)
+        total=$((total + ${size:-0}))
+    done
+
+    echo $total
+}
+
+find ~ -type f -iname &#39;*.txt&#39; | total_size
+</code></pre></div>
+<p>Выводим число запущенных программ:</p>
+<div class="highlight"><pre><span></span><code>#!/bin/sh
+# shellcheck shell=sh
+set -eu
+
+format_executable() {
+    tr &#39;\0&#39; &#39;\n&#39; | sed -e &#39;s:[\n\t ]:\n:g&#39; | head -n 1 | tr &#39;/&#39; &#39;\n&#39; | tail -n 1
+}
+
+list_executables() {
+    for p in /proc/*/cmdline; do
+        if [ &quot;$p&quot; = &quot;/proc/self/cmdline&quot; ] || [ &quot;$p&quot; = &quot;/proc/thread-self/cmdline&quot; ]; then
+            continue
+        fi
+
+        executable=$(format_executable &lt;&quot;$p&quot;)
+        if [ -n &quot;$executable&quot; ]; then
+            echo &quot;$executable&quot;
+        fi
+    done
+}
+
+list_executables | sort | uniq -c | sort -n -r -k 1
+</code></pre></div>
+<h1 id="_22">Домашнее задание</h1>
+<p>Безопасность ВМ — УЗ</p>
+<ol>
+<li>Сгенерируйте новый ssh ключ</li>
+<li>Создайте нового персонального пользователя на ВМ</li>
+<li>Добавьте к новому пользователю публичную часть ключа</li>
+<li>Добавите пользователя в группу wheel, sudo</li>
+</ol>
+<p>Безопасность ВМ — Сеть</p>
+<p>Проверьте, что нет работающих сетевых сервисов, о которых вы не знаете</p>
+<p>Полезные команды</p>
+<p>useradd, usermod, gpasswd, vim, nano, ssh-keygen, cat<br />
+политика nopassword: user_name ALL=(ALL) NOPASSWD:ALL</p>
+<h1 id="_23">Как сдавать</h1>
+<p>Выполнение домашнего задания займет около 2-х часов<br />
+Домашнее задание нужно выполнять на вторых машинах  </p>
+<p>Дедлайн<br />
+Задание нужно выполнить до второй практики  </p>
+<p>◉ После выполнения задания напишите в чат своего преподавателя по практике «Я выполнил (а) задание, готов (а) к проверке»</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  К началу
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Нижний колонтитул" >
+        
+          
+          <a href="../connect/" class="md-footer__link md-footer__link--prev" aria-label="Назад: Подключение к ВМ">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256l137.3-137.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Назад
+              </span>
+              <div class="md-ellipsis">
+                Подключение к ВМ
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../home_work/" class="md-footer__link md-footer__link--next" aria-label="Вперед: Домашнее задание №1">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Вперед
+              </span>
+              <div class="md-ellipsis">
+                Домашнее задание №1
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      2024, Vladimir Penzin
+    </div>
+  
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://t.me/vpotd" target="_blank" rel="noopener" title="Vladimir Penzin on Telegram" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M248 8C111.033 8 0 119.033 0 256s111.033 248 248 248 248-111.033 248-248S384.967 8 248 8m114.952 168.66c-3.732 39.215-19.881 134.378-28.1 178.3-3.476 18.584-10.322 24.816-16.948 25.425-14.4 1.326-25.338-9.517-39.287-18.661-21.827-14.308-34.158-23.215-55.346-37.177-24.485-16.135-8.612-25 5.342-39.5 3.652-3.793 67.107-61.51 68.335-66.746.153-.655.3-3.1-1.154-4.384s-3.59-.849-5.135-.5q-3.283.746-104.608 69.142-14.845 10.194-26.894 9.934c-8.855-.191-25.888-5.006-38.551-9.123-15.531-5.048-27.875-7.717-26.8-16.291q.84-6.7 18.45-13.7 108.446-47.248 144.628-62.3c68.872-28.647 83.183-33.623 92.511-33.789 2.052-.034 6.639.474 9.61 2.885a10.45 10.45 0 0 1 3.53 6.716 43.8 43.8 0 0 1 .417 9.769"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/ForceFledgling" target="_blank" rel="noopener" title="Vladimir Penzin on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["content.action.edit", "navigation.tabs", "navigation.tabs.sticky", "navigation.footer", "navigation.instant.progress", "navigation.top", "search.highlight", "search.share"], "search": "../../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>

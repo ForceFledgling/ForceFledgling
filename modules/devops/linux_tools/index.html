@@ -1,0 +1,3427 @@
+
+<!doctype html>
+<html lang="ru" class="no-js">
+  <head>
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    
+    
+    <meta name="author" content="Vladimir Penzin">
+    
+    
+    <link rel="canonical" href="https://github.com/ForceFledgling/ForceFledgling/modules/devops/linux_tools/">
+    
+    
+    <link rel="prev" href="../linux/home_work/">
+    
+    
+    <link rel="next" href="home_work/">
+    
+    
+    <link rel="icon" href="../../../assets/images/logo.svg">
+    <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.2.5">
+
+    <!-- Social meta -->
+    <meta property="og:title" content="NotiLog">
+    <meta property="og:type" content="website">
+
+    
+
+    <meta property="og:image" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/linux_tools/assets/images/preview.jpg">
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta property="og:url" content="https://github.com/ForceFledgling/ForceFledgling/modules/devops/linux_tools/">
+    <meta property="og:type" content="website">
+
+    
+      
+        <title>Инструменты командной строки Linux - Личные заметки</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/styles/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#linux" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../../.." title="Личные заметки" class="md-header__button md-logo" aria-label="Личные заметки" data-md-component="logo">
+      
+  <img src="../../../assets/images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Личные заметки
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Инструменты командной строки Linux
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256l137.3-137.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Поиск">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Поделиться" aria-label="Поделиться" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Инициализация поиска
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ForceFledgling/ForceFledgling" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    github
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../.." class="md-tabs__link">
+          
+  
+  Главная
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dev/" class="md-tabs__link">
+          
+  
+  Dev
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../git/" class="md-tabs__link">
+          
+  
+  Git
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../python/" class="md-tabs__link">
+          
+  
+  Python
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  DevOps
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Навигация" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Личные заметки" class="md-nav__button md-logo" aria-label="Личные заметки" data-md-component="logo">
+      
+  <img src="../../../assets/images/logo.svg" alt="logo">
+
+    </a>
+    Личные заметки
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ForceFledgling/ForceFledgling" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    github
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Главная
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Главная
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Главная
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../courses/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Каталог курсов
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Каталог заметок
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Dev
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Dev
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Жизненный цикл разработки ПО
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Жизненный цикл разработки ПО
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/apps/sdlc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SDLС (этапы, практики, методологии)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/apps/req/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Работа с требованиями (типы требований, DoD, DoR, декомпозиция и оценка)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/apps/cicd/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CI/CD (Continuous Integration и Continuous Delivery)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/apps/releases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Releases (типы, отличия)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/apps/agile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Управлению разработкой (Agile, Scrum, aтрибуты, Канбан)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/structures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Структуры данных и алгоритмы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/softdesign/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Software Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/arch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Архитектура
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/sysdesign/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/websec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web безопасность
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/qos/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обеспечение качества
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/performance/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Оптимизация и производительность
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/front/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Frontend Development
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/db/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Базы данных
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/softskills/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Soft Skills
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_14" id="__nav_2_14_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Прочее
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_14">
+            <span class="md-nav__icon md-icon"></span>
+            Прочее
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/other/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/other/diagrams/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Диаграммы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/other/analizes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Анализы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Git
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Git
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../git/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Python
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Python
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Обзор
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Основы Python
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Основы Python
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/base/types-and-structures/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Типы и структуры данных
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/base/iterators-generators/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Итераторы, генераторы
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/base/context/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Менеджер контекста
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/base/exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Исключения
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    ООП в Python
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            ООП в Python
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/oop/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Объекты, области видимости
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Фреймворки и библиотеки
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            Фреймворки и библиотеки
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/libs/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Типы и различия
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/libs/web/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Web
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/libs/orm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ORM
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/libs/math/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Math
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/parallelizm/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Многопоточность и асинхронность
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Логирование, мониторинг
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/db/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Базы данных
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_8" id="__nav_4_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Тестирование и контроль качества кода
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_8">
+            <span class="md-nav__icon md-icon"></span>
+            Тестирование и контроль качества кода
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/tests/intro/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Пирамида тестирования и умение писать тесты
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/tests/linters/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pylint, Pytest, PEP-8, PEP-257
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Отладка и профилирование
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            Отладка и профилирование
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/debug/cython/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cython
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/debug/numba/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Numba
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/debug/points/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Условные точки останова
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/debug/trace/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Трассировка
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/debug/async/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Отладка многопоточного и асинхронного кода
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python/debug/interpreter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Отладка на уровне интерпретатора
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    DevOps
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            DevOps
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Вводный модуль
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Linux
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            Linux
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linux/connect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Подключение к ВМ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linux/shell/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Основы Shell
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linux/home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №1
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Инструменты командной строки Linux
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            Инструменты командной строки Linux
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Инструменты командной строки Linux
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Ansible
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            Ansible
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ansible/part1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ansibe ч.1
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ansible/home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ansible/part2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ansible ч.2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ansible/part3/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ansible ч.3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_5" id="__nav_5_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Наблюдаемость
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_5">
+            <span class="md-nav__icon md-icon"></span>
+            Наблюдаемость
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visiblity/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Наблюдаемость
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visiblity/home_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №4
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_6" id="__nav_5_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Docker
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_6">
+            <span class="md-nav__icon md-icon"></span>
+            Docker
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Docker
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/home_work1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №5
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/compose/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Docker и Compose
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/home_work2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №6
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_7" id="__nav_5_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    GitLab CI
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_7">
+            <span class="md-nav__icon md-icon"></span>
+            GitLab CI
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitlab_ci/part1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab CI Harbor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitlab_ci/part2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab CI ч.2
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitlab_ci/home_work1/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №7
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitlab_ci/part3/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab CI ч.3
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gitlab_ci/home_work2/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Домашнее задание №8
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_8" id="__nav_5_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Vault
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_8">
+            <span class="md-nav__icon md-icon"></span>
+            Vault
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vault
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ipsec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ISEC
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../finish_work/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Итоговая самостоятельная работа
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/ForceFledgling/ForceFledgling/blob/main/docs/modules/devops/linux_tools/index.md" title="Редактировать страницу" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="linux">Инструменты командной строки Linux</h1>
+<p>Сначала обсудим то, что есть практически во всех операционных системах.</p>
+<h1 id="ps">ps</h1>
+<p>Команда PS используется для просмотра списка процессов.  </p>
+<p>Коротко про процессы  </p>
+<p>Процесс — это программа, которая выполняется в отдельном виртуальном адресном пространстве.  </p>
+<p>В Linux поддерживается классическая схема мультипрограммирования. Linux поддерживает параллельное или квазипараллельное, при наличии только одного процессора, выполнение процессов пользователя.  </p>
+<p>Каждый процесс выполняется в собственном виртуальном адресном пространстве, т.е. процессы защищены друг от друга и крах одного процесса никак не повлияет на другие выполняющиеся процессы и на всю систему в целом.  </p>
+<p>Один процесс не может прочитать что-либо из памяти или записать в нее другого процесса без «разрешения» на то другого процесса. Санкционированные взаимодействия между процессами допускаются системой.  </p>
+<p>Существуют основные состояния процессов:  </p>
+<p>Запуск<br />
+Процесс либо уже работает, либо готов к работе и ждет, когда ему будет дано процессорное время;  </p>
+<p>Ожидание <br />
+Процессы в этом состоянии ожидают какого-либо события или освобождения системного ресурса. Ядро делит такие процессы на два типа: 1) ожидают освобождения аппаратных средств и 2) приостановленные с помощью сигнала;  </p>
+<p>Остановлено <br />
+Обычно в этом состоянии находятся процессы, которые были остановлены с помощью сигнала;  </p>
+<p>Зомби <br />
+Это мертвые процессы, они были остановлены и больше не выполняются, но для них есть запись в таблице процессов, возможно, из-за того, что у процесса остались дочерние процессы.  </p>
+<p>Для просмотра процессов используется команда PS и необходимые в моменте ключи.   </p>
+<p>Если введем PS, то получим следующие столбцы информации:  </p>
+<p>PID — это уникальный идентификатор процесса.<br />
+TTY — тип терминала, в который вошел пользователь.<br />
+TIME — общее время, в течение которого процесс был активен.<br />
+CMD — команда, которая запустила процесс.  </p>
+<p>ps -A — покажет все запущенные процессы<br />
+ps -a — покажет все процессы которые не связаны с терминалом<br />
+ps -T — покажет все процессы наоборот связанные с терминалом<br />
+ps -ax — даст все текущие запущенные процессы<br />
+ps -aux — покажет процессы в формате BSD<br />
+ps -ef — что бы просмотреть список в полном формате<br />
+ps -u user — фильтр по пользователю</p>
+<h1 id="kill">kill</h1>
+<p>Поскольку мы говорим о процессах и ps логично будет проговорить про команду kill.<br />
+Это инструкция которая завершает указанный процесс. Есть несколько вариантов выполнения привязанных к сигналам. Про сигналы поскольку это обширная тема вам придется почитать отдельно.  </p>
+<p>Общеизвестные сигналы:</p>
+<div class="highlight"><pre><span></span><code>kill -9 # немедленно останавливающий процесс
+
+kill -2 # Сигнал INT посылает процессу от управляющего терминала, когда 
+        # пользователь желает прервать процесс. Это как правило, инициируется
+        # нажатием Control-C, но на некоторых системах, «delete» или «break»
+
+kill -15 # (sigterm) Сигнал TERM посылается в процесс чтобы запросить о его 
+         # прекращении. В отличие от сигнала «kill», он может быть и
+         # интерпретируемым или игнорируемым в процессе. Это позволяет процессу
+         # выполнять «nice» выполнение для прекращения высвобождения ресурсов и
+         # сохранения состояния в случае необходимости
+</code></pre></div>
+<p>Следует отметить, что SIGINT почти идентичен SIGTERM.  </p>
+<p>При этом команда PS позволяет нам найти PID процесса, который мы хотим завершить.  </p>
+<p>Есть расширенные версии Kill. Команда «pkill» позволяет использовать расширенные шаблоны регулярных выражений и других критериев соответствия.  </p>
+<p>Вы можете убить приложение, введя имя процесса, вместо использования PID.<br />
+Killall использует имя процесса, а вместо PID, и он «убивает» все экземпляры процесса с тем же именем.</p>
+<h1 id="curl">curl</h1>
+<p>Curl — это набор библиотек, в которых реализуются базовые возможности работы с URL страницами и передачи файлов. Библиотека поддерживает работу с протоколами: FTP, FTPS, HTTP, HTTPS, TFTP, SCP, SFTP, Telnet, DICT, LDAP, а также POP3, IMAP и SMTP. Она отлично подходит для имитации действий пользователя на страницах и других операций с URL адресами.  </p>
+<p>Синтаксис curl достаточно простой:<br />
+curl опции ссылка  </p>
+<p>Рассмотрим наиболее используемые опции.</p>
+<div class="highlight"><pre><span></span><code>curl -o # Позволяет сохранить вывод в файл. 
+
+curl -o readme.txt \
+     https://github.com/hashicorp/terraform-provider-hcp/blob/main/README.md
+
+curl \
+  -O https://github.com/hashicorp/terraform-provider-hcp/blob/main/README.md
+  # Позволит сохранить файл с названием как в ссылке.
+
+curl -# -C - -O # Возобновит прервавшуюся загрузку. 
+
+curl -L https://www.docker.com/ # Позволяет атоматически пройти по переадресации
+                                # если адрес возвращает 3хх ответ.
+</code></pre></div>
+<p>Сетевые порты — это механизм, с помощью которого операционная система определяет какой именно программе необходимо передать сетевой пакет.  </p>
+<p>Если порт открыт это означает, что какая либо программа, обычно сервис, использует его для связи с другой программой через интернет или в локальной системе.</p>
+<h1 id="netstat">netstat</h1>
+<p>Утилита netstat позволяет увидеть открытые в системе порты, а также открытые на данный момент сетевые соединения.  </p>
+<p>Наиболее используемые опции netstat:  </p>
+<p>-l или --listening — посмотреть только прослушиваемые порты;<br />
+-p или --program — показать имя программы и ее PID;<br />
+-t или --tcp — показать tcp порты;<br />
+-u или --udp — показать udp порты;<br />
+-n или --numeric — показывать ip адреса в числовом виде.  </p>
+<p>Открытые порты Linux, которые ожидают соединений имеют тип LISTEN, а перед портом отображается IP адрес на котором сервис ожидает подключений.<br />
+Это может быть определенный IP адрес или */0.0.0.0 что означают любой доступный адрес.  </p>
+<p>Полный список значений TCP сокетов:  </p>
+<p>CLOSED — закрыт. Сокет не используется.<br />
+LISTEN — ожидает входящих соединений.<br />
+SYN_SENT — активно пытается установить соединение.<br />
+SYN_RECEIVED — идет начальная синхронизация соединения.<br />
+ESTABLISHED — соединение установлено.<br />
+CLOSE_WAIT — удаленная сторона отключилась; ожидание закрытия сокета.<br />
+FIN_WAIT_1 — сокет закрыт; отключение соединения.<br />
+CLOSING — сокет закрыт, затем удаленная сторона отключилась; ожидание подтверждения.<br />
+LAST_ACK — удаленная сторона отключилась, затем сокет закрыт; ожидание подтверждения.<br />
+FIN_WAIT_2 — сокет закрыт; ожидание отключения удаленной стороны.<br />
+TIME_WAIT — ожидание после закрытия повторной передачи отключения удаленной стороны.</p>
+<div class="highlight"><pre><span></span><code>sudo netstat -tulpn
+
+sudo watch netstat -tulpn
+</code></pre></div>
+<p>Покажет TCP/UDP порты в реальном времени.<br />
+С помощью netstat можно просмотреть таблицу маршрутизации.</p>
+<div class="highlight"><pre><span></span><code>sudo netstat -rn 
+netstat -nlp
+
+netstat -lnptux
+-l все открытые порты (LISTEN)
+-t по протоколу TCP
+-u по протоколу UDP
+-x по протоколу UNIX Socket
+-n без резолва IP/имён
+-p но с названиями процессов и PID-ами
+</code></pre></div>
+<p>netstat -atun | wc -l  </p>
+<p>Подсчет активных соединений на сервере.</p>
+<div class="highlight"><pre><span></span><code>wc
+
+wc -c --bytes  Отобразить размер объекта в байтах
+wc -l --lines  Вывести количество строк в объекте
+wc -m -count  Показать количесто символов в объекте
+wc -w --words  Отобразить количество слов в объекте
+</code></pre></div>
+<h1 id="htop">Htop</h1>
+<p>Htop это средство просмотра процессов и приложение текстового режима для системного мониторинга в режиме реального времени, аналогичное top.  </p>
+<p>Он прост в использовании и отображает полный список выполняемых процессов.  </p>
+<p>В нижней строке указаны ключи функции, которые можно использовать. Нажмите клавишу F6 для сортировки по разным параметрам, используйте клавиши со PERCENT_MEM стрелками, чтобы выбрать столбец, а затем нажмите клавишу ВВОД.<br />
+При этом процессы сортируются по использованию памяти.  </p>
+<p>Краткий список дополнительных команд:  </p>
+<p>u — показать только процессы, принадлежащие указанному пользователю.<br />
+M — сортировать по количеству занятой памяти (так же, как в утилите top).<br />
+P — сортировать по степени использования CPU (так же, как в top).<br />
+T — сортировать по общему времени работы (так же, как в top).<br />
+F — следить за процессом: если при обновлении списка процессов правила сортировки заставляют переместить текущий процесс вверх или вниз по списку, переместить курсор вслед за ним. Эта возможность полезна для наблюдения за конкретным процессом. Нажатие на любую клавишу перемещения отменяет этот режим.<br />
+K — скрыть процессы ядра: потоки, запущенные ядром, убираются из списка выводимых процессов.<br />
+H — скрыть пользовательские потоки: в современных системах с поддержкой NPTL, которые представляют потоки иначе, чем пользовательские процессы, этот переключатель уберёт пользовательские потоки из списка процессов.<br />
+Ctrl-L — перерисовать экран и перечитать все значения.<br />
+Numbers — поиск по идентификатору процесса (PID). При наборе цифр курсор будет автоматически перемещаться на первый подходящий процесс.  </p>
+<p>Рассмотрим что нам показывает Htop  </p>
+<p>Uptime: показывает время непрерывной работы системы.<br />
+Это можно узнать и командой uptime.  </p>
+<p>Откуда программа uptime это берёт? Она считывает информацию из файла /proc/uptime.</p>
+<div class="highlight"><pre><span></span><code>cat /proc/uptime
+</code></pre></div>
+<p><em>Первое число</em> — количество секунд работы системы.<br />
+<em>Второе число</em> — показывает сколько секунд система находилась в бездействии.  </p>
+<p>Стоит отметить, что на системах с несколькими процессорами, второй показатель может оказаться больше, чем первый, так как это сумма по процессорам.<br />
+Если можно взять это прямо из файла, то зачем нужна утилита uptime?  </p>
+<p>Дело в том, что uptime форматирует вывод в читаемом виде, тогда как секунды в файле удобно использовать при написании собственных скриптов и программ.</p>
+<h1 id="load-average">Load average</h1>
+<p>Помимо времени непрерывной работы, uptime показывает и среднюю загрузку системы, они отображены как 3 числа. А взяты они из файла /proc/loadavg.</p>
+<div class="highlight"><pre><span></span><code>cat /proc/loadavg
+</code></pre></div>
+<p>Первые 3 числа измеряют среднюю загрузку системы за последние 1, 5 и 15 минут. 4-ый параметр это количество активных процессов и их общее число. Последнее число — это ID последнего использованного процесса.  </p>
+<p>Когда запускается процесс, ему присваивается ID.  </p>
+<p>Как правило, они идут в возрастающем порядке, за исключением случаев, когда число исчерпалось и системе приходится начинать отсчёт заново. ID 1 присваивается процессу /sbin/init, который запускается при старте.  </p>
+<p>load average— это средняя загрузка системы на протяжении определённого периода времени.  </p>
+<p>Число загрузки считается как сумма количества процессов, которые запущены, т.е. выполняются или находятся в ожидании запуска, и непрерываемых процессов. Иными словами, это просто число процессов.  </p>
+<p>Средняя загрузка высчитывается не просто как усреднённое значение за 1, 5 и 15 минут.  </p>
+<p>Все три значения усредняют среднюю загрузку за всё время работы системы. Они устаревают экспоненциально, но с разной скоростью.  </p>
+<p>Таким образом, средняя загрузка за 1 минуту это сумма 63% загрузки за последнюю минуту + 37% загрузки с момента запуска без учёта последней минуты.  </p>
+<p>То же соотношение верно и для 5, 15 минут. Поэтому не совсем верно, что средняя загрузка за последнюю минуту включает активность только за последнюю минуту, но большей частью за последнюю минуту.  </p>
+<p>Если упростить, то процессор может выполнять один процесс за раз.<br />
+Если бы процессоров было 2 то, можно было бы одновременно выполнять 2 процесса. Максимальная средняя загрузка (100% использования CPU) системы с двумя процессорами составляет 2.00.  </p>
+<p>Количество процессоров в системе можно узнать в левом верхнем углу htop или при помощи nproc.</p>
+<h1 id="_1">Процессы</h1>
+<p>В правом верхнем углу htop показывает общее количество процессов и сколько из них активны. Но почему там написано задания tasks, а не процессы?  </p>
+<p>Задание — это синоним процесса. В ядре Linux процессы и есть задания. htop использует термин задания возможно потому, что это название короче и экономит немного места.  </p>
+<p>В htop можно увидеть и потоки threads. Для переключения этой опции нужно использовать комбинацию Shift+H. Если отображается что-то вроде Tasks: 23, 10 thr, то это значит, что они видимы.  </p>
+<p>Отображение потоков выполнения ядра kernel threads можно включить комбинацией Shift+K, и тогда задания будут выглядеть как Tasks: 23, 40 kthr  </p>
+<p>ID процесса / PID  </p>
+<p>При каждом запуске процесса, ему присваивается идентификатор PID.<br />
+Если запускать программу в фоновом режиме (&amp;) из bash, то номер задачи job выводится в квадратных скобках, а рядом с ним PID процесса.</p>
+<div class="highlight"><pre><span></span><code>sleep 1000 &amp;
+</code></pre></div>
+<p>Ещё один способ — это использовать переменную $! в bash, которая хранит PID последнего процесса, запущенного в фоне.</p>
+<div class="highlight"><pre><span></span><code>echo $!
+</code></pre></div>
+<p>ID процесса очень полезен. С помощью него можно узнать подробности процесса и управлять им.<br />
+Существует псевдо файловая система procfs, с помощью которой программы могут получить информацию от ядра системы путём чтения файлов.  </p>
+<p>Чаще всего она монтируется в /proc/ и для пользователя выглядит как обычный каталог, который можно смотреть командами, такими как ls и cd.  </p>
+<p>Вся информация о процессе находится в /proc/\&lt;рid&gt;/\<ID>.</p>
+<div class="highlight"><pre><span></span><code>ls /proc/&lt;ID&gt;
+</code></pre></div>
+<p>Например в /proc/\&lt;рid&gt;/cmdline содержится команда при помощи которой процесс запустился.  </p>
+<p>В каталоге процесса могут быть и ссылки! Для примера, cwd ссылается на текущий рабочий каталог, а exe на запущенный исполняемый файл.</p>
+<div class="highlight"><pre><span></span><code>ls -l /proc/&lt;ID&gt;/{cwd,exe}
+</code></pre></div>
+<p>Таким образом утилиты htop, top, ps и другие показывают информацию о процессе, они просто читают /proc/\&lt;рid&gt;/\&lt;файл&gt;.  </p>
+<p>Процесс, запускающий новый процесс, называют родительским или просто «родителем». Таким образом, новый процесс — это дочерний процесс родительского. Эти отношения образуют структуру в виде дерева.  </p>
+<p>Если нажать F5 в htop, то можно увидеть иерархию процессов. Тот же эффект и от флага f команды ps.  </p>
+<p>У каждого процесса есть владелец, т.е. пользователь. У пользователей, в свою очередь, существуют численные ID.</p>
+<div class="highlight"><pre><span></span><code>sleep 1000 &amp;
+
+grep Uid /proc/&lt;ID&gt;/status
+</code></pre></div>
+<p>Можно воспользоваться командой id, чтобы узнать имя этого пользователя.<br />
+Команда, id берёт эту информацию из файлов /etc/passwd и /etc/group.<br />
+Это обычные текстовые файлы, в которых ID привязаны к именам пользователей.</p>
+<div class="highlight"><pre><span></span><code>cat /etc/passwd
+</code></pre></div>
+<p>passwd? Но где пароли? А они на самом деле в /etc/shadow</p>
+<div class="highlight"><pre><span></span><code>sudo cat /etc/shadow
+</code></pre></div>
+<p>Если вы запустите программу, то она запустится от вашего имени, даже если вы не являетесь её владельцем. Если же вам нужно запустить её как root, то нужно использовать sudo, о чем мы говорили ранее.  </p>
+<p>Состояния процесса  </p>
+<p>Дальше, мы будем разбираться со столбцом состояния процессов в htop.<br />
+Возможные значения состояния:  </p>
+<p>R — [running or runnable] запущенные или находятся в очереди на запуск<br />
+S — [interruptible sleep] прерываемый сон<br />
+D — [uninterruptible sleep] непрерываемый сон (в основном IO)<br />
+Z — [zombie] процесс зомби, прекращенный, но не забранный родителем<br />
+T — Остановленный сигналом управления заданиями<br />
+t — Остановленный отладчиком<br />
+X — Мёртвый (не должен показываться)  </p>
+<p>Остановимся на нескольких.  </p>
+<p>R — Запущенные или в очереди<br />
+Процессы в этом состоянии либо запущены, либо находятся в очереди для запуска.<br />
+Что это значит?<br />
+Когда вы компилируете код, то на выходе получаете исполняемый файл в виде инструкций для процессора.<br />
+При запуске, этот файл помещается в память, где процессор выполняет эти инструкции, проще говоря занимается вычислениями.  </p>
+<p>S — Прерываемый сон<br />
+При этом состоянии инструкции программы не исполняются в процессоре, проще говоря спят. Процесс ждёт события или какого ни будь условия для продолжения. После того, как событие произошло, состояние меняется на запущенное.  </p>
+<p>Z — Зомби процесс<br />
+Когда процесс заканчивает свою работу с помощью exit и у неё остаются дочерние процессы, дочерние процессы становятся в состоянии зомби.  </p>
+<p>1. Абсолютно нормально, если зомби процесс существует недолго<br />
+2. Зомби процессы которые существуют долгое время, могут говорить о баге в программе<br />
+3. Зомби процессы не используют память, только лишь ID процесса<br />
+4. Зомби процесс нельзя «убить»<br />
+5. Можно вежливо попросить родительский процесс избавиться от зомби (послав SIGCHLD)<br />
+6. Можно завершить родительский процесс, чтобы избавиться от обоих  </p>
+<p>Время обработки процесса  </p>
+<p>Linux — многозадачная операционная система. Это означает, что даже если процессор один, то можно одновременно запускать на нём несколько заданий.  </p>
+<p>Например, можно подключиться к удалённому серверу через SSH и посмотреть на вывод htop, а при этом сам сервер будет показывать ваш блог читателям в интернете.  </p>
+<p>Как же возможно, что единственный процессор может одновременно выполнять несколько заданий?<br />
+Разделением времени.  </p>
+<p>Каждый процесс выполняется определённый интервал времени, при котором другие приостановлены, затем выполняется следующий процесс и т.д.  </p>
+<p>Как правило, интервал времени выполнения составляет миллисекунды, поэтому пользователь этого и не заметит, если, конечно же, система не нагружена.  </p>
+<p>Память — VIRT/RES/SHR/MEM  </p>
+<p>У процессов создаётся иллюзия, что память кроме них никто не использует. Такая иллюзия — результат работы виртуальной памяти.  </p>
+<p>Процессы не имеют прямого доступа к физической памяти. Для них выделяется участок виртуальной памяти, адреса в которой, проецируются ядром уже на адреса в физической памяти, либо на диск. Поэтому, иногда кажется, что процессы используют больше памяти, чем установлено в системе.  </p>
+<p>Из-за этого не совсем легко понять сколько же именно памяти использует процесс. Но, к счастью, ядро и, в частности, htop позволяют извлечь некоторую информацию чтобы понять аппетит процесса по отношению к памяти.  </p>
+<p>VIRT/VSZ — Виртуальный образ  </p>
+<p>Общее количество памяти, занимаемое процессом. Оно включает в себя весь код, данные, общие библиотеки, страницы которые были перемещены на диск, а также страницы, которые проецировались ядром, но не были использованы.  </p>
+<p>Таким образом VIRT это всё, что используется процессом. Если приложение запрашивает 1 Гб памяти, но использует при этом только 1 Мб, то память VIRT будет отображаться всё равно как 1 Гб. Даже если оно вызовет mmap для файла весом в 1 Гб и никогда им не воспользуется, то VIRT всё равно останется 1 Гб. В большинстве случаев этот показатель бесполезен.  </p>
+<p>RES/RSS — Резидентная память  </p>
+<p>Память RSS [resident set size] это область, которая не выгружена на диск и находится в оперативной памяти.<br />
+RES, возможно, лучше отображает реальное использование памяти процессора чем VIRT, но нужно иметь ввиду:  </p>
+<p>Туда не включена память, выгруженная на диск.  </p>
+<p>Некоторая память может быть совместно используемой несколькими процессами.<br />
+Если процесс использует 1 Гб памяти и вызывает fork(), то в результате у обоих процессов значение RES будет 1 Гб, в то время как в оперативной памяти будет занято только 1 Гб, потому что в Linux есть механизм копирования при записи [copy-on-write].  </p>
+<p>SHR — Разделяемая память  </p>
+<p>Объём памяти, который может быть совместно использован другими процессами.  </p>
+<p>MEM% — Использование памяти  </p>
+<p>Процент использования физической памяти. Это RES, делённый на общий объём оперативной памяти.  </p>
+<p>Если, например, RES составляет 200М и в системе установлено 8 Гб памяти, то MEM% будет 200/8192*100 = 2.4%</p>
+<h1 id="telnetnetcat">Telnet/Netcat и иже с ними</h1>
+<p>TELNET — сетевой протокол для реализации текстового терминального интерфейса по сети (в современной форме — при помощи транспорта TCP).  </p>
+<p>Выполняет функции протокола прикладного уровня модели OSI. Протокол telnet использовался для удалённого администрирования различными сетевыми устройствами и программными серверами, но уступил ssh из-за безопасности. Тем не менее может являться единственной возможностью взаимодействовать через cli с embedded systems, например, router, т.к. на них отсутствует ssh.  </p>
+<p>Проверка порта  </p>
+<p>Вы можете использовать эту команду для проверки подключения приложения.</p>
+<div class="highlight"><pre><span></span><code>telnet IPADDRESS PORT
+telnet &lt;ip&gt; 22
+</code></pre></div>
+<p>Netcat  </p>
+<p>Netcat (nc) – это утилита командной строки, которая читает и записывает данные через сетевые подключения, используя протоколы TCP или UDP.  </p>
+<p>Почему netcat вытесняет telnet?<br />
+Есть несколько причин, по которым telnet сильно проигрывает.  </p>
+<p>Основные причины:<br />
+1. telnet не умеет различать причины недоступности порта. Все, или ничего — connect, либо fail. Netcat может подсказать, в чем проблема.<br />
+2. Не умеет в UDP, SCTP и прочие, ничего кроме TCP.<br />
+3. Не имеет опций тайм-аута соединения -w и проверки без подключения -z  </p>
+<p>Самый простой синтаксис утилиты Netcat имеет следующий вид:</p>
+<div class="highlight"><pre><span></span><code>nc [options] host port
+</code></pre></div>
+<p>В Ubuntu вы можете использовать netcat или nc.  </p>
+<p>Опции Netcat:<br />
+-h — справка;<br />
+-v — вывод информации о процессе работы (verbose);<br />
+-o \&lt;выходной_файл&gt; — Вывод данных в файл;<br />
+-i \&lt;число&gt; — задержка между отправляемыми данными (в секундах);<br />
+-z — не посылать данные (сканирование портов);<br />
+-u — использовать для подключения UDP протокол;<br />
+-l — режим прослушивания;<br />
+-p \&lt;число&gt; — локальный номер порта для прослушивания. Используется с опцией -l;<br />
+-s \&lt;хост&gt; — использовать заданный локальный («свой») IP-адрес;<br />
+-n — отключить DNS и поиск номеров портов по /etc/services;<br />
+-w \&lt;число&gt; — задать тайм-аут (в секундах);<br />
+-q \&lt;число&gt; — задать время ожидания после передачи данных, после истечение которого соединение закрывается.  </p>
+<p>По умолчанию Netcat пытается запустить TCP-соединение с указанным хостом и портом.<br />
+Если вы хотите установить UDP-соединение, используйте параметр -u :</p>
+<div class="highlight"><pre><span></span><code>nc -z -v -u 77.88.8.8 53
+</code></pre></div>
+<p>Сканирование портов  </p>
+<p>Сканирование портов является одним из наиболее распространенных способов использования Netcat. Можно сканировать один порт или диапазон портов.  </p>
+<p>Например, для поиска открытых портов в диапазоне 1-80 вы должны использовать следующую команду:</p>
+<div class="highlight"><pre><span></span><code>nc -z -v &lt;IP&gt; 1-80
+</code></pre></div>
+<p>Опция -z скажет nc сканировать только открытые порты, без отправки каких – либо данных на них и -v дает возможность предоставления более подробной информации.  </p>
+<p>Если необходимо распечатать только строки с открытыми портами, можно отфильтровать результаты с помощью команды grep:</p>
+<div class="highlight"><pre><span></span><code>nc -z -v 192.168.0.113 1-80 2&gt;&amp;1 | grep open
+</code></pre></div>
+<p>Можно использовать Netcat для поиска серверного программного обеспечения и его версии. Например, если отправить команду «EXIT» на сервер по стандартному SSH-порту 22:</p>
+<div class="highlight"><pre><span></span><code>echo &quot;EXIT&quot; | nc &lt;IP&gt; 22
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>ncat -v -w3 -z &lt;IP&gt; 22
+ncat -v -w3 -z &lt;IP&gt; 1521
+</code></pre></div>
+<h1 id="tcpdump">tcpdump</h1>
+<p>Утилита tcpdump — хороший инструмент, с помощью которого можно перехватывать и анализировать сетевой трафик.<br />
+Может оказаться лучшим решением для поиска сетевых проблем.  </p>
+<p>Рассмотрим примеры использовать и пример вывода  </p>
+<p>Строки вывода tcpdump:</p>
+<div class="highlight"><pre><span></span><code>09:39:44.460155 IP 185.155.18.126.62351 &gt; 10.0.10.41.ssh: Flags [.], ack 196, win 2044, options [nop,nop,TS val 3611282493 ecr 2742031715], length 0
+09:39:44.604514 IP 10.0.10.41.ssh &gt; 185.155.18.126.62351: Flags [P.], seq 196:568, ack 1, win 501, options [nop,nop,TS val 2742031865 ecr 3611282493], length 372
+</code></pre></div>
+<p>Каждая строка включает:  </p>
+<ul>
+<li>время (09:39:44.460155)</li>
+<li>протокол (IP)</li>
+<li>имя или IP-адрес исходного хоста и номер порта (185.155.18.126.62351)</li>
+<li>имя хоста или IP-адрес назначения и номер порта (10.0.10.41.ssh)</li>
+<li>флаги TCP (Flags [F.]). Указывают на состояние соединения и могут содержать более одного значения:</li>
+<li>o S — SYN. Первый шаг в установлении соединения</li>
+<li>F — FIN. Прекращение соединения</li>
+<li>— ACK. Пакет подтверждения принят успешно</li>
+<li>P — PUSH. Указывает получателю обрабатывать пакеты вместо их буферизации</li>
+<li>R — RST. Связь прервалась</li>
+<li>порядковый номер данных в пакете. (seq 196)</li>
+<li>номер подтверждения. (ack 196)</li>
+<li>размер окна (win 2044). Количество байтов, доступных в приемном буфере. Далее следуют параметры TCP</li>
+<li>длина полезной нагрузки данных. (length 0/length 372)</li>
+</ul>
+<p>Примеры:</p>
+<div class="highlight"><pre><span></span><code>sudo tcpdump host 10.0.10.41 # перехватит все входящие и исходящие пакеты
+
+sudo tcpdump -n \
+  -i ens160 src 10.0.10.41 and not port 22 # перехватит все входящие и 
+                                           # исходящие пакеты, кроме порта 22
+
+sudo tcpdump -c10 -i ens160 -n -A port 80 # покажет тело пакетов http запросов
+</code></pre></div>
+<p>tcpdump — имеет очень широкие возможности для исследования сетевых подключений и поиска проблем. Все доступные ключи вы найдете в мануале man tcpdump.</p>
+<h1 id="linux-mib">Linux MIB</h1>
+<p>Совсем чуть чуть про дебаг для сетевого соединения.  </p>
+<p>Что такое MIB и как его можно использовать.  </p>
+<p>SNMP (англ. — Simple Network Management Protocol — простой протокол сетевого управления) — стандартный интернет-протокол для управления устройствами в IP-сетях на основе протоколов TCP/UDP.  </p>
+<p>К поддерживающим SNMP устройствам относятся маршрутизаторы, коммутаторы, серверы, рабочие станции, принтеры, модемные стойки и другие.  </p>
+<p>Протокол обычно используется в системах сетевого управления для контроля подключённых к сети устройств на предмет условий, которые требуют внимания администратора. SNMP состоит из набора стандартов для сетевого управления, включая протокол прикладного уровня, схему баз данных и набор объектов данных.  </p>
+<p>MIB (база управленческой информации) текстовый файл с инструкциями по сбору и упорядочению информации. Менеджер SNMP использует информацию из MIB для перевода и интерпретации сообщений перед их отправкой конечному пользователю. Ресурсы, хранящиеся в MIB, называются управляемыми объектами или переменными управления.  </p>
+<p>Если ваш сервер вдруг перестал реагировать на внешние раздражители и клиентские запросы стали провисать, не всегда проблема в зависших сервисах.  </p>
+<p>Одним из элементов дебага текущего состояния это просмотр статистики ядра Linux по внутренним счетчикам SNMP. Самая распространенная из них netstat.</p>
+<div class="highlight"><pre><span></span><code>netstat -s
+nstat -s
+</code></pre></div>
+<p>Первая утилита более дружелюбна к пользователю, однако показывает не все переменные. Вторая же показывает весь список, однако не содержит никаких подсказок.  </p>
+<p>Из-за чего нужно приложить некоторые усилия для того, чтобы понять смысл и назначение тех, или иных счетчиков. Для нас интерес может представлять buffer overrun.</p>
+<div class="highlight"><pre><span></span><code>netstat -s |grep prune
+873 packets pruned from receive queue because of socket buffer overrun
+
+nstat -s |grep Prune
+TcpExtPruneCalled 873 0.0
+</code></pre></div>
+<p>Как видите для нас вывод пустой но выше можно увидеть как выглядят проблемы.  </p>
+<p>Если сервер не справляется с сетевой нагрузкой и буфер сокета перманентно переполнен, тогда ядро будет просто сбрасывать все новые пакеты и счетчик будет расти на глазах.  </p>
+<p>Чтобы исправить эту ситуацию, можно добавить некоторые настраиваемые параметры в файле sysctl.conf. Текущие значения можно увидеть из файловой системы /proc.</p>
+<div class="highlight"><pre><span></span><code>cat /proc/sys/net/ipv4/tcp_rmem
+cat /proc/sys/net/ipv4/wcp_rmem
+cat /etc/sysctl.conf
+cat /proc/sys/net/ipv4/tcp_wmem
+cat /proc/sys/net/ipv4/tcp_rmem
+</code></pre></div>
+<p>Три значения параметра tcp_rmem/tcp_wmem обозначает соответственно минимальное, пороговое и максимальное значение.  </p>
+<p>По умолчанию величины выставлены довольно разумно, поэтому менять их без веских оснований не стоит. Чаще всего такая ситуация может возникнуть на сети с пропускной способностью 10 GiB/s.<br />
+После сохранения изменений в файле sysctl.conf следует выполнить systcl -p. Эта команда запускает системный вызов setsockopt (SO_RCVBUF).  </p>
+<p>Следует отметить, что буфер setsockopt(SO_RCVBUF), установленный в приложении, будет ограничен значениями, установленными в net.core.rmem_default и net.core.rmem_max и если приложение имеет буфер размером 1 мб, но net.core.rmem_max составляет всего 256 кб, то буфер сокета приложения будет ограничен этим значением.</p>
+<h1 id="ssltls">SSL/TLS</h1>
+<p>Сертификат SSL/TLS — это цифровой объект, который позволяет системам проверять личность и впоследствии устанавливать зашифрованное сетевое соединение с другой системой с использованием протокола Secure Sockets Layer/Transport Layer Security (SSL/TLS).  </p>
+<p>Сертификаты используются в рамках криптографической системы, известной как инфраструктура открытого ключа (PKI). PKI дает одной стороне возможность устанавливать подлинность другой стороны с помощью сертификатов (при условии, что обе стороны доверяют третьей стороне, известной как центр сертификации).  </p>
+<p>Таким образом, сертификаты SSL/TLS действуют как цифровые удостоверения личности для защиты сетевых подключений и установления подлинности веб-сайтов в Интернете, а также ресурсов в частных сетях.  </p>
+<p>Но перейдем от сухого определения к конкретике. У нас уже есть HTTP (надеюсь вы все знаете про него и дополнительно объяснять не надо). Так что же с ним не так?  </p>
+<p>Проблема протокола HTTP в том, что данные передаются по сети в открытом незашифрованном виде. Это позволяет злоумышленнику слушать передаваемые пакеты и извлекать любую информацию из параметров, заголовков и тела сообщения.  </p>
+<p>Для устранения уязвимости был разработан HTTPS (S в конце значит Secure) - он, хоть не является отдельным протоколом, всего лишь HTTP поверх SSL (а позже TLS), позволяет безопасно обмениваться данными. В отличие от HTTP со стандартным TCP/IP портом 80, для HTTPS используется порт 443.</p>
+<h1 id="ssl">Протокол SSL</h1>
+<p>Secure Sockets Layer (SSL) — это криптографический протокол, обеспечивающий безопасное общение пользователя и сервера по небезопасной сети. Располагается между транспортным уровнем и уровнем программы-клиента.  </p>
+<p>Сам протокол был внедрен достаточно давно, Что необходимо знать так это что в 2015 году он признан устаревшим и на смену ему пришел TSL.</p>
+<h1 id="tls">Протокол TLS</h1>
+<p>Transport Layer Security — это развитие идей, заложенных в протоколе SSL. На данный момент актуальной является версия TLSv1.2, с августа 2018 активно вводится TLSv1.3, тогда как TLSv1.1, TLSv1.0, SSLv3.0, SSLv2.0, SSLv1.0 находятся в статусе deprecated.  </p>
+<p>Протокол обеспечивает услуги: приватности (сокрытие передаваемой информации), целостности (обнаружение изменений), аутентификации (проверка авторства). Достигаются они за счет гибридного шифрования, то есть совместного использования ассиметричного и симметричного шифрования.  </p>
+<p>Симметричное шифрование предполагает наличие общего ключа одновременно у отправителя и получателя, с помощью которого происходит шифровка и дешифровка данных. Данный тип не требователен к ресурсам, однако существенно страдает безопасность из-за опасности кражи ключа злоумышленником.  </p>
+<p>При использовании ассиметричного шифрования существует открытый ключ, который можно свободно распространять, и закрытый ключ, который держится в секрете у одной из сторон. Этот тип работает медленно, относительно симметричного шифрования, однако скомпрометировать закрытый ключ сложнее.  </p>
+<p>Чтобы решить проблему производительности (шифровать ассиметрично абсолютно все - сложно), в TLS используется гибридное шифрование: общий ключ для симметричного шифрования данных передается от клиента серверу зашифрованным открытым ключом сервера, после этого сервер может его расшифровать своим закрытым ключом и использовать для обмена данными с клиентом.  </p>
+<p>Давайте разберем подробнее и по порядку, каким образом работает TLS соединение.  </p>
+<p>Протокол TLS предназначен для предоставления трёх услуг всем приложениям, работающим над ним, а именно: шифрование, аутентификацию и целостность:  </p>
+<p>Шифрование — сокрытие информации, передаваемой от одного компьютера к другому;<br />
+Аутентификация — процедура проверки подлинности;<br />
+Целостность — обнаружение подмены информации подделкой.  </p>
+<p>Для того чтобы установить криптографически безопасный канал данных, узлы соединения должны согласовать используемые методы шифрования и ключи.<br />
+Протокол TLS однозначно определяет данную процедуру. Следует отметить, что TLS использует криптографию с открытым ключом, которая позволяет узлам установить общий секретный ключ шифрования без каких-либо предварительных знаний друг о друге.  </p>
+<p>Также в рамках процедуры TLS Handshake имеется возможность установить подлинность личности и клиента, и сервера. Например, клиент может быть уверен, что сервер, который предоставляет ему информацию о банковском счёте, действительно банковский сервер. И наоборот: сервер компании может быть уверен, что клиент, подключившийся к нему – именно сотрудник компании, а не стороннее лицо/  </p>
+<p>Наконец, TLS обеспечивает отправку каждого сообщения с кодом MAC (Message Authentication Code), алгоритм создания которого – односторонняя криптографическая функция хеширования (фактически – контрольная сумма), ключи которой известны обоим участникам связи.  </p>
+<p>Всякий раз при отправке сообщения, генерируется его MAC-значение, которое может сгенерировать и приёмник, это обеспечивает целостность информации и защиту от её подмены.  </p>
+<p>Рассмотрим, что внутри.</p>
+<h1 id="tls_1">Протокол TLS</h1>
+<p>Перед тем, как начать обмен данными через TLS, клиент и сервер должны согласовать параметры соединения, а именно: версия используемого протокола, способ шифрования данных, а также проверить сертификаты, если это необходимо.  </p>
+<p>Схема начала соединения называется TLS Handshake.</p>
+<p><img alt="" src="img/Frame_2085660577.png" /></p>
+<p>Разберём подробнее каждый шаг данной процедуры:  </p>
+<ol>
+<li>Так как TLS работает над TCP, для начала между клиентом и сервером устанавливается TCP-соединение.</li>
+<li>Client Hello После установки TCP, клиент посылает на сервер спецификацию в виде обычного текста (а именно версию протокола, которую он хочет использовать, поддерживаемые методы шифрования Cipher Spec,и случайного простого числа (client random), необходимого в дальнейшем для генерации общего ключа симметричного шифрования.). Что такое Cipher Spec? В процессе установки соединения, клиент и сервер должны договориться о: какой алгоритм использовать для обмена ключами (например, RSA — Риверт-Шамир-Адлеман, DH — Диффи-Хеллмана, ECDH — Диффи-Хеллмана на эллиптических кривых, и др.), какой алгоритм использовать для шифрования данных (AES — Advanced Encryption Standard, 3DES — Tripple Data Encryption Algorithm, и др.), какую криптографическую хэш-функцию использовать для генерации Message Authentication Code (SHA-256, SHA-384, SHA-512 — Secure Hash Algorithm с соответствующей длиной строки в битах с хэшем, и др.).</li>
+<li>Server Hello Сервер утверждает версию используемого протокола, выбирает способ шифрования из предоставленного списка, прикрепляет свой сертификат и отправляет ответ клиенту (при желании сервер может так же запросить клиентский сертификат).</li>
+<li>Certificate Версия протокола и способ шифрования на данном моменте считаются утверждёнными, клиент проверяет присланный сертификат и инициирует либо RSA, либо обмен ключами по Диффи-Хеллману, в зависимости от установленных параметров. Сертификат - это открытый ключ и другая информация о его владельце, а также Электронная Цифровая Подпись (ЭЦП) доверенного центра. При создании ЭЦП хэш данных, которые подписываются, шифруется закрытым ключом, в отличие от обычного ассиметричного шифрования, где зашифровка выполняется открытым ключом. Таким образом, если вам удалось расшифровать открытым ключом хэш, и он оказался идентичен хэшу из данных, - вы можете быть уверены что: подпись была сделана именно владельцем приватного ключа, открытый ключ которого вы используете; данные, которые были подписаны, не изменились с момента подписания.</li>
+<li>Server Key Exchange — этот этап происходит не всегда, только если необходимы дополнительные данные для создания симметричного ключа при выбранном алгоритме. Например, при обмене ключами RSA этот шаг пропускается и для обмена общим ключ передается от клиента серверу зашифрованным открытым ключом сервера</li>
+<li>Server Hello Done — сервер сообщает, что начальный этап установки соединения завершен</li>
+<li>Client Key Exchange сервер передал информацию в Server Key Echange, клиент передает свою информацию в Client Key Exchange. Вычисленное в конце общее одинаковое число используется для создания pre-master secret - предварительного разделяемого ключа. На основании client random, server random и pre-master secret псевдослучайная функция выдает симметричный ключ и ключ вычисления MAC. Таким образом клиент и сервер имеют все необходимое для начала обмена полезной информацией.</li>
+<li>Change Cipher Spec — клиент говорит серверу, что он готов перейти на защищенное соединение.</li>
+<li>Finished — клиент зашифровывает симметричным ключом первое сообщение с MAC.</li>
+<li>Change Cipher Spec Сервер обрабатывает присланное клиентом сообщение, сверяет MAC, и отправляет клиенту заключительное (‘Finished ’) сообщение в зашифрованном виде.</li>
+<li>Клиент расшифровывает полученное сообщение, сверяет MAC, и если всё хорошо, то соединение считается установленным и начинается обмен данными приложений.</li>
+<li>close_notify(нет на картинке) — служебное сообщение, которое одна сторона отправляет другой, как уведомление о том, что считает соединение разорванным и не будет принимать больше сообщения. Другая сторона в ответ обязана послать аналогичное сообщение close_notify</li>
+</ol>
+<p>Установление соединения TLS является, довольно длительным процессом, поэтому в стандарте TLS есть несколько оптимизаций.  </p>
+<p>В частности, имеется процедура под названием “abbreviated handshake”, которая позволяет использовать ранее согласованные параметры для восстановления соединения (естественно, если клиент и сервер устанавливали TLS-соединение в прошлом).  </p>
+<p>Также имеется дополнительное расширение процедуры Handshake, которое имеет название TLS False Start. Это расширение позволяет клиенту и серверу начать обмен зашифрованными данными сразу после установления метода шифрования, что сокращает установление соединения на одну итерацию сообщений.</p>
+<h1 id="tls_2">Двусторонний TLS</h1>
+<p>Двусторонний TLS или Two Way TLS или mutual TLS (mTLS) означает проверку сертификата клиента. Сервер после своего сообщения Certificate посылает запрос сертификата клиента CertificateRequest. Клиент в ответ отправляет Certificate, сервер производит проверку, аналогичную проверке сертификата сервера клиентом. Далее настройка TLS происходит в описанном выше порядке.</p>
+<h1 id="tls_3">Обмен ключами в протоколе TLS</h1>
+<p>По различным историческим и коммерческим причинам чаще всего в TLS используется обмен ключами по алгоритму RSA: клиент генерирует симметричный ключ, подписывает его с помощью открытого ключа сервера и отправляет его на сервер.  </p>
+<p>В свою очередь, на сервере ключ клиента расшифровывается с помощью закрытого ключа. После этого обмен ключами объявляется завершённым. Данный алгоритм имеет один недостаток: эта же пара отрытого и закрытого ключей используется и для аутентификации сервера.  </p>
+<p>Соответственно, если злоумышленник получает доступ к закрытому ключу сервера, он может расшифровать весь сеанс связи. Более того, злоумышленник может попросту записать весь сеанс связи в зашифрованном варианте и занять расшифровкой потом, когда удастся получить закрытый ключ сервера.  </p>
+<p>В то же время, обмен ключами Диффи-Хеллмана представляется более защищённым, так как установленный симметричный ключ никогда не покидает клиента или сервера и, соответственно, не может быть перехвачен злоумышленником, даже если тот знает закрытый ключ сервера.  </p>
+<p>На этом основана служба снижения риска компрометации прошлых сеансов связи: для каждого нового сеанса связи создаётся новый, так называемый «временный» симметричный ключ.  </p>
+<p>Соответственно, даже в худшем случае (если злоумышленнику известен закрытый ключ сервера), злоумышленник может лишь получить ключи от будущих сессий, но не расшифровать ранее записанные.  </p>
+<p>На текущий момент, все браузеры при установке соединения TLS отдают предпочтение именно сочетанию алгоритма Диффи-Хеллмана и использованию временных ключей для повышения безопасности соединения.  </p>
+<p>Следует ещё раз отметить, что шифрование с открытым ключом используется только в процедуре TLS Handshake во время первоначальной настройки соединения. После настройки туннеля в дело вступает симметричная криптография, и общение в пределах текущей сессии зашифровано именно установленными симметричными ключами.  </p>
+<p>Это необходимо для увеличения быстродействия, так как криптография с открытым ключом требует значительно больше вычислительной мощности.</p>
+<h1 id="tls_4">Возобновление сессии TLS</h1>
+<p>Как уже отмечалось ранее, полная процедура TLS Handshake является довольно длительной и дорогой с точки зрения вычислительных затрат. Поэтому была разработана процедура, которая позволяет возобновить ранее прерванное соединение на основе уже сконфигурированных данных.  </p>
+<p>Начиная с первой публичной версии протокола (SSL 2.0) сервер в рамках TLS Handshake (а именно первоначального сообщения ServerHello) может сгенерировать и отправить 32-байтный идентификатор сессии.  </p>
+<p>Естественно, в таком случае у сервера хранится кэш сгенерированных идентификаторов и параметров сеанса для каждого клиента. В свою очередь клиент хранит у себя присланный идентификатор и включает его (конечно, если он есть) в первоначальное сообщение ClientHello.  </p>
+<p>Если и клиент, и сервер имеют идентичные идентификаторы сессии, то установка общего соединения происходит по упрощённому алгоритму, показанному на рисунке. Если нет, то требуется полная версия TLS Handshake.</p>
+<p><img alt="" src="img/Fram3e_2085660577.png" /></p>
+<p>Процедура возобновления сессии позволяет пропустить этап генерации симметричного ключа, что существенно повышает время установки соединения, но не влияет на его безопасность, так как используются ранее нескомпрометированные данные предыдущей сессии.  </p>
+<p>Однако здесь имеется практическое ограничение: так как сервер должен хранить данные обо всех открытых сессиях, это приводит к проблеме с популярными ресурсами, которые одновременно запрашиваются тысячами и миллионами клиентов.  </p>
+<p>Для обхода данной проблемы был разработан механизм «Session Ticket», который устраняет необходимость сохранять данные каждого клиента на сервере.  </p>
+<p>Если клиент при первоначальной установке соединения указал, что он поддерживает эту технологию, то в сервер в ходе TLS Handshake отправляет клиенту так называемый Session Ticket – параметры сессии, зашифрованные закрытым ключом сервера.  </p>
+<p>При следующем возобновлении сессии, клиент вместе с ClientHello отправляет имеющийся у него Session Ticket. Таким образом, сервер избавлен от необходимости хранить данные о каждом соединении, но соединение по-прежнему безопасно, так как Session Ticket зашифрован ключом, известным только на сервере.</p>
+<h1 id="tls-false-start">TLS False Start</h1>
+<p>Технология возобновления сессии бесспорно повышает производительность протокола и снижает вычислительные затраты, однако она не применима в первоначальном соединении с сервером, или в случае, когда предыдущая сессия уже истекла.  </p>
+<p>Для получения ещё большего быстродействия была разработана технология TLS False Start, являющаяся опциональным расширением протокола и позволяющая отправлять данные, когда TLS Handshake завершён лишь частично. Подробная схема TLS False Start представлена на рисунке:</p>
+<p><img alt="" src="img/Fram2e_2087326794.png" /></p>
+<p>Важно отметить, что TLS False Start никак не изменяет процедуру TLS Handshake. Он основан на предположении, что в тот момент, когда клиент и сервер уже знают о параметрах соединения и симметричных ключах, данные приложений уже могут быть отправлены, а все необходимые проверки можно провести параллельно.  </p>
+<p>В результате соединение готово к использованию на одну итерацию обмена сообщениями раньше.</p>
+<h1 id="tls-chain-of-trust">TLS Chain of Trust</h1>
+<p>Аутентификация является неотъемлемой частью каждого TLS соединения. Рассмотрим простейший процесс аутентификации между Алисой и Бобом:<br />
+</p>
+<ol>
+<li>И Алиса, и Боб генерируют собственные открытые и закрытые ключи.</li>
+<li>Алиса и Боб обмениваются открытыми ключами.</li>
+<li>Алиса генерирует сообщение, шифрует его своим закрытым ключом и отправляет Бобу.</li>
+<li>Боб использует полученный от Алисы ключ, чтобы расшифровать сообщение и таким образом проверяет подлинность полученного сообщения.</li>
+</ol>
+<p>Очевидно, что данная схема построена на доверии между Алисой и Бобом. Предполагается, что обмен открытыми ключами произошёл, например, при личной встрече, и, таким образом, Алиса уверена, что получила ключ непосредственно от Боба, а Боб, в свою очередь, уверен, что получил открытый ключ Алисы.  </p>
+<p>Пусть теперь Алиса получает сообщение от Чарли, с которым она не знакома, но который утверждает, что дружит с Бобом. Чтобы это доказать, Чарли заранее попросил подписать собственный открытый ключ закрытым ключом Боба, и прикрепляет эту подпись к сообщению Алисе.  </p>
+<p>Алиса же сначала проверяет подпись Боба на ключе Чарли (это она в состоянии сделать, ведь открытый ключ Боба ей уже известен), убеждается, что Чарли действительно друг Боба, принимает его сообщение и выполняет уже известную проверку целостности, убеждаясь, что сообщение действительно от Чарли:</p>
+<p><img alt="" src="img/2789.png" /></p>
+<p>Описанное в предыдущем абзаце и есть создание «цепочки доверия».<br />
+В протоколе TLS данные цепи доверия основаны на сертификатах подлинности, предоставляемых специальными органами, называемыми центрами сертификации (CA – certificate authorities).  </p>
+<p>Центры сертификации производят проверки и, если выданный сертификат скомпрометирован, то данный сертификат отзывается.  </p>
+<p>Из выданных сертификатов складывается уже рассмотренная цепочка доверия. Корнем её является так называемый “Root CA certificate” – сертификат, подписанный крупным центром, доверие к которому неоспоримо.<br />
+В общем виде цепочка доверия выглядит примерно таким образом:</p>
+<p><img alt="" src="img/27920.png" /></p>
+<p>Естественно, возникают случаи, когда уже выданный сертификат необходимо отозвать или аннулировать (например, был скомпрометирован закрытый ключ сертификата, или была скомпрометирована вся процедура сертификации).<br />
+Для этого сертификаты подлинности содержат специальные инструкции о проверке их актуальности. Следовательно, при построении цепочки доверия, необходимо проверять актуальность каждого доверительного узла.  </p>
+<p>Механизм этой проверки прост и в его основе лежит т.н. «Список отозванных сертификатов» (CRL – «Certificate Revocation List»). У каждого из центров сертификации имеется данный список, представляющий простой перечень серийных номеров отозванных сертификатов.  </p>
+<p>Соответственно любой, кто хочет проверить подлинность сертификата, попросту загружает данный список и ищет в нём номер проверяемого сертификата. Если номер обнаружится – это значит, что сертификат отозван.<br />
+Здесь очевидно присутствует некоторая техническая нерациональность: для проверки лишь одного сертификата требуется запрашивать весь список отозванных сертификатов, что влечёт замедление работы.  </p>
+<p>Для борьбы с этим был разработан механизм под названием «Протокол статусов сертификатов» (OCSP – Online Certificate Status Protocol). Он позволяет осуществлять проверку статуса сертификата динамически.  </p>
+<p>Естественно, это снижает нагрузку на пропускную способность сети, но в то же время порождает несколько проблем:<br />
+</p>
+<ol>
+<li>Центры сертификации должны справляться с нагрузкой в режиме реального времени;</li>
+<li>Центры сертификации должны гарантировать свою доступность в любое время;</li>
+<li>Из-за запросов реального времени центры сертификации получают информацию о том, какие сайты посещал каждый конкретный пользователь.</li>
+</ol>
+<p>Собственно, во всех современных браузерах оба решения (OCSP и CRL) дополняют друг друга, более того, как правило имеется возможность настройки предпочитаемой политики проверки статуса сертификата.</p>
+<h1 id="tlsv13">TLSv1.3</h1>
+<p>Стоит отметить, что все выше написанное относится к TLSv1.2, которая начинает понемногу устаревать. В 2018 году была разработана новая версия 1.3 в которой: были запрещены уже ненадежные алгоритмы, ускорен процесс соединения, переработан протокол рукопожатия и др.  </p>
+<p>Интернет медленно но верно обновляется до TLSv1.3, однако все еще большинство сайтов работают по протоколу TLSv1.2.</p>
+<h1 id="_2">Выпускаем собственные сертификаты</h1>
+<p>Теперь, когда мы разобрали теорию, самое время приступить к практике!  </p>
+<p>Для начала установим OpenSSL:</p>
+<div class="highlight"><pre><span></span><code>sudo apt update
+sudo apt install openssl
+</code></pre></div>
+<p>После установки OpenSSL следующим шагом будет создание закрытого ключа. Закрытый ключ является важным компонентом сертификата SSL, поскольку он используется для подписи и расшифровки данных.  </p>
+<p>Запустите следующую команду, чтобы сгенерировать 2048-битный закрытый ключ RSA:</p>
+<div class="highlight"><pre><span></span><code>openssl genrsa -out test.key 2048
+</code></pre></div>
+<p>Обязательно сохраните этот закрытый ключ в безопасности, поскольку он имеет решающее значение для обеспечения безопасности вашего сертификата SSL.  </p>
+<p>Далее вам необходимо создать запрос на подпись сертификата (CSR), который включает информацию о вашем сервере и организации. CSR необходим для создания сертификата SSL. Запустите следующую команду, чтобы создать CSR:</p>
+<div class="highlight"><pre><span></span><code>openssl req -new -key test.key -out test.csr
+</code></pre></div>
+<p>Вам будет предложено ввести различные данные, такие как ваша страна, штат, населенный пункт, название организации, общее имя (доменное имя) и адрес электронной почты. Заполните эти данные точно, так как они будут использоваться в вашем сертификате SSL.  </p>
+<p>Теперь, когда у вас есть CSR, вы можете сгенерировать само подписанный сертификат SSL с помощью следующей команды:</p>
+<div class="highlight"><pre><span></span><code>openssl x509 -req -days 365 -in test.csr -signkey test.key -out test.crt
+</code></pre></div>
+<p>Готово.</p>
+<blockquote>
+<p>Следует обратить внимание, что самоподписанные сертификаты не желательны к использованию в продакшене.</p>
+</blockquote>
+<h1 id="_3">Домашнее задание</h1>
+<p>Для выписывания сертификатов используются разные методы и технологии.<br />
+В данном случае мы воспользуемся Let's Encrypt и выпишем себе личный сертификат, который будем использовать в дальнейшем.  </p>
+<p>Для этого эффективно будет использовать Certbot. <a href="https://certbot.eff.org/instructions?ws=other&amp;os=ubuntufocal">Инструкция</a> по выписыванию сертификата.  </p>
+<p>Дополнительные команды для выписывания сертификата:</p>
+<div class="highlight"><pre><span></span><code>apt install certbot -y
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>sudo certbot certonly --standalone --preferred-challenges http -d &lt;ВАШ DNS&gt;
+</code></pre></div>
+<blockquote>
+<p>За своим DNS обратитесь к вашему лектору.</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  К началу
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Нижний колонтитул" >
+        
+          
+          <a href="../linux/home_work/" class="md-footer__link md-footer__link--prev" aria-label="Назад: Домашнее задание №1">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256l137.3-137.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Назад
+              </span>
+              <div class="md-ellipsis">
+                Домашнее задание №1
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="home_work/" class="md-footer__link md-footer__link--next" aria-label="Вперед: Домашнее задание №2">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Вперед
+              </span>
+              <div class="md-ellipsis">
+                Домашнее задание №2
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      2024, Vladimir Penzin
+    </div>
+  
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://t.me/vpotd" target="_blank" rel="noopener" title="Vladimir Penzin on Telegram" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M248 8C111.033 8 0 119.033 0 256s111.033 248 248 248 248-111.033 248-248S384.967 8 248 8m114.952 168.66c-3.732 39.215-19.881 134.378-28.1 178.3-3.476 18.584-10.322 24.816-16.948 25.425-14.4 1.326-25.338-9.517-39.287-18.661-21.827-14.308-34.158-23.215-55.346-37.177-24.485-16.135-8.612-25 5.342-39.5 3.652-3.793 67.107-61.51 68.335-66.746.153-.655.3-3.1-1.154-4.384s-3.59-.849-5.135-.5q-3.283.746-104.608 69.142-14.845 10.194-26.894 9.934c-8.855-.191-25.888-5.006-38.551-9.123-15.531-5.048-27.875-7.717-26.8-16.291q.84-6.7 18.45-13.7 108.446-47.248 144.628-62.3c68.872-28.647 83.183-33.623 92.511-33.789 2.052-.034 6.639.474 9.61 2.885a10.45 10.45 0 0 1 3.53 6.716 43.8 43.8 0 0 1 .417 9.769"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/ForceFledgling" target="_blank" rel="noopener" title="Vladimir Penzin on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["content.action.edit", "navigation.tabs", "navigation.tabs.sticky", "navigation.footer", "navigation.instant.progress", "navigation.top", "search.highlight", "search.share"], "search": "../../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>
