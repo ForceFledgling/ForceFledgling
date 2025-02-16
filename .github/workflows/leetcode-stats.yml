@@ -1,0 +1,28 @@
+name: Update LeetCode Stats
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Каждый день в полночь
+  workflow_dispatch: # Разрешить запуск вручную
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Fetch LeetCode Stats
+        id: leetcode-stats
+        uses: anuraghazra/github-readme-leetcode-stats@master
+        with:
+          username: ForceFledgling
+          limit: 10
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Update LeetCode stats" || exit 0
+          git push
