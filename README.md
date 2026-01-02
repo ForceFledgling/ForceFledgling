@@ -1,16 +1,15 @@
-## Hi there 👋
+### 🎓 Certifications & Professional Training
 
-<!--
-**ForceFledgling/ForceFledgling** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+- **HCIA** — Huawei Certified ICT Associate  
+- **CCNP** — Cisco Certified Network Professional  
+- **Cisco Networking Academy Instructor Certification**
+- **DevOps Professional Training** — MTS Teta, Skillbox
 
-Here are some ideas to get you started:
+**Nokia Training Center**:
+- Service Router (SR OS) configuration and troubleshooting  
+- IP/MPLS services provisioning and Quality of Service (QoS)  
+- Network management and supervision (NFM-P / NSP)  
+- Multicast, routing, and service assurance fundamentals
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+🔗 App Store Developer Page  
+https://apps.apple.com/us/developer/vladimir-penzin/id1861556107
