@@ -1,7 +1,7 @@
 ### 🎓 Certifications & Professional Training
 
 - **HCIA** — Huawei Certified ICT Associate  
-- **CCNP** — Cisco Certified Network Professional  
+- **CCNP R&S** — Cisco Certified Network Professional  
 - **Cisco Networking Academy Instructor Certification**
 - **DevOps Professional Training** — MTS Teta, Skillbox
 
